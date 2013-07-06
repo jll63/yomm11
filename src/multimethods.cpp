@@ -150,7 +150,7 @@ namespace multimethods {
       MM_TRACE(cout << "--- tuple = (");
       MM_TRACE({ int i = 0; transform(
             tuple.begin(), tuple.end() - 1, ostream_iterator<mm_class*>(cout, ", "),
-            [=](int c) { return classes[i][c]; }); });
+            [&](int c) { return classes[i][c]; }); });
       MM_TRACE(cout << classes[tuple.size() - 1][tuple.back()] << ")\n");
 
       vector<method_base*> viable;

@@ -58,9 +58,13 @@ namespace multimethods {
   template<class Class>
   struct mm_class_of {
     static mm_class& the() {
-      static mm_class instance(typeid(Class)); return instance;
+      static mm_class instance(typeid(Class));
+      return instance;
     }
   };
+  
+  template<class Class>
+  struct mm_class_of<const Class> : mm_class_of<Class> { };
 
   template<class... Bases>
   struct bases;
@@ -91,6 +95,7 @@ namespace multimethods {
   mm_class_initializer<Class, Bases...> mm_class_initializer<Class, Bases...>::the;
 
   struct root {
+    root() : __mm_ptbl(0) { }
     std::vector<int>* __mm_ptbl;
     template<class THIS>
     void init_mmptr(THIS*) {
