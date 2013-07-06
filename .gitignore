@@ -1,0 +1,6 @@
+a.out
+*.s
+*.o
+*.d
+/tests/experiments
+/tests/tests
