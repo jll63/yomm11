@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 
-#define MM_ENABLE_TRACE
+//#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
 #define MM_TRACE(e) e
@@ -53,7 +53,7 @@ namespace multimethods {
     return os << pc->name();
   }
 
-  std::ostream& operator <<(std::ostream& os, std::vector<mm_class*> classes);
+  std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes);
   
   template<class Class>
   struct mm_class_of {
@@ -77,7 +77,7 @@ namespace multimethods {
       if (pc.bases.empty()) {
         pc.bases = { &mm_class_of<Bases>::the()... };
         pc.abstract = std::is_abstract<Class>::value;
-        std::cout << pc.ti.name() << " " << pc.abstract << "\n";
+        MM_TRACE(std::cout << pc.ti.name() << " " << pc.abstract << "\n");
         for (mm_class* pb : pc.bases)
           pb->specs.push_back(&pc);
       } else {
@@ -350,9 +350,8 @@ namespace multimethods {
   };
 
   struct resolver {
-    resolver(multimethod_base& mm) : mm(mm), dims(mm.vargs.size()) { }
+    resolver(multimethod_base& mm);
     void resolve(multimethod_base::emit_func emit);
-    void do_resolve(multimethod_base::emit_func emit);
     void do_resolve(int dim, const std::vector<method_base*>& viable);
     int dominates(const method_base* a, const method_base* b);
     void assign_class_indices();
@@ -415,6 +414,7 @@ namespace multimethods {
   template<class Tag, typename R, typename... P>
   typename multimethod<Tag, R(P...)>::emit_func
   multimethod<Tag, R(P...)>::allocate_dispatch_table(int size) {
+    using namespace std;
     delete [] dispatch_table;
     dispatch_table = new mptr[size];
     return [=](method_base* method, int i) {
@@ -422,6 +422,7 @@ namespace multimethods {
         method == &method_base::ambiguous ? throw_ambiguous<signature>::body
         : method == &method_base::undefined ? throw_undefined<signature>::body
         : static_cast<method_entry*>(method)->pm;
+      MM_TRACE(cout << "installed at " << dispatch_table << " + " << i << endl);
     };
   }
   

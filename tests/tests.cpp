@@ -235,7 +235,6 @@ int main() {
     cout << "\nResolver\n";
     resolver renc(encounter);
 
-    renc.assign_class_indices();
     test(renc.classes.size(), 2);
     test(renc.classes[0].size(), 6);
     test(renc.classes[0][0]->ti.name(), mm_class_of<Animal>::the().ti.name());
@@ -245,7 +244,6 @@ int main() {
     test(renc.classes[0][4]->ti.name(), mm_class_of<Wolf>::the().ti.name());
     test(renc.classes[0][5]->ti.name(), mm_class_of<Tiger>::the().ti.name());
 
-    renc.make_steps();
     test(encounter.steps.size(), 2);
     test(encounter.steps[0], 1);
     test(encounter.steps[1], 6);
@@ -262,7 +260,6 @@ int main() {
     cout << "\ndisplay resolver\n";
     resolver rdisp(display);
 
-    rdisp.assign_class_indices();
     test(rdisp.classes.size(), 2);
     test(rdisp.classes[0].size(), 6);
     test(rdisp.classes[1].size(), 3);
@@ -329,7 +326,7 @@ int main() {
 
     cout << "\ndisplay.resolve()\n";
     test(rdisp.dispatch_table_size, 18);
-    rdisp.do_resolve(display.allocate_dispatch_table(rdisp.dispatch_table_size));
+    rdisp.resolve(display.allocate_dispatch_table(rdisp.dispatch_table_size));
 
     {
       auto mptr = display.dispatch_table;

@@ -23,7 +23,9 @@ namespace multimethods {
     //cout << name() << " <? " << other.name() << endl;
     
     return this == &other ||
-      std::any_of(bases.begin(), bases.end(), [&](mm_class* base) { return base->conforms_to(other); });
+      std::any_of(bases.begin(), bases.end(), [&](mm_class* base) {
+          return base->conforms_to(other);
+        });
   }
 
   bool mm_class::dominates(const mm_class& other) const {
@@ -125,13 +127,12 @@ namespace multimethods {
     }
   }
 
-  void resolver::resolve(multimethod_base::emit_func emit) {
+  resolver::resolver(multimethod_base& mm) : mm(mm), dims(mm.vargs.size()) {
     assign_class_indices();
     make_steps();
-    do_resolve(emit);
   }
 
-  void resolver::do_resolve(multimethod_base::emit_func emit) {
+  void resolver::resolve(multimethod_base::emit_func emit) {
     this->emit = emit;
     emit_at = 0;
     tuple.resize(dims);
@@ -156,14 +157,14 @@ namespace multimethods {
              
       copy_if(
         candidates.begin(), candidates.end(), back_inserter(viable),
-        [=](method_base* method) {
+        [&](method_base* method) {
           return pc->conforms_to(*method->args[dim]);
         });
 
-      MM_TRACE(cout << "viable = ");
+      MM_TRACE(cout << "viable = " << flush);
       MM_TRACE(copy(viable.begin(), viable.end(), ostream_iterator<const method_base*>(cout, " ")));
       MM_TRACE(cout << endl);
-                       
+
       if (dim == 0) {
         auto best = find_best(viable);
         MM_TRACE(cout << "install " << best << " at offset " << emit_at << endl); 
@@ -172,6 +173,8 @@ namespace multimethods {
         do_resolve(dim - 1, viable);
       }
     }
+    
+    MM_TRACE(cout << "exiting dim " << dim << endl);
   }
 
   int resolver::dominates(const method_base* a, const method_base* b) {
