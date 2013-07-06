@@ -54,6 +54,9 @@ namespace multimethods {
   }
 
   std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes);
+
+  template<typename... T>
+  struct type_list;
   
   template<class Class>
   struct mm_class_of {
@@ -72,6 +75,19 @@ namespace multimethods {
   template<class Class>
   struct bases_of {
     using bases_type = typename Class::bases_type;
+  };
+
+  template<class Class, class Bases>
+  struct check_bases;
+
+  template<class Class, class Base, class... Bases>
+  struct check_bases<Class, type_list<Base, Bases...>> {
+    static const bool value = std::is_base_of<Base, Class>::value && check_bases<Class, type_list<Bases...>>::value;
+  };
+
+  template<class Class>
+  struct check_bases<Class, type_list<>> {
+    static const bool value = true;
   };
 
   template<class Class, class... Bases>
@@ -450,11 +466,16 @@ namespace multimethods {
 
   template<class MM, class M> struct register_method;
 
-#define MM_CLASS(...)                                                   \
-    using bases_type = bases<__VA_ARGS__>;                              \
-    virtual void* __init_mm_class() { return &mm_class_initializer<__VA_ARGS__>::the; }
+#define MM_CLASS(CLASS, BASES...)              \
+  using mm_base_list_type = type_list<BASES>;      \
+  using mm_this_type = CLASS;                  \
+  virtual void* __init_mm_class() {                                     \
+    static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
+    static_assert(check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
+  return &mm_class_initializer<CLASS, BASES>::the; }
 
-#define MM_INIT() init_mmptr(this)
+#define MM_INIT() \
+  init_mmptr(this)
 
 #define MULTIMETHOD(ID, SIG)             \
     struct ID ## _tag;                          \

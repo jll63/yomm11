@@ -4,3 +4,4 @@ a.out
 *.d
 /tests/experiments
 /tests/tests
+/examples/three
