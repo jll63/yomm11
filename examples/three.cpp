@@ -70,7 +70,7 @@ struct comfort : reason {
   }
 };
 
-MULTIMETHOD(approve, bool(virtual_<const expense&>, virtual_<const role&>, virtual_<const reason&>));
+MULTIMETHOD(approve, bool(const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&));
 
 BEGIN_METHOD(approve, bool, const expense&, const role&, const reason&) {
   return false;

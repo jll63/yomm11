@@ -76,7 +76,7 @@ DO {
     cout << "Hunt...\n";
   }
 
-MULTIMETHOD(hunt, void(virtual_<Carnivore&>));
+MULTIMETHOD(hunt, void(virtual_<Carnivore>&));
 
 DO {
   test(hunt.slots.size(), 1);
@@ -96,7 +96,7 @@ DO {
   cout << "Encounter...\n";
 }
 
-MULTIMETHOD(encounter, string(virtual_<Animal&>, virtual_<Animal&>));
+MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
 
 DO {
   test(encounter.vargs.size(), 2);
@@ -144,7 +144,7 @@ BEGIN_METHOD(encounter, string, Herbivore&, Carnivore&) {
 
 enum action { display_error, print_cow, draw_cow, print_wolf, draw_wolf, print_tiger, draw_tiger, print_herbivore, display_cow, print_animal };
 
-MULTIMETHOD(display, action(virtual_<Animal&>, virtual_<Interface&>));
+MULTIMETHOD(display, action(virtual_<Animal>&, virtual_<Interface>&));
 
 BEGIN_METHOD(display, action, Cow& a, Terminal& b) {
   return print_cow;
@@ -200,13 +200,13 @@ int main() {
   
   static_assert(
     is_same<
-    typename extract_virtuals<virtual_<Animal&>, virtual_<Animal&> >::type,
+    typename extract_virtuals<virtual_<Animal>&, const virtual_<Animal>&>::type,
     virtuals<Animal, Animal>
     >::value, "not ok !!!");
 
   static_assert(
     is_same<
-    typename extract_virtuals<virtual_<Animal&>, int, virtual_<Animal&> >::type,
+    typename extract_virtuals<virtual_<Animal>&, int, virtual_<Animal>&>::type,
     virtuals<Animal, Animal>
     >::value, "not ok !!!");
   
@@ -216,8 +216,8 @@ int main() {
     static_assert(
       is_same<
       extract_method_virtuals<
-      void(int, virtual_<Animal&>, char, virtual_<Animal*>),
-      void(int, Cow&, char, Wolf*)
+      void(int, virtual_<Animal>&, char, const virtual_<Animal>&),
+      void(int, Cow&, char, const Wolf&)
       >::type,
       virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
 
@@ -416,6 +416,8 @@ int main() {
     test((*win.__mm_ptbl)[0], 2); // 2 => Window
 
     display.ready = true;
+
+    test((linear<virtual_<Animal>&, virtual_<Interface>&>::value(display.slots.begin(), display.steps.begin(), 0, &c, &term)), 8);
 
     test(display(c, term), print_cow);
     test(display(w, win), draw_wolf);

@@ -45,7 +45,7 @@ struct bullet : object {
   }
 };
 
-MULTIMETHOD(collide, string(virtual_<object&>, virtual_<object&>, bool swapped));
+MULTIMETHOD(collide, string(virtual_<object>&, virtual_<object>&, bool swapped));
 
 BEGIN_METHOD(collide, string, object& a, object& b, bool swapped) {
   if (swapped) {
@@ -55,6 +55,10 @@ BEGIN_METHOD(collide, string, object& a, object& b, bool swapped) {
   }
 } END_METHOD(collide)
 
+BEGIN_METHOD(collide, string, asteroid& a, asteroid& b, bool swapped) {
+  return "traverse";
+} END_METHOD(collide)
+
 int main() {
   ship player;
   asteroid as;
@@ -62,6 +66,7 @@ int main() {
   bullet b;
 
   cout << collide(player, as, false) << endl;
+  cout << collide(as, as, false) << endl;
 
   return 0;
 }

@@ -165,17 +165,7 @@ namespace multimethods {
   };
 
   template<class Class>
-  struct virtual_;
-
-  template<class Class>
-  struct virtual_<Class&> {
-    static_assert(std::is_class<Class>::value, "virtual arguments must be either Class& or Class*");
-    using type = Class;
-  };
-
-  template<class Class>
-  struct virtual_<Class*> {
-    static_assert(std::is_class<Class>::value, "virtual arguments must be either Class& or Class*");
+  struct virtual_ {
     using type = Class;
   };
 
@@ -219,7 +209,15 @@ namespace multimethods {
   };
 
   template<class... Head, typename Next, typename... Rest>
-  struct extract_virtuals< virtuals<Head...>, virtual_<Next>, Rest... > {
+  struct extract_virtuals< virtuals<Head...>, virtual_<Next>&, Rest... > {
+    using type = typename extract_virtuals<
+      virtuals<Head..., typename virtual_<Next>::type>,
+      Rest...
+      >::type;
+  };
+
+  template<class... Head, typename Next, typename... Rest>
+  struct extract_virtuals< virtuals<Head...>, const virtual_<Next>&, Rest... > {
     using type = typename extract_virtuals<
       virtuals<Head..., typename virtual_<Next>::type>,
       Rest...
@@ -246,9 +244,17 @@ namespace multimethods {
   };
 
   template<class... V, class P1, class A1, class... PN, class... AN, class R1, class R2>
-  struct extract_method_virtuals_<virtuals<V...>, R1(virtual_<P1>, PN...), R2(A1, AN...)> {
+  struct extract_method_virtuals_<virtuals<V...>, R1(virtual_<P1>&, PN...), R2(A1&, AN...)> {
     using type = typename extract_method_virtuals_<
-      virtuals<V..., typename virtual_<A1>::type>, // (Cow& or Cow*) -> Cow
+      virtuals<V..., A1>,
+      R1(PN...), R2(AN...)
+      >::type;
+  };
+
+  template<class... V, class P1, class A1, class... PN, class... AN, class R1, class R2>
+  struct extract_method_virtuals_<virtuals<V...>, R1(const virtual_<P1>&, PN...), R2(const A1&, AN...)> {
+    using type = typename extract_method_virtuals_<
+      virtuals<V..., A1>,
       R1(PN...), R2(AN...)
       >::type;
   };
@@ -264,8 +270,13 @@ namespace multimethods {
   };
 
   template<class C>
-  struct remove_virtual<virtual_<C>> {
-    using type = C;
+  struct remove_virtual<virtual_<C>&> {
+    using type = C&;
+  };
+
+  template<class C>
+  struct remove_virtual<const virtual_<C>&> {
+    using type = const C&;
   };
 
   template<class M>
@@ -352,7 +363,20 @@ namespace multimethods {
   };
     
   template<typename P1, typename... P>
-    struct linear<virtual_<P1>, P...> {
+    struct linear<virtual_<P1>&, P...> {
+    template<typename A1, typename... A>
+    static int value(
+      std::vector<int>::const_iterator slot_iter,
+      std::vector<int>::const_iterator step_iter,
+      int offset,
+      A1 arg, A... args) {
+      offset = offset + (*arg->__mm_ptbl)[*slot_iter++] * *step_iter++;
+      return linear<P...>::value(slot_iter, step_iter, offset, args...);
+    }
+  };
+    
+  template<typename P1, typename... P>
+    struct linear<const virtual_<P1>&, P...> {
     template<typename A1, typename... A>
     static int value(
       std::vector<int>::const_iterator slot_iter,
