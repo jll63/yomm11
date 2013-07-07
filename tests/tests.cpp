@@ -33,7 +33,7 @@ bool _test(const char* file, int line, const char* test, const T1& got, const ch
     cout << setw(3) << test << " returns " << ee << ", ok.\n";
     ++success;
   } else {
-    cout << file << ":" << line << ": error: " << got << ", expected " << ee << ".\n";
+    cout << file << ":" << line << ": error: " << test << ": " << got << ", expected " << ee << ".\n";
     ++failure;
   }
   return ok;
@@ -41,6 +41,9 @@ bool _test(const char* file, int line, const char* test, const T1& got, const ch
 
 #define DO void CONCAT(fun, __LINE__)(); int CONCAT(var, __LINE__) = (CONCAT(fun, __LINE__)(), 1); void CONCAT(fun, __LINE__)()
 
+DO {
+  cout << boolalpha;
+}
 
 #include "animals.hpp"
 

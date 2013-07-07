@@ -90,8 +90,11 @@ namespace multimethods {
     static const bool value = true;
   };
 
+  template<class Class, class BaseList>
+  struct mm_class_initializer;
+  
   template<class Class, class... Bases>
-  struct mm_class_initializer {
+  struct mm_class_initializer<Class, type_list<Bases...>> {
     mm_class_initializer() {
       mm_class& pc = mm_class_of<Class>::the();
       if (pc.bases.empty()) {
@@ -108,7 +111,7 @@ namespace multimethods {
   };
 
   template<class Class, class... Bases>
-  mm_class_initializer<Class, Bases...> mm_class_initializer<Class, Bases...>::the;
+  mm_class_initializer<Class, type_list<Bases...>> mm_class_initializer<Class, type_list<Bases...>>::the;
 
   struct root {
     root() : __mm_ptbl(0) { }
@@ -472,7 +475,7 @@ namespace multimethods {
   virtual void* __init_mm_class() {                                     \
     static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
     static_assert(check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-  return &mm_class_initializer<CLASS, BASES>::the; }
+  return &mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
 
 #define MM_INIT() \
   init_mmptr(this)
@@ -499,7 +502,5 @@ namespace multimethods {
     bool method::init = MM.add<method>(); } }
 
   }
-
-
 
 #endif

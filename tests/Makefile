@@ -19,7 +19,7 @@ tests : tests.o multimethods.o
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $<
 
-tests.o : tests.cpp ../include/multimethods.hpp
+tests.o : tests.cpp ../include/multimethods.hpp animals.hpp
 
 multimethods.o : ../src/multimethods.cpp ../include/multimethods.hpp
 	$(CXX) $(CXXFLAGS) -c $<
