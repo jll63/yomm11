@@ -1,7 +1,7 @@
 // -*- compile-command: "cd ../tests && make" -*-
 
 #ifndef MULTIMETHODS_INCLUDED
-#define  MULTIMETHODS_INCLUDED
+#define MULTIMETHODS_INCLUDED
 
 #include <typeinfo>
 #include <type_traits>
@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 
-//#define MM_ENABLE_TRACE
+#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
 #define MM_TRACE(e) e
@@ -151,11 +151,84 @@ namespace multimethods {
   template<class M, typename Override, class Base>
   struct wrapper;
 
+  template<bool is_base_of, class B, class D>
+  struct is_virtual_base_of_;
+    
+  template<class B, class D>
+  struct is_virtual_base_of_<false, B, D> {
+    static const bool value = false;
+  };
+  
+  template<class B, class D>
+  struct is_virtual_base_of_<true, B, D> {
+    struct X : D, virtual B { };
+    struct Y : D { };
+    static const bool value = sizeof(X) == sizeof(Y);
+  };
+
+  template<class B, class D>
+  struct is_virtual_base_of {
+    static const bool value = is_virtual_base_of_<std::is_base_of<B, D>::value, B, D>::value;
+  };
+
+  template<class C>
+  struct is_virtual_base_of<C, C> {
+    static const bool value = false;
+  };
+
+  template<class D, class B>
+  inline typename std::enable_if<
+    !std::is_same<D, B>::value &&
+    is_virtual_base_of<B, D>::value, D&>::type
+  cast(B& b) {
+    MM_TRACE(std::cout << "using dynamic_cast\n");
+    return dynamic_cast<D&>(b);
+  }
+
+  template<class D, class B>
+  inline typename std::enable_if<
+    !std::is_same<B, D>::value &&
+    is_virtual_base_of<B, D>::value, const D&>::type
+  cast(const B& b) {
+    MM_TRACE(std::cout << "using dynamic_cast\n");
+    return dynamic_cast<const D&>(b);
+  }
+
+  template<class D, class B>
+  inline typename std::enable_if<
+    !std::is_same<D, B>::value &&
+    !is_virtual_base_of<B, D>::value, D&>::type
+  cast(B& b) {
+    MM_TRACE(std::cout << "using static_cast\n");
+    return static_cast<D&>(b);
+  }
+
+  template<class D, class B>
+  inline typename std::enable_if<
+    !std::is_same<D, B>::value &&
+    !is_virtual_base_of<B, D>::value, const D&>::type
+  cast(const B& b) {
+    MM_TRACE(std::cout << "using static_cast\n");
+    return static_cast<const D&>(b);
+  }
+
+  template<class D, class B>
+  inline typename std::enable_if<std::is_same<D, B>::value, D&>::type
+  cast(B& b) {
+    return b;
+  }
+
+  template<class D, class B>
+  inline typename std::enable_if<std::is_same<D, B>::value, const D&>::type
+  cast(const B& b) {
+    return b;
+  }
+  
   template<class M, typename... A, typename OR, typename... P, typename BR>
   struct wrapper<M, OR(A...), BR(P...)> {
     using type = wrapper;
     static BR body(P... args) {
-      return M::body(static_cast<A>(args)...);
+      return M::body(cast<typename std::remove_reference<A>::type>(args)...);
     }
   };
 
@@ -524,7 +597,6 @@ namespace multimethods {
 #define END_METHOD(MM)                          \
     } static bool init; };                      \
     bool method::init = MM.add<method>(); } }
-
-  }
+}
 
 #endif
