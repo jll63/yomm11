@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 
-#define MM_ENABLE_TRACE
+//#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
 #define MM_TRACE(e) e
