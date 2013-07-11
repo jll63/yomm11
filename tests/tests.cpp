@@ -80,10 +80,10 @@ namespace single_inheritance {
     cout << "\nClass queries" << endl;
     test(mm_class_of<Wolf>::the().conforms_to(mm_class_of<Wolf>::the()), true);
     test(mm_class_of<Wolf>::the().conforms_to(mm_class_of<Animal>::the()), true);
-    test(mm_class_of<Wolf>::the().dominates(mm_class_of<Animal>::the()), true);
-    test(mm_class_of<Wolf>::the().dominates(mm_class_of<Wolf>::the()), false);
-    test(mm_class_of<Carnivore>::the().dominates(mm_class_of<Wolf>::the()), false);
-    test(mm_class_of<Wolf>::the().dominates(mm_class_of<Carnivore>::the()), true);
+    test(mm_class_of<Wolf>::the().specializes(mm_class_of<Animal>::the()), true);
+    test(mm_class_of<Wolf>::the().specializes(mm_class_of<Wolf>::the()), false);
+    test(mm_class_of<Carnivore>::the().specializes(mm_class_of<Wolf>::the()), false);
+    test(mm_class_of<Wolf>::the().specializes(mm_class_of<Carnivore>::the()), true);
   }
 
   DO {
@@ -219,7 +219,7 @@ namespace single_inheritance {
   
     cout << "\n*** method registration" << endl;
   
-    {
+//    {
       static_assert(
         is_same<
         extract_method_virtuals<
@@ -261,11 +261,11 @@ namespace single_inheritance {
       test(renc.linear(vector<int>{ 2, 2 }), 14);
 
       cout << "methods : " << renc.methods << endl;
-      test(renc.dominates(ww, ww), 0);
-      test(renc.dominates(ww, hc), -1); // although impossible because no wolfcow
-      test(renc.dominates(cc, ww), 1);
-      test(renc.dominates(hc, ca), -1); // impossible too
-      test(renc.dominates(hc, aa), -1);
+      test(renc.order(ww, ww), 0);
+      test(renc.order(ww, hc), 0);
+      test(renc.order(cc, ww), 1);
+      test(renc.order(hc, ca), 0);
+      test(renc.order(hc, aa), -1);
 
       cout << "\ndisplay resolver\n";
       resolver rdisp(*display.base);
@@ -308,15 +308,15 @@ namespace single_inheritance {
       auto herbivore_interface = static_cast<display_method_entry*>(display.base->methods[m++]);
       auto animal_terminal = static_cast<display_method_entry*>(display.base->methods[m++]);
 
-      test(renc.dominates(cow_window, animal_interface), -1);
-      test(renc.dominates(cow_terminal, animal_interface), -1);
-      test(renc.dominates(wolf_window, animal_interface), -1);
-      test(renc.dominates(wolf_terminal, animal_interface), -1);
-      test(renc.dominates(tiger_window, animal_interface), -1);
-      test(renc.dominates(tiger_terminal, animal_interface), -1);
-      test(renc.dominates(herbivore_interface, animal_interface), -1);
-      test(renc.dominates(animal_terminal, animal_interface), -1);
-      test(renc.dominates(animal_terminal, herbivore_interface), 0);
+      test(renc.order(cow_window, animal_interface), -1);
+      test(renc.order(cow_terminal, animal_interface), -1);
+      test(renc.order(wolf_window, animal_interface), -1);
+      test(renc.order(wolf_terminal, animal_interface), -1);
+      test(renc.order(tiger_window, animal_interface), -1);
+      test(renc.order(tiger_terminal, animal_interface), -1);
+      test(renc.order(herbivore_interface, animal_interface), -1);
+      test(renc.order(animal_terminal, animal_interface), -1);
+      test(renc.order(animal_terminal, herbivore_interface), 0);
 
       {
         cout << "\nfind_best\n";
@@ -332,11 +332,15 @@ namespace single_inheritance {
         test(rdisp.find_best(methods { animal_interface, cow_window }), cow_window);
         test(rdisp.find_best(methods { cow_window, animal_interface }), cow_window);
         test(rdisp.find_best(methods { herbivore_interface, animal_terminal }), &method_base::ambiguous);
-      }
+//      }
 
       cout << "\ndisplay.resolve()\n";
       test(rdisp.dispatch_table_size, 18);
-      rdisp.resolve(display.allocate_dispatch_table(rdisp.dispatch_table_size));
+      
+      multimethod_base::emit_func emit;
+      multimethod_base::emit_next_func emit_next;
+      display.allocate_dispatch_table(rdisp.dispatch_table_size, emit, emit_next);
+      rdisp.resolve(emit, emit_next);
 
       {
         auto mptr = display.dispatch_table;
@@ -433,8 +437,14 @@ namespace single_inheritance {
 
       test(encounter(c, w), "run");
       test(encounter(c, c), "ignore");
-      test(encounter_method<string(Animal&, Animal&)>::body(c, w), "ignore");
+
+      // static call
+      test(STATIC_CALL_METHOD(encounter, string(Animal&, Animal&))(c, w), "ignore");
       
+      // next
+      test(encounter_method<string(Wolf&, Wolf&)>::next(w, w), "fight");
+      test(encounter_method<string(Carnivore&, Carnivore&)>::next(w, w), "hunt");
+      test(encounter_method<string(Carnivore&, Animal&)>::next(w, w), "ignore");
     }
   }
 }

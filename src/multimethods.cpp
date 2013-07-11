@@ -1,6 +1,8 @@
 // -*- compile-command: "cd ../tests && make" -*-
 #include <multimethods.hpp>
 
+using namespace std;
+
 namespace multimethods {
 
   mm_class::mm_class(const std::type_info& t) : ti(t), abstract(false) {
@@ -28,14 +30,35 @@ namespace multimethods {
         });
   }
 
-  bool mm_class::dominates(const mm_class& other) const {
+  bool mm_class::specializes(const mm_class& other) const {
     return std::any_of(bases.begin(), bases.end(), [&](mm_class* base) {
-        return base == &other || base->dominates(other);
+        return base == &other || base->specializes(other);
       });
   }
 
   method_base method_base::undefined;
   method_base method_base::ambiguous;
+
+  bool method_base::specializes(const method_base* other) const {
+
+    if (this == other) {
+      return false;
+    }
+    
+    bool result = false;
+    
+    for (int dim = 0; dim < args.size(); dim++) {
+      if (args[dim] != other->args[dim]) {
+        if (args[dim]->specializes(*other->args[dim])) {
+          result = true;
+        } else {
+          return false;
+        }
+      }
+    }
+
+    return result;
+  }
 
   void mm_class::insert_slot(int i) {
     MM_TRACE(std::cout << "allocate slot in " << ti.name() << " at " << i << "\n");
@@ -132,12 +155,30 @@ namespace multimethods {
     make_steps();
   }
 
-  void resolver::resolve(multimethod_base::emit_func emit) {
+  void resolver::resolve(multimethod_base::emit_func emit, multimethod_base::emit_next_func emit_next) {
     this->emit = emit;
     emit_at = 0;
+    this->emit_next = emit_next;
     tuple.resize(dims);
     std::fill(tuple.begin(), tuple.end(), 0);
     do_resolve(tuple.size() - 1, mm.methods);
+    assign_next();
+  }
+
+  void resolver::assign_next() {
+    for (method_base* pm : mm.methods) {
+      vector<method_base*> candidates;
+      copy_if(
+        mm.methods.begin(), mm.methods.end(), back_inserter(candidates),
+        [&](method_base* other) {
+          return pm != other && pm->specializes(other);
+        });
+      MM_TRACE(cout << "calculating next for " << pm << ", candidates:\n");
+      MM_TRACE(copy(candidates.begin(), candidates.end(), ostream_iterator<const method_base*>(cout, "\n")));
+      auto best = find_best(candidates);
+      MM_TRACE(cout << "next is: " << best << endl);
+      emit_next(pm, best);
+    }
   }
 
   void resolver::do_resolve(int dim, const std::vector<method_base*>& candidates) {
@@ -177,29 +218,31 @@ namespace multimethods {
     MM_TRACE(cout << "exiting dim " << dim << endl);
   }
 
-  int resolver::dominates(const method_base* a, const method_base* b) {
+  int resolver::order(const method_base* a, const method_base* b) {
 
     using namespace std;
+
+    return a == b ? 0 : a->specializes(b) ? -1 : b->specializes(a) ? 1 : 0;
   
-    if (a == b) {
-      return 0;
-    }
+    // if (a == b) {
+    //   return 0;
+    // }
 
-    auto b_arg_iter = b->args.begin();
-    bool a_dominates_b = any_of(a->args.begin(), a->args.end(), [&](const mm_class* a_arg) {
-        return a_arg->dominates(**b_arg_iter++);
-      });
+    // auto b_arg_iter = b->args.begin();
+    // bool a_specializes_b = any_of(a->args.begin(), a->args.end(), [&](const mm_class* a_arg) {
+    //     return a_arg->specializes(**b_arg_iter++);
+    //   });
 
-    auto a_arg_iter = a->args.begin();
-    bool b_dominates_a = any_of(b->args.begin(), b->args.end(), [&](const mm_class* b_arg) {
-        return b_arg->dominates(**a_arg_iter++);
-      });
+    // auto a_arg_iter = a->args.begin();
+    // bool b_specializes_a = any_of(b->args.begin(), b->args.end(), [&](const mm_class* b_arg) {
+    //     return b_arg->specializes(**a_arg_iter++);
+    //   });
 
-    if (a_dominates_b) {
-      return b_dominates_a ? 0 : -1;
-    } else {
-      return b_dominates_a ? 1 : 0;
-    }
+    // if (a_specializes_b) {
+    //   return b_specializes_a ? 0 : -1;
+    // } else {
+    //   return b_specializes_a ? 1 : 0;
+    // }
   }
   
   method_base* resolver::find_best(const std::vector<method_base*>& methods) {
@@ -215,16 +258,16 @@ namespace multimethods {
       auto best_iter = best.begin();
 
       while (best_iter != best.end()) {
-        switch (dominates(method, *best_iter)) {
+        switch (order(method, *best_iter)) {
         case -1:
-          MM_TRACE(cout << method << " dominates " << *best_iter << ", removed\n");
+          MM_TRACE(cout << method << " specializes " << *best_iter << ", removed\n");
           best.erase(best_iter);
           break;
         case 0:
           best_iter++;
           break;
         case 1:
-          MM_TRACE(cout << *best_iter << " dominates " << method << ", removed\n");
+          MM_TRACE(cout << *best_iter << " specializes " << method << ", removed\n");
           best_iter = best.end();
           method = 0;
           break;

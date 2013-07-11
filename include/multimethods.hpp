@@ -44,7 +44,7 @@ namespace multimethods {
     void insert_slot(int i);
     void for_each_conforming(std::function<void(mm_class*)> pf);
     bool conforms_to(const mm_class& other) const;
-    bool dominates(const mm_class& other) const;
+    bool specializes(const mm_class& other) const;
   };
 
   inline const std::string mm_class::name() const {
@@ -126,6 +126,7 @@ namespace multimethods {
 
   struct method_base {
     std::vector<mm_class*> args;
+    bool specializes(const method_base* other) const;
     static method_base undefined;
     static method_base ambiguous;
   };
@@ -139,6 +140,7 @@ namespace multimethods {
     void shift(int pos);
     
     using emit_func = std::function<void(method_base*, int i)>;
+    using emit_next_func = std::function<void(method_base*, method_base*)>;
     std::vector<mm_class*> vargs;
     std::vector<int> slots;
     std::vector<method_base*> methods;
@@ -357,8 +359,9 @@ namespace multimethods {
   template<class M>
   struct method : method_base {
     M pm;
+    M* pn; // next
 
-    method(M pm, std::vector<mm_class*> type_tuple) : pm(pm) {
+    method(M pm, std::vector<mm_class*> type_tuple, M* pn) : pm(pm), pn(pn) {
       args = type_tuple;
     }
   };
@@ -474,9 +477,10 @@ namespace multimethods {
 
   struct resolver {
     resolver(multimethod_base& mm);
-    void resolve(multimethod_base::emit_func emit);
+    void resolve(multimethod_base::emit_func emit, multimethod_base::emit_next_func emit_next);
     void do_resolve(int dim, const std::vector<method_base*>& viable);
-    int dominates(const method_base* a, const method_base* b);
+    int order(const method_base* a, const method_base* b);
+    void assign_next();
     void assign_class_indices();
     void make_steps();
     int linear(const std::vector<int>& tuple);
@@ -489,6 +493,7 @@ namespace multimethods {
     std::vector<int> tuple;
     std::vector<std::vector<mm_class*>> classes;
     multimethod_base::emit_func emit;
+    multimethod_base::emit_next_func emit_next;
     int emit_at;
   };
 
@@ -506,7 +511,7 @@ namespace multimethods {
     R operator ()(typename remove_virtual<P>::type... args) const;
 
     static void prepare();
-    static multimethod_base::emit_func allocate_dispatch_table(int size);
+    static void allocate_dispatch_table(int size, multimethod_base::emit_func& emit, multimethod_base::emit_next_func& emit_next);
 
     using return_type = R;
     using mptr = return_type (*)(typename remove_virtual<P>::type...);
@@ -516,6 +521,11 @@ namespace multimethods {
 
     static multimethod_base* base;
     static mptr* dispatch_table;
+
+    template<typename Tag>
+    struct next_ptr {
+      static mptr next;
+    };
   };
 
   template<template<typename Sig> class Method, typename R, typename... P>
@@ -523,6 +533,10 @@ namespace multimethods {
 
   template<template<typename Sig> class Method, typename R, typename... P>
   multimethod_base* multimethod_impl<Method, R(P...)>::base;
+
+  template<template<typename Sig> class Method, typename R, typename... P>
+  template<typename Tag>
+  typename multimethod_impl<Method, R(P...)>::mptr multimethod_impl<Method, R(P...)>::next_ptr<Tag>::next;
 
   template<template<typename Sig> class Method, typename R, typename... P>
   void multimethod_impl<Method, R(P...)>::init_base() {
@@ -544,22 +558,34 @@ namespace multimethods {
   template<template<typename Sig> class Method, typename R, typename... P>
   void multimethod_impl<Method, R(P...)>::prepare() {
     resolver r(*base);
-    r.resolve(allocate_dispatch_table(r.dispatch_table_size));
+    multimethod_base::emit_func emit;
+    multimethod_base::emit_next_func emit_next;
+    allocate_dispatch_table(r.dispatch_table_size, emit, emit_next);
+    r.resolve(emit, emit_next);
     base->ready = true;
   }
   
   template<template<typename Sig> class Method, typename R, typename... P>
-  typename multimethod_base::emit_func
-  multimethod_impl<Method, R(P...)>::allocate_dispatch_table(int size) {
+  
+  void multimethod_impl<Method, R(P...)>::allocate_dispatch_table(
+    int size,
+    multimethod_base::emit_func& emit,
+    multimethod_base::emit_next_func& emit_next) {
     using namespace std;
     delete [] dispatch_table;
     dispatch_table = new mptr[size];
-    return [=](method_base* method, int i) {
+    emit = [=](method_base* method, int i) {
       dispatch_table[i] =
         method == &method_base::ambiguous ? throw_ambiguous<signature>::body
         : method == &method_base::undefined ? throw_undefined<signature>::body
         : static_cast<method_entry*>(method)->pm;
       MM_TRACE(cout << "installed at " << dispatch_table << " + " << i << endl);
+    };
+    emit_next = [](method_base* method, method_base* next) {
+      *static_cast<method_entry*>(method)->pn =
+        next == &method_base::ambiguous ? throw_ambiguous<signature>::body
+        : next == &method_base::undefined ? throw_undefined<signature>::body
+        : static_cast<method_entry*>(next)->pm;
     };
   }
   
@@ -574,7 +600,7 @@ namespace multimethods {
     MM_TRACE(cout << virtuals() << endl);
     MM_TRACE(cout << method_virtuals() << endl);
 
-    method_base* method = new method_entry(target::body, mm_class_vector_of<method_virtuals>::get());
+    method_base* method = new method_entry(target::body, mm_class_vector_of<method_virtuals>::get(), &M::next);
     
     base->methods.push_back(method);
     base->invalidate();
@@ -612,7 +638,7 @@ namespace multimethods {
 
 #define BEGIN_METHOD(ID, RESULT, ARGS...)                               \
   template<>                                                            \
-  struct ID ## _method<RESULT(ARGS)> {                                  \
+  struct ID ## _method<RESULT(ARGS)> : decltype(ID)::next_ptr<RESULT(ARGS)> { \
   ID ## _method() { ID.add<ID ## _method>(); }                          \
     static RESULT body(ARGS)
 
