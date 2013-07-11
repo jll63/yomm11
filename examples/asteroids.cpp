@@ -2,7 +2,6 @@
 
 //#define MM_ENABLE_TRACE
 
-
 #include "multimethods.hpp"
 
 #include <iostream>

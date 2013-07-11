@@ -21,6 +21,8 @@
 #define MM_TRACE(e)
 #endif
 
+#pragma GCC system_header
+
 namespace multimethods {
 
   struct mm_class;
@@ -161,7 +163,7 @@ namespace multimethods {
   
   template<class B, class D>
   struct is_virtual_base_of_<true, B, D> {
-    struct X : D, virtual B { };
+    struct X : D, private virtual B { X(); };
     struct Y : D { };
     static const bool value = sizeof(X) == sizeof(Y);
   };
@@ -490,11 +492,11 @@ namespace multimethods {
     int emit_at;
   };
 
-  template<class Tag, typename Sig>
+  template<template<typename Sig> class Method, typename Sig>
   struct multimethod_impl;
   
-  template<class Tag, typename R, typename... P>
-  struct multimethod_impl<Tag, R(P...)> {
+  template<template<typename Sig> class Method, typename R, typename... P>
+  struct multimethod_impl<Method, R(P...)> {
     
     template<class M>
     static method_base* add();
@@ -516,39 +518,39 @@ namespace multimethods {
     static mptr* dispatch_table;
   };
 
-  template<class Tag, typename R, typename... P>
-  typename multimethod_impl<Tag, R(P...)>::mptr* multimethod_impl<Tag, R(P...)>::dispatch_table;
+  template<template<typename Sig> class Method, typename R, typename... P>
+  typename multimethod_impl<Method, R(P...)>::mptr* multimethod_impl<Method, R(P...)>::dispatch_table;
 
-  template<class Tag, typename R, typename... P>
-  multimethod_base* multimethod_impl<Tag, R(P...)>::base;
+  template<template<typename Sig> class Method, typename R, typename... P>
+  multimethod_base* multimethod_impl<Method, R(P...)>::base;
 
-  template<class Tag, typename R, typename... P>
-  void multimethod_impl<Tag, R(P...)>::init_base() {
+  template<template<typename Sig> class Method, typename R, typename... P>
+  void multimethod_impl<Method, R(P...)>::init_base() {
     if (!base) {
       using namespace std;
       MM_TRACE(cout << "init_base\n");
-      base = new multimethod_base(mm_class_vector_of<typename multimethod_impl<Tag, R(P...)>::virtuals>::get());
+      base = new multimethod_base(mm_class_vector_of<typename multimethod_impl<Method, R(P...)>::virtuals>::get());
     }
   }
   
-  template<class Tag, typename R, typename... P>
-  inline R multimethod_impl<Tag, R(P...)>::operator ()(typename remove_virtual<P>::type... args) const {
+  template<template<typename Sig> class Method, typename R, typename... P>
+  inline R multimethod_impl<Method, R(P...)>::operator ()(typename remove_virtual<P>::type... args) const {
     if (!base->ready) {
       prepare();
     }
     return dispatch_table[linear<P...>::value(base->slots.begin(), base->steps.begin(), 0, &args...)](args...);
   }
   
-  template<class Tag, typename R, typename... P>
-  void multimethod_impl<Tag, R(P...)>::prepare() {
+  template<template<typename Sig> class Method, typename R, typename... P>
+  void multimethod_impl<Method, R(P...)>::prepare() {
     resolver r(*base);
     r.resolve(allocate_dispatch_table(r.dispatch_table_size));
     base->ready = true;
   }
   
-  template<class Tag, typename R, typename... P>
+  template<template<typename Sig> class Method, typename R, typename... P>
   typename multimethod_base::emit_func
-  multimethod_impl<Tag, R(P...)>::allocate_dispatch_table(int size) {
+  multimethod_impl<Method, R(P...)>::allocate_dispatch_table(int size) {
     using namespace std;
     delete [] dispatch_table;
     dispatch_table = new mptr[size];
@@ -561,9 +563,9 @@ namespace multimethods {
     };
   }
   
-  template<class Tag, typename R, typename... P>
+  template<template<typename Sig> class Method, typename R, typename... P>
   template<class M>
-  method_base* multimethod_impl<Tag, R(P...)>::add() {
+  method_base* multimethod_impl<Method, R(P...)>::add() {
     using method_signature = decltype(M::body);
     using target = typename wrapper<M, method_signature, signature>::type;
     using method_virtuals = typename extract_method_virtuals<R(P...), method_signature>::type;
@@ -597,10 +599,8 @@ namespace multimethods {
   init_mmptr(this)
 
 #define MULTIMETHOD(ID, SIG)                                            \
-  struct ID ## _type : multimethod_impl<ID ## _type, SIG> {             \
-    template<typename Sig> struct method_impl;                          \
-  };                                                                    \
-  const ID ## _type ID;
+  template<typename Sig> struct ID ## _method;                          \
+  const multimethod_impl<ID ## _method, SIG> ID;
   
 #define REGISTER_METHOD_ID(MM, M) __register_ ## MM ## _ ## M
 #define REGISTER_METHOD(MM, M)                                  \
@@ -608,17 +608,18 @@ namespace multimethods {
 
 #define CONCAT(X, Y) CONCAT1(X, Y)
 #define CONCAT1(X, Y) X ## Y
-#define INIT_ID(ID) CONCAT(ID, __LINE__)
+#define INIT_ID(ID) CONCAT(__add_method_, CONCAT(ID, __LINE__))
 
-#define BEGIN_METHOD(ID, RESULT, ARGS...)                         \
-  template<>                                                      \
-  struct ID ## _type::method_impl<RESULT(ARGS)> {                 \
-  method_impl() {                                                 \
-    add<ID ## _type::method_impl<RESULT(ARGS)>>(); }              \
+#define BEGIN_METHOD(ID, RESULT, ARGS...)                               \
+  template<>                                                            \
+  struct ID ## _method<RESULT(ARGS)> {                                  \
+  ID ## _method() { ID.add<ID ## _method>(); }                          \
     static RESULT body(ARGS)
 
 #define END_METHOD(ID)                          \
   } INIT_ID(ID);
 
+#define STATIC_CALL_METHOD(ID, SIG) ID ## _method<SIG>::body
+    
 }
 #endif
