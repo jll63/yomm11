@@ -179,7 +179,7 @@ namespace multimethods {
   template<class D, class B>
   inline typename std::enable_if<
     !std::is_same<D, B>::value &&
-    is_virtual_base_of<B, D>::value, D&>::type
+    is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, D&>::type
   cast(B& b) {
     MM_TRACE(std::cout << "using dynamic_cast\n");
     return dynamic_cast<D&>(b);
@@ -188,7 +188,7 @@ namespace multimethods {
   template<class D, class B>
   inline typename std::enable_if<
     !std::is_same<B, D>::value &&
-    is_virtual_base_of<B, D>::value, const D&>::type
+    is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, const D&>::type
   cast(const B& b) {
     MM_TRACE(std::cout << "using dynamic_cast\n");
     return dynamic_cast<const D&>(b);
@@ -197,7 +197,7 @@ namespace multimethods {
   template<class D, class B>
   inline typename std::enable_if<
     !std::is_same<D, B>::value &&
-    !is_virtual_base_of<B, D>::value, D&>::type
+  !is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, D&>::type
   cast(B& b) {
     MM_TRACE(std::cout << "using static_cast\n");
     return static_cast<D&>(b);
@@ -206,7 +206,7 @@ namespace multimethods {
   template<class D, class B>
   inline typename std::enable_if<
     !std::is_same<D, B>::value &&
-    !is_virtual_base_of<B, D>::value, const D&>::type
+  !is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, const D&>::type
   cast(const B& b) {
     MM_TRACE(std::cout << "using static_cast\n");
     return static_cast<const D&>(b);
@@ -491,16 +491,20 @@ namespace multimethods {
   };
 
   template<class Tag, typename Sig>
-  struct multimethod;
+  struct multimethod_impl;
   
   template<class Tag, typename R, typename... P>
-  struct multimethod<Tag, R(P...)> : multimethod_base {
-    multimethod();
-    template<class M> method_base* add();
-    R operator ()(typename remove_virtual<P>::type... args);
+  struct multimethod_impl<Tag, R(P...)> {
+    
+    template<class M>
+    static method_base* add();
 
-    void prepare();
-    emit_func allocate_dispatch_table(int size);
+    static void init_base();
+    
+    R operator ()(typename remove_virtual<P>::type... args) const;
+
+    static void prepare();
+    static multimethod_base::emit_func allocate_dispatch_table(int size);
 
     using return_type = R;
     using mptr = return_type (*)(typename remove_virtual<P>::type...);
@@ -508,33 +512,43 @@ namespace multimethods {
     using signature = R(typename remove_virtual<P>::type...);
     using virtuals = typename extract_virtuals<P...>::type;
 
-    mptr* dispatch_table;
+    static multimethod_base* base;
+    static mptr* dispatch_table;
   };
 
   template<class Tag, typename R, typename... P>
-  multimethod<Tag, R(P...)>::multimethod()
-    : multimethod_base(mm_class_vector_of<virtuals>::get()),
-      dispatch_table(0) {
+  typename multimethod_impl<Tag, R(P...)>::mptr* multimethod_impl<Tag, R(P...)>::dispatch_table;
+
+  template<class Tag, typename R, typename... P>
+  multimethod_base* multimethod_impl<Tag, R(P...)>::base;
+
+  template<class Tag, typename R, typename... P>
+  void multimethod_impl<Tag, R(P...)>::init_base() {
+    if (!base) {
+      using namespace std;
+      MM_TRACE(cout << "init_base\n");
+      base = new multimethod_base(mm_class_vector_of<typename multimethod_impl<Tag, R(P...)>::virtuals>::get());
+    }
   }
   
   template<class Tag, typename R, typename... P>
-  inline R multimethod<Tag, R(P...)>::operator ()(typename remove_virtual<P>::type... args) {
-    if (!ready) {
+  inline R multimethod_impl<Tag, R(P...)>::operator ()(typename remove_virtual<P>::type... args) const {
+    if (!base->ready) {
       prepare();
     }
-    return dispatch_table[linear<P...>::value(slots.begin(), steps.begin(), 0, &args...)](args...);
+    return dispatch_table[linear<P...>::value(base->slots.begin(), base->steps.begin(), 0, &args...)](args...);
   }
   
   template<class Tag, typename R, typename... P>
-  void multimethod<Tag, R(P...)>::prepare() {
-    resolver r(*this);
+  void multimethod_impl<Tag, R(P...)>::prepare() {
+    resolver r(*base);
     r.resolve(allocate_dispatch_table(r.dispatch_table_size));
-    ready = true;
+    base->ready = true;
   }
   
   template<class Tag, typename R, typename... P>
-  typename multimethod<Tag, R(P...)>::emit_func
-  multimethod<Tag, R(P...)>::allocate_dispatch_table(int size) {
+  typename multimethod_base::emit_func
+  multimethod_impl<Tag, R(P...)>::allocate_dispatch_table(int size) {
     using namespace std;
     delete [] dispatch_table;
     dispatch_table = new mptr[size];
@@ -549,54 +563,62 @@ namespace multimethods {
   
   template<class Tag, typename R, typename... P>
   template<class M>
-  method_base* multimethod<Tag, R(P...)>::add() {
+  method_base* multimethod_impl<Tag, R(P...)>::add() {
     using method_signature = decltype(M::body);
     using target = typename wrapper<M, method_signature, signature>::type;
     using method_virtuals = typename extract_method_virtuals<R(P...), method_signature>::type;
     using namespace std;
+    init_base();
     MM_TRACE(cout << virtuals() << endl);
     MM_TRACE(cout << method_virtuals() << endl);
 
     method_base* method = new method_entry(target::body, mm_class_vector_of<method_virtuals>::get());
-    methods.push_back(method);
-    invalidate();
+    
+    base->methods.push_back(method);
+    base->invalidate();
 
     return method;
   }
 
+  template<typename Tag>
+  struct multimethod;
+
   template<class MM, class M> struct register_method;
 
-#define MM_CLASS(CLASS, BASES...)              \
+#define MM_CLASS(CLASS, BASES...)                  \
   using mm_base_list_type = type_list<BASES>;      \
-  using mm_this_type = CLASS;                  \
+  using mm_this_type = CLASS;                                           \
   virtual void* __init_mm_class() {                                     \
     static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
     static_assert(check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-  return &mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
+    return &mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
 
 #define MM_INIT() \
   init_mmptr(this)
 
-#define MULTIMETHOD(ID, SIG)             \
-    struct ID ## _tag;                          \
-    multimethod<ID ## _tag, SIG> ID
+#define MULTIMETHOD(ID, SIG)                                            \
+  struct ID ## _type : multimethod_impl<ID ## _type, SIG> {             \
+    template<typename Sig> struct method_impl;                          \
+  };                                                                    \
+  const ID ## _type ID;
   
 #define REGISTER_METHOD_ID(MM, M) __register_ ## MM ## _ ## M
 #define REGISTER_METHOD(MM, M)                                  \
-    static auto REGISTER_METHOD_ID(MM, M) = MM.add<M>();
+  static auto REGISTER_METHOD_ID(MM, M) = MM.add<M>();
 
 #define CONCAT(X, Y) CONCAT1(X, Y)
 #define CONCAT1(X, Y) X ## Y
-#define METHOD_NAMESPACE(MM) CONCAT(MM, __LINE__)
-  
-#define BEGIN_METHOD(MM, RESULT, ARGS...)               \
-    namespace { namespace METHOD_NAMESPACE(MM) {        \
-    struct method {                                     \
-    static RESULT body(ARGS) {
+#define INIT_ID(ID) CONCAT(ID, __LINE__)
 
-#define END_METHOD(MM)                          \
-    } static bool init; };                      \
-    bool method::init = MM.add<method>(); } }
+#define BEGIN_METHOD(ID, RESULT, ARGS...)                         \
+  template<>                                                      \
+  struct ID ## _type::method_impl<RESULT(ARGS)> {                 \
+  method_impl() {                                                 \
+    add<ID ## _type::method_impl<RESULT(ARGS)>>(); }              \
+    static RESULT body(ARGS)
+
+#define END_METHOD(ID)                          \
+  } INIT_ID(ID);
+
 }
-
 #endif

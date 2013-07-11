@@ -94,8 +94,9 @@ namespace single_inheritance {
   MULTIMETHOD(hunt, void(virtual_<Carnivore>&));
 
   DO {
-    test(hunt.slots.size(), 1);
-    test(hunt.slots[0], 0);
+    hunt_type::init_base();
+    test(hunt_type::base->slots.size(), 1);
+    test(hunt_type::base->slots[0], 0);
     test(mm_class_of<Carnivore>::the().mmt.size(), 1);
     test(mm_class_of<Wolf>::the().mmt.size(), 1);
     test(mm_class_of<Tiger>::the().mmt.size(), 1);
@@ -114,10 +115,11 @@ namespace single_inheritance {
   MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
 
   DO {
-    test(encounter.vargs.size(), 2);
-    test(encounter.slots.size(), 2);
-    test(encounter.slots[0], 0);
-    test(encounter.slots[1], 1);
+    encounter_type::init_base();
+    test(encounter_type::base->vargs.size(), 2);
+    test(encounter_type::base->slots.size(), 2);
+    test(encounter_type::base->slots[0], 0);
+    test(encounter_type::base->slots[1], 1);
 
     test(mm_class_of<Animal>::the().mmt.size(), 2);
     test(mm_class_of<Herbivore>::the().mmt.size(), 2);
@@ -130,7 +132,7 @@ namespace single_inheritance {
     // Test that previously existing mmt entries are ok at their now index
     // multimethod<void, virtual_<Carnivore&>> hunt's entries in Carnivore's
     // mm tables were shifted by 2 (one for each Animal argument in encounter).
-    test(hunt.slots[0], 2);
+    test(hunt_type::base->slots[0], 2);
     int i = 1;
     testx(mm_class_of<Carnivore>::the().mmt[2], i++);
     testx(mm_class_of<Wolf>::the().mmt[2], i++);
@@ -227,21 +229,21 @@ namespace single_inheritance {
         virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
 
       int i = 0;
-      auto aa = encounter.methods[i++];
-      auto ca = encounter.methods[i++];
-      auto cc = encounter.methods[i++];
-      auto ww = encounter.methods[i++];
-      auto hc = encounter.methods[i++];
+      auto aa = encounter_type::base->methods[i++];
+      auto ca = encounter_type::base->methods[i++];
+      auto cc = encounter_type::base->methods[i++];
+      auto ww = encounter_type::base->methods[i++];
+      auto hc = encounter_type::base->methods[i++];
 
-      test(encounter.methods.size(), 5);
+      test(encounter_type::base->methods.size(), 5);
 
-      test(encounter.methods[4]->args.size(), 2);
-      test(encounter.methods[4]->args[0], &mm_class_of<Herbivore>::the());
-      test(encounter.methods[4]->args[0]->name(), mm_class_of<Herbivore>::the().name());
-      test(encounter.methods[4]->args[1]->name(), mm_class_of<Carnivore>::the().name());
+      test(encounter_type::base->methods[4]->args.size(), 2);
+      test(encounter_type::base->methods[4]->args[0], &mm_class_of<Herbivore>::the());
+      test(encounter_type::base->methods[4]->args[0]->name(), mm_class_of<Herbivore>::the().name());
+      test(encounter_type::base->methods[4]->args[1]->name(), mm_class_of<Carnivore>::the().name());
 
       cout << "\nResolver\n";
-      resolver renc(encounter);
+      resolver renc(*encounter_type::base);
 
       test(renc.classes.size(), 2);
       test(renc.classes[0].size(), 6);
@@ -252,9 +254,9 @@ namespace single_inheritance {
       test(renc.classes[0][4]->ti.name(), mm_class_of<Wolf>::the().ti.name());
       test(renc.classes[0][5]->ti.name(), mm_class_of<Tiger>::the().ti.name());
 
-      test(encounter.steps.size(), 2);
-      test(encounter.steps[0], 1);
-      test(encounter.steps[1], 6);
+      test(encounter_type::base->steps.size(), 2);
+      test(encounter_type::base->steps[0], 1);
+      test(encounter_type::base->steps[1], 6);
       test(renc.linear(vector<int>{ 0, 1 }), 6);
       test(renc.linear(vector<int>{ 2, 2 }), 14);
 
@@ -266,7 +268,7 @@ namespace single_inheritance {
       test(renc.dominates(hc, aa), -1);
 
       cout << "\ndisplay resolver\n";
-      resolver rdisp(display);
+      resolver rdisp(*display_type::base);
 
       test(rdisp.classes.size(), 2);
       test(rdisp.classes[0].size(), 6);
@@ -284,9 +286,9 @@ namespace single_inheritance {
 
       rdisp.make_steps();
 
-      test(display.steps.size(), 2);
-      test(display.steps[0], 1);
-      test(display.steps[1], 6);
+      test(display_type::base->steps.size(), 2);
+      test(display_type::base->steps[0], 1);
+      test(display_type::base->steps[1], 6);
       test(rdisp.linear(vector<int>{ 0, 1 }), 6);
       test(rdisp.linear(vector<int>{ 2, 2 }), 14);
 
@@ -297,14 +299,14 @@ namespace single_inheritance {
       animal_interface->args.push_back(&mm_class_of<Animal>::the());
       animal_interface->args.push_back(&mm_class_of<Interface>::the());
       
-      auto cow_terminal = static_cast<display_method_entry*>(display.methods[m++]);
-      auto wolf_terminal = static_cast<display_method_entry*>(display.methods[m++]);
-      auto tiger_terminal = static_cast<display_method_entry*>(display.methods[m++]);
-      auto cow_window = static_cast<display_method_entry*>(display.methods[m++]);
-      auto wolf_window = static_cast<display_method_entry*>(display.methods[m++]);
-      auto tiger_window = static_cast<display_method_entry*>(display.methods[m++]);
-      auto herbivore_interface = static_cast<display_method_entry*>(display.methods[m++]);
-      auto animal_terminal = static_cast<display_method_entry*>(display.methods[m++]);
+      auto cow_terminal = static_cast<display_method_entry*>(display_type::base->methods[m++]);
+      auto wolf_terminal = static_cast<display_method_entry*>(display_type::base->methods[m++]);
+      auto tiger_terminal = static_cast<display_method_entry*>(display_type::base->methods[m++]);
+      auto cow_window = static_cast<display_method_entry*>(display_type::base->methods[m++]);
+      auto wolf_window = static_cast<display_method_entry*>(display_type::base->methods[m++]);
+      auto tiger_window = static_cast<display_method_entry*>(display_type::base->methods[m++]);
+      auto herbivore_interface = static_cast<display_method_entry*>(display_type::base->methods[m++]);
+      auto animal_terminal = static_cast<display_method_entry*>(display_type::base->methods[m++]);
 
       test(renc.dominates(cow_window, animal_interface), -1);
       test(renc.dominates(cow_terminal, animal_interface), -1);
@@ -420,9 +422,9 @@ namespace single_inheritance {
       test(win.__mm_ptbl->size(), 1); // display(2)
       test((*win.__mm_ptbl)[0], 2); // 2 => Window
 
-      display.ready = true;
+      display_type::base->ready = true;
 
-      test((linear<virtual_<Animal>&, virtual_<Interface>&>::value(display.slots.begin(), display.steps.begin(), 0, &c, &term)), 8);
+      test((linear<virtual_<Animal>&, virtual_<Interface>&>::value(display_type::base->slots.begin(), display_type::base->steps.begin(), 0, &c, &term)), 8);
 
       test(display(c, term), print_cow);
       test(display(w, win), draw_wolf);
