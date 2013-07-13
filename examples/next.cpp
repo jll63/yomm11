@@ -14,7 +14,7 @@
 using namespace std;
 using namespace multimethods;
 
-struct Vehicle : root {
+struct Vehicle : selector {
   MM_CLASS(Vehicle);
   Vehicle() {
     MM_INIT();
@@ -35,7 +35,7 @@ struct Truck : Vehicle {
   }
 };
 
-struct Inspector : root {
+struct Inspector : selector {
   MM_CLASS(Inspector);
   Inspector() {
     MM_INIT();

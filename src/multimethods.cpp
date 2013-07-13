@@ -81,7 +81,7 @@ namespace multimethods {
     return slot;
   }
 
-  std::unordered_map<std::type_index, const std::vector<int>*> get_mm_table<false>::types;
+  get_mm_table<false>::class_of_type* get_mm_table<false>::class_of;
   
   std::ostream& operator <<(std::ostream& os, std::vector<mm_class*> classes) {
     using namespace std;

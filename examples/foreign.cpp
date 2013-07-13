@@ -13,7 +13,7 @@
 using namespace std;
 using namespace multimethods;
 
-struct role : root {
+struct role : selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
@@ -34,7 +34,7 @@ struct ceo : role {
   }
 };
 
-struct expense : root {
+struct expense : selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();

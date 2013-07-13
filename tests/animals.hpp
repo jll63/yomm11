@@ -4,7 +4,7 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-struct Animal : multimethods::root {
+struct Animal : multimethods::selector {
   virtual void foo() = 0;
   MM_CLASS(Animal);
   Animal() {
@@ -51,7 +51,7 @@ struct Tiger : Carnivore {
   }
 };
 
-struct Interface : root {
+struct Interface : selector {
   MM_CLASS(Interface);
   Interface() {
     MM_INIT();

@@ -13,7 +13,7 @@
 using namespace std;
 using namespace multimethods;
 
-struct object : root {
+struct object : selector {
   MM_CLASS(object);
   object() {
     MM_INIT();

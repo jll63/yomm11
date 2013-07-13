@@ -89,19 +89,20 @@ namespace multimethods {
 
   template<>
   struct get_mm_table<false> {
-    static std::unordered_map<std::type_index, const std::vector<int>*> types;
+    using class_of_type = std::unordered_map<std::type_index, const std::vector<int>*>;
+    static class_of_type* class_of;
     template<class C>
     static const std::vector<int>& value(const C* obj) {
       MM_TRACE(std::cout << "foreign mm_class_of<" << typeid(*obj).name() << "> = " << types[std::type_index(typeid(*obj))] << std::endl);
-      return *types[std::type_index(typeid(*obj))];
+      return *(*class_of)[std::type_index(typeid(*obj))];
     }
   };
 
   template<class Class>
   struct mm_class_of<const Class> : mm_class_of<Class> { };
 
-  struct root {
-    root() : __mm_ptbl(0) { }
+  struct selector {
+    selector() : __mm_ptbl(0) { }
     std::vector<int>* __mm_ptbl;
     template<class THIS>
     void init_mmptr(THIS*) {
@@ -146,8 +147,11 @@ namespace multimethods {
           pb->specs.push_back(&pc);
         }
         
-        if (!std::is_base_of<root, Class>::value) {
-          get_mm_table<false>::types[std::type_index(typeid(Class))] = &pc.mmt;
+        if (!std::is_base_of<selector, Class>::value) {
+          if (!get_mm_table<false>::class_of) {
+            get_mm_table<false>::class_of = new get_mm_table<false>::class_of_type;
+          }
+          (*get_mm_table<false>::class_of)[std::type_index(typeid(Class))] = &pc.mmt;
         }
       } else {
         throw std::runtime_error("multimethods: class redefinition");
@@ -483,7 +487,7 @@ namespace multimethods {
       std::vector<int>::const_iterator step_iter,
       int offset,
       A1 arg, A... args) {
-      offset = offset + get_mm_table<std::is_base_of<root, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
+      offset = offset + get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
       return linear<P...>::value(slot_iter, step_iter, offset, args...);
     }
   };
@@ -496,7 +500,7 @@ namespace multimethods {
       std::vector<int>::const_iterator step_iter,
       int offset,
       A1 arg, A... args) {
-      offset = offset + get_mm_table<std::is_base_of<root, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
+      offset = offset + get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
       return linear<P...>::value(slot_iter, step_iter, offset, args...);
     }
   };
