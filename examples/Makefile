@@ -11,22 +11,31 @@
 ## Keywords: 
 ## X-URL: 
 
-CXXFLAGS=-std=c++11 -I../include
+CXXFLAGS=-std=c++11 -I../include 
 
-.PHONY: runtests
+.PHONY: run
 
-runtests : tests
-	./tests
+run : asteroids three next foreign
+	./asteroids
+	./three
+	./next
+	./foreign
 
-tests : tests.o multimethods.o
-	g++ tests.o multimethods.o -o tests
+asteroids : asteroids.o multimethods.o
+	$(CXX) $^ -o $@
+
+three : three.o multimethods.o
+	$(CXX) $^ -o $@
+
+next : next.o multimethods.o
+	$(CXX) $^ -o $@
+
+foreign : foreign.o multimethods.o
+	$(CXX) $^ -o $@
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $<
 
-tests.o : tests.cpp ../include/multimethods.hpp animals.hpp mi.hpp
-
 multimethods.o : ../src/multimethods.cpp ../include/multimethods.hpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-### Makefile ends here
