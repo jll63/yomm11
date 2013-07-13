@@ -1,5 +1,11 @@
 // -*- compile-command: "g++ -g -std=c++11 -I../include ../src/multimethods.cpp next.cpp -o next && ./next" -*-
 
+// next.cpp
+// Copyright (c) 2013 Jean-Louis Leroy
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
 // Example taken Dylan's documentation, see http://opendylan.org/documentation/intro-dylan/multiple-dispatch.html
 
 #include <iostream>
