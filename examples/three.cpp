@@ -11,9 +11,10 @@
 #include <iostream>
 
 using namespace std;
-using namespace multimethods;
 
-struct role : selector {
+using multimethods::virtual_;
+
+struct role : multimethods::selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
@@ -34,7 +35,7 @@ struct ceo : role {
   }
 };
 
-struct expense : selector {
+struct expense : multimethods::selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -55,7 +56,7 @@ struct cab : expense {
   }
 };
 
-struct reason : selector {
+struct reason : multimethods::selector {
   MM_CLASS(reason);
   reason() {
     MM_INIT();

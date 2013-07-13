@@ -11,9 +11,9 @@
 #include <iostream>
 
 using namespace std;
-using namespace multimethods;
+using multimethods::virtual_;
 
-struct object : selector {
+struct object : multimethods::selector {
   MM_CLASS(object);
   object() {
     MM_INIT();

@@ -6,14 +6,15 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include "multimethods.hpp"
+#include <multimethods.hpp>
 
 #include <iostream>
 
 using namespace std;
-using namespace multimethods;
 
-struct role : selector {
+using multimethods::virtual_;
+
+struct role : multimethods::selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
@@ -34,7 +35,7 @@ struct ceo : role {
   }
 };
 
-struct expense : selector {
+struct expense : multimethods::selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();

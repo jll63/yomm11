@@ -12,9 +12,9 @@
 #include <multimethods.hpp>
 
 using namespace std;
-using namespace multimethods;
+using multimethods::virtual_;
 
-struct Vehicle : selector {
+struct Vehicle : multimethods::selector {
   MM_CLASS(Vehicle);
   Vehicle() {
     MM_INIT();
@@ -35,7 +35,7 @@ struct Truck : Vehicle {
   }
 };
 
-struct Inspector : selector {
+struct Inspector : multimethods::selector {
   MM_CLASS(Inspector);
   Inspector() {
     MM_INIT();

@@ -657,23 +657,23 @@ namespace multimethods {
 #define INIT_ID(ID) CONCAT(__add_method_, CONCAT(ID, __LINE__))
 
 #define MM_CLASS(CLASS, BASES...)                  \
-  using mm_base_list_type = type_list<BASES>;      \
+  using mm_base_list_type = ::multimethods::type_list<BASES>;           \
   using mm_this_type = CLASS;                                           \
   virtual void* __init_mm_class() {                                     \
     static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
-    static_assert(check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-    return &mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
+    static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
+    return &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
   
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
-  static_assert(check_bases<CLASS, type_list<BASES>>::value, "Error in MM_FOREIGN_CLASS(): not a base in base list"); \
-  namespace { mm_class_initializer<CLASS, type_list<BASES>> INIT_ID(CLASS); }
+  static_assert(::multimethods::check_bases<CLASS, ::multimethods::type_list<BASES>>::value, "Error in MM_FOREIGN_CLASS(): not a base in base list"); \
+  namespace { ::multimethods::mm_class_initializer<CLASS, ::multimethods::type_list<BASES>> INIT_ID(CLASS); }
 
 #define MM_INIT() \
   init_mmptr(this)
 
 #define MULTIMETHOD(ID, SIG)                                            \
   template<typename Sig> struct ID ## _method;                          \
-  const multimethod_impl<ID ## _method, SIG> ID;
+  const ::multimethods::multimethod_impl<ID ## _method, SIG> ID;
   
 #define REGISTER_METHOD_ID(MM, M) __register_ ## MM ## _ ## M
 #define REGISTER_METHOD(MM, M)                                  \
