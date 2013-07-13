@@ -4,9 +4,11 @@
 #define MULTIMETHODS_INCLUDED
 
 #include <typeinfo>
+#include <typeindex>
 #include <type_traits>
 #include <functional>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 #include <algorithm>
 #include <stdexcept>
@@ -68,8 +70,38 @@ namespace multimethods {
     }
   };
   
+  template<bool Native>
+  struct get_mm_table;
+
+  template<>
+  struct get_mm_table<true> {
+    template<class C>
+    static const std::vector<int>& value(const C* obj) {
+      return *obj->__mm_ptbl;
+    }
+  };
+
+  template<>
+  struct get_mm_table<false> {
+    static std::unordered_map<std::type_index, const std::vector<int>*> types;
+    template<class C>
+    static const std::vector<int>& value(const C* obj) {
+      MM_TRACE(std::cout << "foreign mm_class_of<" << typeid(*obj).name() << "> = " << types[std::type_index(typeid(*obj))] << std::endl);
+      return *types[std::type_index(typeid(*obj))];
+    }
+  };
+
   template<class Class>
   struct mm_class_of<const Class> : mm_class_of<Class> { };
+
+  struct root {
+    root() : __mm_ptbl(0) { }
+    std::vector<int>* __mm_ptbl;
+    template<class THIS>
+    void init_mmptr(THIS*) {
+      __mm_ptbl = &mm_class_of<THIS>::the().mmt;
+    }
+  };
 
   template<class... Bases>
   struct bases;
@@ -103,8 +135,14 @@ namespace multimethods {
         pc.bases = { &mm_class_of<Bases>::the()... };
         pc.abstract = std::is_abstract<Class>::value;
         MM_TRACE(std::cout << pc.ti.name() << " " << pc.abstract << "\n");
-        for (mm_class* pb : pc.bases)
+        
+        for (mm_class* pb : pc.bases) {
           pb->specs.push_back(&pc);
+        }
+        
+        if (!std::is_base_of<root, Class>::value) {
+          get_mm_table<false>::types[std::type_index(typeid(Class))] = &pc.mmt;
+        }
       } else {
         throw std::runtime_error("multimethods: class redefinition");
       }
@@ -114,15 +152,6 @@ namespace multimethods {
 
   template<class Class, class... Bases>
   mm_class_initializer<Class, type_list<Bases...>> mm_class_initializer<Class, type_list<Bases...>>::the;
-
-  struct root {
-    root() : __mm_ptbl(0) { }
-    std::vector<int>* __mm_ptbl;
-    template<class THIS>
-    void init_mmptr(THIS*) {
-      __mm_ptbl = &mm_class_of<THIS>::the().mmt;
-    }
-  };
 
   struct method_base {
     std::vector<mm_class*> args;
@@ -448,7 +477,7 @@ namespace multimethods {
       std::vector<int>::const_iterator step_iter,
       int offset,
       A1 arg, A... args) {
-      offset = offset + (*arg->__mm_ptbl)[*slot_iter++] * *step_iter++;
+      offset = offset + get_mm_table<std::is_base_of<root, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
       return linear<P...>::value(slot_iter, step_iter, offset, args...);
     }
   };
@@ -461,7 +490,7 @@ namespace multimethods {
       std::vector<int>::const_iterator step_iter,
       int offset,
       A1 arg, A... args) {
-      offset = offset + (*arg->__mm_ptbl)[*slot_iter++] * *step_iter++;
+      offset = offset + get_mm_table<std::is_base_of<root, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
       return linear<P...>::value(slot_iter, step_iter, offset, args...);
     }
   };
@@ -613,6 +642,10 @@ namespace multimethods {
 
   template<class MM, class M> struct register_method;
 
+#define CONCAT(X, Y) CONCAT1(X, Y)
+#define CONCAT1(X, Y) X ## Y
+#define INIT_ID(ID) CONCAT(__add_method_, CONCAT(ID, __LINE__))
+
 #define MM_CLASS(CLASS, BASES...)                  \
   using mm_base_list_type = type_list<BASES>;      \
   using mm_this_type = CLASS;                                           \
@@ -620,6 +653,10 @@ namespace multimethods {
     static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
     static_assert(check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
     return &mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
+  
+#define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
+  static_assert(check_bases<CLASS, type_list<BASES>>::value, "Error in MM_FOREIGN_CLASS(): not a base in base list"); \
+  namespace { mm_class_initializer<CLASS, type_list<BASES>> INIT_ID(CLASS); }
 
 #define MM_INIT() \
   init_mmptr(this)
@@ -631,10 +668,6 @@ namespace multimethods {
 #define REGISTER_METHOD_ID(MM, M) __register_ ## MM ## _ ## M
 #define REGISTER_METHOD(MM, M)                                  \
   static auto REGISTER_METHOD_ID(MM, M) = MM.add<M>();
-
-#define CONCAT(X, Y) CONCAT1(X, Y)
-#define CONCAT1(X, Y) X ## Y
-#define INIT_ID(ID) CONCAT(__add_method_, CONCAT(ID, __LINE__))
 
 #define BEGIN_METHOD(ID, RESULT, ARGS...)                               \
   template<>                                                            \
