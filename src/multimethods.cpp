@@ -7,6 +7,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <multimethods.hpp>
+#include <unordered_set>
 
 using namespace std;
 
@@ -43,6 +44,48 @@ namespace multimethods {
       });
   }
 
+  int mm_class::assign_slots(unordered_set<mm_class*>& seen, int slot) {
+    for (mm_class* pb : bases) {
+      if (seen.find(pb) == seen.end()) {
+        seen.insert(pb);
+        slot = pb->assign_slots(seen, slot);
+      }
+    }
+
+    MM_TRACE(int init = slot);
+
+    for (const mmref& ref : mms) {
+      ref.mm->assign_slot(ref.arg, slot++);
+    }
+
+    mmt.resize(slot);
+
+    MM_TRACE(std::cout << "assign slots " << init << " - " << slot << " to " << this << "\n");
+
+    return slot;
+  }
+
+  void mm_class::initialize(std::vector<mm_class*>& b) {
+    MM_TRACE(std::cout << "initialize class_of<" << ti.name() << ">\n");
+
+    if (bases.empty()) {
+      bases.swap(b);
+      
+      for (mm_class* pb : bases) {
+        pb->specs.push_back(this);
+      }
+      
+      if (bases.size() == 1) {
+        mmt = bases[0]->mmt;
+      } else if (bases.size() > 1) {
+        unordered_set<mm_class*> seen;
+        assign_slots(seen, 0);
+      }
+    } else {
+      throw std::runtime_error("multimethods: class redefinition");
+    }
+  }
+  
   method_base method_base::undefined;
   method_base method_base::ambiguous;
 
@@ -70,20 +113,20 @@ namespace multimethods {
   void mm_class::insert_slot(int i) {
     MM_TRACE(std::cout << "allocate slot in " << ti.name() << " at " << i << "\n");
     mmt.insert(mmt.begin() + i, 1, 0);
-    std::for_each(mms.begin(), mms.end(), [=](multimethod_base* pm) { pm->shift(i); });
+    std::for_each(mms.begin(), mms.end(), [=](const mmref& ref) { ref.mm->shift(i); });
   }
 
-  int mm_class::add_multimethod(multimethod_base* pm) {
+  int mm_class::add_multimethod(multimethod_base* pm, int arg) {
     int slot = mmt.size();
     for_each_conforming(std::mem_fun(&mm_class::reserve_slot));
     for_each_conforming([=](mm_class* pc) { pc->insert_slot(slot); });
-    mms.push_back(pm);
+    mms.push_back(mmref { pm, arg });
     return slot;
   }
 
   get_mm_table<false>::class_of_type* get_mm_table<false>::class_of;
   
-  std::ostream& operator <<(std::ostream& os, std::vector<mm_class*> classes) {
+  std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes) {
     using namespace std;
     const char* sep = "(";
 
@@ -101,13 +144,18 @@ namespace multimethods {
       for_each(vargs.begin(), vargs.end(),
                [&](mm_class* pc) {
                  MM_TRACE(std::cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
-                 int slot = pc->add_multimethod(this);
+                 int slot = pc->add_multimethod(this, i);
                  MM_TRACE(std::cout << "-> at slot " << slot << "\n");
                  ++i;
                  slots.push_back(slot);
                });
     }
   
+  void multimethod_base::assign_slot(int arg, int slot) {
+    slots[arg] = slot;
+    invalidate();
+  }
+
   void multimethod_base::shift(int pos) {
     for (int& slot : slots) {
       if (slot >= pos) {

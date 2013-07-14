@@ -144,7 +144,7 @@ namespace single_inheritance {
     testx(mm_class_of<Wolf>::the().mmt[2], i++);
     testx(mm_class_of<Tiger>::the().mmt[2], i++);
   }
-
+  
   BEGIN_METHOD(encounter, string, Animal&, Animal&) {
     return "ignore";
   } END_METHOD(encounter);
@@ -484,6 +484,109 @@ DO {
   test( encounter(stallion, mare), "court" );
   test( encounter(mare, mare), "ignore" );
   test( encounter(wolf, mare), "hunt" );
+}
+
+namespace mi {
+
+  struct X : selector {
+    MM_CLASS(X);
+    X() { MM_INIT(); }
+  };
+
+  struct A : virtual X {
+    MM_CLASS(A, X);
+    A() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m1, int(const virtual_<A>&));
+
+  BEGIN_METHOD(m1, int, const A&) {
+    return 1;
+  } END_METHOD(m1);
+
+  DO {
+    test( mm_class_of<A>::the().mmt.size(), 1 );
+    test( m1(A()), 1 );
+  }
+  
+  struct B : virtual A {
+    MM_CLASS(B, A);
+    B() { MM_INIT(); }
+  };
+  
+  MULTIMETHOD(m2, int(const virtual_<B>&));
+
+  BEGIN_METHOD(m2, int, const B&) {
+    return 2;
+  } END_METHOD(m2);
+
+  DO {
+    test( mm_class_of<A>::the().mmt.size(), 1 );
+    test( mm_class_of<B>::the().mmt.size(), 2 );
+    test( m1(A()), 1 );
+    test( m2(B()), 2 );
+  }
+  
+  struct C : virtual A {
+    MM_CLASS(C, A);
+    C() { MM_INIT(); }
+  };
+  
+  MULTIMETHOD(m3, int(const virtual_<C>&));
+
+  DO {
+    m3.init_base();
+    test( mm_class_of<C>::the().mmt.size(), 2 );
+  }
+  
+  struct C1 : C {
+    MM_CLASS(C1, C);
+    C1() { MM_INIT(); }
+  };
+
+  BEGIN_METHOD(m3, int, const C1&) {
+    return 3;
+  } END_METHOD(m3);
+
+  BEGIN_METHOD(m3, int, const C&) {
+    return 666;
+  } END_METHOD(m3);
+
+  DO {
+    test( mm_class_of<A>::the().mmt.size(), 1 );
+    test( mm_class_of<B>::the().mmt.size(), 2 );
+    test( mm_class_of<C>::the().mmt.size(), 2 );
+    test( m1(A()), 1 );
+    test( m2(B()), 2 );
+    test( m3(C1()), 3 );
+  }
+
+  struct D : virtual X {
+    MM_CLASS(D, X);
+    D() { MM_INIT(); }
+  };
+  
+  struct E : B, C1, D {
+    MM_CLASS(E, B, C1, D);
+    E() { MM_INIT(); }
+  };
+  
+  MULTIMETHOD(m4, int(const virtual_<E>&));
+
+  BEGIN_METHOD(m4, int, const E&) {
+    return 4;
+  } END_METHOD(m4);
+
+  DO {
+    test( m1(E()), 1 );
+    test( m2(E()), 2 );
+    test( m3(E()), 3 );
+    test( m4(E()), 4 );
+    test( mm_class_of<A>::the().mmt.size(), 1 );
+    test( mm_class_of<B>::the().mmt.size(), 2 );
+    test( mm_class_of<C>::the().mmt.size(), 3 );
+    test( mm_class_of<E>::the().mmt.size(), 4 );
+  }
 }
 
 #endif

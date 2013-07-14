@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <functional>
 #include <vector>
+#include <unordered_set>
 #include <unordered_map>
 #include <memory>
 #include <algorithm>
@@ -37,22 +38,29 @@ namespace multimethods {
   struct multimethod_base;
 
   struct mm_class {
+    struct mmref {
+      multimethod_base* mm;
+      int arg;
+    };
+    
     mm_class(const std::type_info& t);
     ~mm_class();
     const std::type_info& ti;
     std::vector<mm_class*> bases;
     std::vector<mm_class*> specs;
     std::vector<int> mmt;
-    std::vector<multimethod_base*> mms; // multimethods rooted here for one or more args.
+    std::vector<mmref> mms; // multimethods rooted here for one or more args.
     bool abstract;
 
     const std::string name() const;
-    int add_multimethod(multimethod_base* pm);
+    void initialize(std::vector<mm_class*>& bases);
+    int add_multimethod(multimethod_base* pm, int arg);
     void reserve_slot() { mmt.reserve(mmt.size() + 1); }
     void insert_slot(int i);
     void for_each_conforming(std::function<void(mm_class*)> pf);
     bool conforms_to(const mm_class& other) const;
     bool specializes(const mm_class& other) const;
+    int assign_slots(std::unordered_set<mm_class*>& seen, int slot);
   };
 
   inline const std::string mm_class::name() const {
@@ -93,7 +101,7 @@ namespace multimethods {
     static class_of_type* class_of;
     template<class C>
     static const std::vector<int>& value(const C* obj) {
-      MM_TRACE(std::cout << "foreign mm_class_of<" << typeid(*obj).name() << "> = " << types[std::type_index(typeid(*obj))] << std::endl);
+      MM_TRACE(std::cout << "foreign mm_class_of<" << typeid(*obj).name() << "> = " << (*class_of)[std::type_index(typeid(*obj))] << std::endl);
       return *(*class_of)[std::type_index(typeid(*obj))];
     }
   };
@@ -138,23 +146,15 @@ namespace multimethods {
   struct mm_class_initializer<Class, type_list<Bases...>> {
     mm_class_initializer() {
       mm_class& pc = mm_class_of<Class>::the();
-      if (pc.bases.empty()) {
-        pc.bases = { &mm_class_of<Bases>::the()... };
-        pc.abstract = std::is_abstract<Class>::value;
-        MM_TRACE(std::cout << pc.ti.name() << " " << pc.abstract << "\n");
-        
-        for (mm_class* pb : pc.bases) {
-          pb->specs.push_back(&pc);
+      pc.abstract = std::is_abstract<Class>::value;
+      std::vector<mm_class*> bases = { &mm_class_of<Bases>::the()... };
+      pc.initialize(bases);
+
+      if (!std::is_base_of<selector, Class>::value) {
+        if (!get_mm_table<false>::class_of) {
+          get_mm_table<false>::class_of = new get_mm_table<false>::class_of_type;
         }
-        
-        if (!std::is_base_of<selector, Class>::value) {
-          if (!get_mm_table<false>::class_of) {
-            get_mm_table<false>::class_of = new get_mm_table<false>::class_of_type;
-          }
-          (*get_mm_table<false>::class_of)[std::type_index(typeid(Class))] = &pc.mmt;
-        }
-      } else {
-        throw std::runtime_error("multimethods: class redefinition");
+        (*get_mm_table<false>::class_of)[std::type_index(typeid(Class))] = &pc.mmt;
       }
     }
     static mm_class_initializer the;
@@ -177,6 +177,7 @@ namespace multimethods {
     explicit multimethod_base(const std::vector<mm_class*>& v);
     void invalidate();
     void shift(int pos);
+    void assign_slot(int arg, int slot);
     
     using emit_func = std::function<void(method_base*, int i)>;
     using emit_next_func = std::function<void(method_base*, method_base*)>;
@@ -190,7 +191,7 @@ namespace multimethods {
   inline void multimethod_base::invalidate() {
     ready = false;
   }
-
+  
   template<class M, typename Override, class Base>
   struct wrapper;
 
@@ -204,7 +205,9 @@ namespace multimethods {
   
   template<class B, class D>
   struct is_virtual_base_of_<true, B, D> {
-    struct X : D, private virtual B { X(); };
+    struct X : D, private virtual B {
+      virtual void * __init_mm_class() { }
+    };
     struct Y : D { };
     static const bool value = sizeof(X) == sizeof(Y);
   };
@@ -405,28 +408,35 @@ namespace multimethods {
     }
   };
 
-  template<class... Class> struct mm_class_vector_of;
-
-  template<class... Class>
-  struct mm_class_vector_of<virtuals<Class...>> {
-    static std::vector<mm_class*> get() {
-      std::vector<mm_class*> classes;
-      mm_class_vector_of<Class...>::get(classes);
-      return classes;
-    }
-  };
+  template<class... Class> struct mm_class_vector_of_;
 
   template<class First, class... Rest>
-  struct mm_class_vector_of<First, Rest...> {
+  struct mm_class_vector_of_<First, Rest...> {
     static void get(std::vector<mm_class*>& classes) {
       classes.push_back(&mm_class_of<First>::the());
-      mm_class_vector_of<Rest...>::get(classes);
+      mm_class_vector_of_<Rest...>::get(classes);
     }
   };
 
   template<>
-  struct mm_class_vector_of<> {
+  struct mm_class_vector_of_<> {
     static void get(std::vector<mm_class*>& classes) {
+    }
+  };
+
+  template<class... Class>
+  struct mm_class_vector_of {
+    static std::vector<mm_class*> get() {
+      std::vector<mm_class*> classes;
+      mm_class_vector_of_<Class...>::get(classes);
+      return classes;
+    }
+  };
+
+  template<class... Class>
+  struct mm_class_vector_of<virtuals<Class...>> {
+    static std::vector<mm_class*> get() {
+      return mm_class_vector_of<Class...>::get();
     }
   };
 
@@ -581,7 +591,7 @@ namespace multimethods {
   void multimethod_impl<Method, R(P...)>::init_base() {
     if (!base) {
       using namespace std;
-      MM_TRACE(cout << "init_base\n");
+      MM_TRACE(cout << "init state for " << virtuals() << "\n");
       base = new multimethod_base(mm_class_vector_of<typename multimethod_impl<Method, R(P...)>::virtuals>::get());
     }
   }
@@ -636,8 +646,7 @@ namespace multimethods {
     using method_virtuals = typename extract_method_virtuals<R(P...), method_signature>::type;
     using namespace std;
     init_base();
-    MM_TRACE(cout << virtuals() << endl);
-    MM_TRACE(cout << method_virtuals() << endl);
+    MM_TRACE(cout << "add " << method_virtuals() << " to " << virtuals() << endl);
 
     method_base* method = new method_entry(target::body, mm_class_vector_of<method_virtuals>::get(), &M::next);
     
