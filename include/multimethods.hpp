@@ -112,6 +112,7 @@ namespace multimethods {
   struct selector {
     selector() : __mm_ptbl(0) { }
     std::vector<int>* __mm_ptbl;
+    virtual ~selector() { }
     template<class THIS>
     void init_mmptr(THIS*) {
       __mm_ptbl = &mm_class_of<THIS>::the().mmt;
@@ -577,6 +578,17 @@ namespace multimethods {
     };
   };
 
+  template<class Method, class Spec>
+  struct register_spec {
+    register_spec() {
+      Method::template add<Spec>();
+    }
+    static register_spec the;
+  };
+
+  template<class Method, class Spec>
+  register_spec<Method, Spec> register_spec<Method, Spec>::the;
+
   template<template<typename Sig> class Method, typename R, typename... P>
   typename multimethod_impl<Method, R(P...)>::mptr* multimethod_impl<Method, R(P...)>::dispatch_table;
 
@@ -668,16 +680,20 @@ namespace multimethods {
 #define MM_CLASS(CLASS, BASES...)                  \
   using mm_base_list_type = ::multimethods::type_list<BASES>;           \
   using mm_this_type = CLASS;                                           \
-  virtual void* __init_mm_class() {                                     \
-    static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
-    static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-    return &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
+  
+  // static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
+  // static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
+  // virtual void* __init_mm_class() {                                     \
+  //   return &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
   
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
   static_assert(::multimethods::check_bases<CLASS, ::multimethods::type_list<BASES>>::value, "Error in MM_FOREIGN_CLASS(): not a base in base list"); \
   namespace { ::multimethods::mm_class_initializer<CLASS, ::multimethods::type_list<BASES>> INIT_ID(CLASS); }
 
 #define MM_INIT() \
+  static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
+  static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
+  &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; \
   init_mmptr(this)
 
 #define MULTIMETHOD(ID, SIG)                                            \
@@ -691,11 +707,10 @@ namespace multimethods {
 #define BEGIN_METHOD(ID, RESULT, ARGS...)                               \
   template<>                                                            \
   struct ID ## _method<RESULT(ARGS)> : decltype(ID)::next_ptr<RESULT(ARGS)> { \
-  ID ## _method() { ID.add<ID ## _method>(); }                          \
-    static RESULT body(ARGS)
+  static RESULT body(ARGS) {                                            \
+  &::multimethods::register_spec<decltype(ID), ID ## _method>::the;
 
-#define END_METHOD(ID)                          \
-  } INIT_ID(ID);
+#define END_METHOD } };
 
 #define STATIC_CALL_METHOD(ID, SIG) ID ## _method<SIG>::body
     

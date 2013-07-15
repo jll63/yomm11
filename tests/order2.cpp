@@ -22,7 +22,7 @@ struct ceo : role {
 
 BEGIN_METHOD(approve, bool, const expense&, const ceo&, const reason&) {
   return true;
-} END_METHOD(approve)
+} END_METHOD;
 
 unique_ptr<role> make_ceo() {
   return unique_ptr<role>(new ceo());

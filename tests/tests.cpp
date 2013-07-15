@@ -147,23 +147,23 @@ namespace single_inheritance {
   
   BEGIN_METHOD(encounter, string, Animal&, Animal&) {
     return "ignore";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 
   BEGIN_METHOD(encounter, string, Carnivore&, Animal&) {
     return "hunt";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 
   BEGIN_METHOD(encounter, string, Carnivore&, Carnivore&) {
     return "fight";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 
   BEGIN_METHOD(encounter, string, Wolf&, Wolf&) {
     return "wag tail";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 
   BEGIN_METHOD(encounter, string, Herbivore&, Carnivore&) {
     return "run";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 
   enum action { display_error, print_cow, draw_cow, print_wolf, draw_wolf, print_tiger, draw_tiger, print_herbivore, display_cow, print_animal };
 
@@ -171,37 +171,37 @@ namespace single_inheritance {
 
   BEGIN_METHOD(display, action, Cow& a, Terminal& b) {
     return print_cow;
-  } END_METHOD(display);
+  } END_METHOD;;
 
   BEGIN_METHOD(display, action, Wolf& a, Terminal& b) {
     return print_wolf;
-  } END_METHOD(display);
+  } END_METHOD;;
 
   BEGIN_METHOD(display, action, Tiger& a, Terminal& b) {
     return print_tiger;
-  } END_METHOD(display);
+  } END_METHOD;;
 
   BEGIN_METHOD(display, action, Cow& a, Window& b) {
     return draw_cow;
-  } END_METHOD(display);
+  } END_METHOD;;
 
   BEGIN_METHOD(display, action, Wolf& a, Window& b) {
     return draw_wolf;
-  } END_METHOD(display);
+  } END_METHOD;;
 
   BEGIN_METHOD(display, action, Tiger& a, Window& b) {
     return draw_tiger;
-  } END_METHOD(display);
+  } END_METHOD;;
 
 // following two are ambiguous, e.g. for (Cow, Terminal)
 
   BEGIN_METHOD(display, action, Herbivore& a, Interface& b) {
     return draw_tiger;
-  } END_METHOD(display);
+  } END_METHOD;;
 
   BEGIN_METHOD(display, action, Animal& a, Terminal& b) {
     return draw_tiger;
-  } END_METHOD(display);
+  } END_METHOD;;
 
   DO {
 
@@ -464,15 +464,15 @@ namespace mi {
   
   BEGIN_METHOD(encounter, string, Animal&, Animal&) {
     return "ignore";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 
   BEGIN_METHOD(encounter, string, Stallion&, Mare&) {
     return "court";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 
   BEGIN_METHOD(encounter, string, Predator&, Herbivore&) {
     return "hunt";
-  } END_METHOD(encounter);
+  } END_METHOD;;
 }
 
 DO {
@@ -502,7 +502,7 @@ namespace mi {
 
   BEGIN_METHOD(m1, int, const A&) {
     return 1;
-  } END_METHOD(m1);
+  } END_METHOD;;
 
   DO {
     test( mm_class_of<A>::the().mmt.size(), 1 );
@@ -518,7 +518,7 @@ namespace mi {
 
   BEGIN_METHOD(m2, int, const B&) {
     return 2;
-  } END_METHOD(m2);
+  } END_METHOD;;
 
   DO {
     test( mm_class_of<A>::the().mmt.size(), 1 );
@@ -546,11 +546,11 @@ namespace mi {
 
   BEGIN_METHOD(m3, int, const C1&) {
     return 3;
-  } END_METHOD(m3);
+  } END_METHOD;;
 
   BEGIN_METHOD(m3, int, const C&) {
     return 666;
-  } END_METHOD(m3);
+  } END_METHOD;;
 
   DO {
     test( mm_class_of<A>::the().mmt.size(), 1 );
@@ -575,7 +575,7 @@ namespace mi {
 
   BEGIN_METHOD(m4, int, const E&) {
     return 4;
-  } END_METHOD(m4);
+  } END_METHOD;;
 
   DO {
     test( m1(E()), 1 );

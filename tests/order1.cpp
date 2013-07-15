@@ -36,11 +36,11 @@ struct cab : expense {
 
 BEGIN_METHOD(approve, bool, const expense&, const role&, const reason&) {
   return false;
-} END_METHOD(approve)
+} END_METHOD;
 
 BEGIN_METHOD(approve, bool, const cab&, const manager&, const business&) {
   return true;
-} END_METHOD(approve)
+} END_METHOD;
 
 #define demo(exp) cout << #exp << " -> " << exp << endl
 

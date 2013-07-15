@@ -53,17 +53,17 @@ MULTIMETHOD(inspect, void(virtual_<Vehicle>&, virtual_<Inspector>&));
 
 BEGIN_METHOD(inspect, void, Vehicle& v, Inspector& i) {
   cout << "Inspect vehicle.\n";
-} END_METHOD(inspect)
+} END_METHOD;
 
 BEGIN_METHOD(inspect, void, Car& v, Inspector& i) {
   next(v, i);
   cout << "Inspect seat belts.\n";
-} END_METHOD(inspect)
+} END_METHOD;
 
 BEGIN_METHOD(inspect, void, Car& v, StateInspector& i) {
   next(v, i);
   cout << "Check insurance.\n";
-} END_METHOD(inspect)
+} END_METHOD;
 
 int main() {
   Car car;

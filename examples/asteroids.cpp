@@ -56,11 +56,11 @@ BEGIN_METHOD(collide, string, object& a, object& b, bool swapped) {
   } else {
     return collide(b, a, true);
   }
-} END_METHOD(collide)
+} END_METHOD;
 
 BEGIN_METHOD(collide, string, asteroid& a, asteroid& b, bool swapped) {
   return "traverse";
-} END_METHOD(collide)
+} END_METHOD;
 
 int main() {
   ship player;
