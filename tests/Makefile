@@ -18,10 +18,10 @@ CXXFLAGS=-std=c++11 -I../include
 runtests : tests
 	./tests
 
-runall : tests order1 order2
+runall : tests order12 order21
 	./tests
-	./order1
-	./order2
+	./order12
+	./order21
 
 tests : tests.o multimethods.o
 	g++ tests.o multimethods.o -o tests
