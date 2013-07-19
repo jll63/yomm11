@@ -21,7 +21,7 @@
 #include <stdexcept>
 #include <iostream>
 
-//#define MM_ENABLE_TRACE
+#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
 #define MM_TRACE(e) e
@@ -48,12 +48,13 @@ namespace multimethods {
     const std::type_info& ti;
     std::vector<mm_class*> bases;
     std::vector<mm_class*> specs;
+    mm_class* root;
     std::vector<int> mmt;
     std::vector<mmref> mms; // multimethods rooted here for one or more args.
     bool abstract;
 
     const std::string name() const;
-    void initialize(std::vector<mm_class*>& bases);
+    void initialize(std::vector<mm_class*>&& bases);
     int add_multimethod(multimethod_base* pm, int arg);
     void reserve_slot() { mmt.reserve(mmt.size() + 1); }
     void insert_slot(int i);
@@ -67,8 +68,13 @@ namespace multimethods {
     return ti.name();
   }
 
-  inline std::ostream& operator <<(std::ostream& os, mm_class* pc) {
-    return os << pc->name();
+  inline std::ostream& operator <<(std::ostream& os, const mm_class* pc) {
+    if (pc) {
+      pc->name();
+    } else {
+      os << "(null)";
+    }
+    return os;
   }
 
   std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes);
@@ -148,8 +154,7 @@ namespace multimethods {
     mm_class_initializer() {
       mm_class& pc = mm_class_of<Class>::the();
       pc.abstract = std::is_abstract<Class>::value;
-      std::vector<mm_class*> bases = { &mm_class_of<Bases>::the()... };
-      pc.initialize(bases);
+      pc.initialize({ &mm_class_of<Bases>::the()... });
 
       if (!std::is_base_of<selector, Class>::value) {
         if (!get_mm_table<false>::class_of) {

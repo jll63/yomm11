@@ -76,6 +76,13 @@ namespace single_inheritance {
     test(mm_class_of<Animal>::the().specs[0] == &mm_class_of<Herbivore>::the(), true);
     test(mm_class_of<Animal>::the().specs[1] == &mm_class_of<Carnivore>::the(), true);
 
+    test(mm_class_of<Animal>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Herbivore>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Carnivore>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Cow>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Wolf>::the().root, mm_class_of<Animal>::the().root);
+
+    
     test(mm_class_of<Animal>::the().abstract, true);
     //test(mm_class_of<Herbivore>::the().abstract, true);
     test(mm_class_of<Carnivore>::the().abstract, true);
