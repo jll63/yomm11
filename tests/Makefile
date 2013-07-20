@@ -11,7 +11,7 @@
 ## Keywords: 
 ## X-URL: 
 
-CXXFLAGS=-std=c++11 -I../include
+CXXFLAGS+=-std=c++11 -I../include
 
 .PHONY: runtests runall
 

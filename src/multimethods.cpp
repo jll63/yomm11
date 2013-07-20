@@ -8,8 +8,12 @@
 
 #include <multimethods.hpp>
 #include <unordered_set>
+#include <functional>
+#include <boost/range/adaptor/reversed.hpp>
 
 using namespace std;
+using boost::dynamic_bitset;
+using boost::adaptors::reverse;
 
 namespace multimethods {
 
@@ -21,6 +25,11 @@ namespace multimethods {
     //cout << "~mm_class() at " << this << endl;
   }
   
+  void mm_class::for_each_spec(std::function<void(mm_class*)> pf) {
+    for_each(specs.begin(), specs.end(),
+             [=](mm_class* p) { p->for_each_conforming(pf); });
+  }
+
   void mm_class::for_each_conforming(std::function<void(mm_class*)> pf) {
     pf(this);
     for_each(specs.begin(), specs.end(),
@@ -55,7 +64,7 @@ namespace multimethods {
     MM_TRACE(int init = slot);
 
     for (const mmref& ref : mms) {
-      ref.mm->assign_slot(ref.arg, slot++);
+      ref.method->assign_slot(ref.arg, slot++);
     }
 
     mmt.resize(slot);
@@ -64,7 +73,7 @@ namespace multimethods {
 
     return slot;
   }
-
+  
   void mm_class::initialize(std::vector<mm_class*>&& b) {
     MM_TRACE(std::cout << "initialize class_of<" << ti.name() << ">\n");
 
@@ -99,6 +108,74 @@ namespace multimethods {
   
   method_base method_base::undefined;
   method_base method_base::ambiguous;
+  
+  hierarchy_initializer::hierarchy_initializer(mm_class& root) : root(root) {
+  }
+
+  void hierarchy_initializer::topological_sort_visit(mm_class* pc) {
+    if (!pc->is_marked(mark)) {
+      pc->set_mark(mark);
+
+      for (mm_class* base : pc->bases) {
+        topological_sort_visit(base);
+      }
+
+      nodes.push_back({ pc });
+    }
+  }
+
+  void hierarchy_initializer::collect_classes() {
+    mark = root.mark + 1;
+    root.for_each_conforming([=](mm_class* pc) { topological_sort_visit(pc); });
+  }
+
+  void hierarchy_initializer::make_masks() {
+    mark = 0;
+    const int nb = nodes.size();
+    
+    for (node& n : nodes) {
+      n.mask.resize(nb);
+      n.pc->mark = mark++;
+    }
+    
+    for (node& n : nodes) {
+      for (mm_class* base : n.pc->bases)  {
+        //n.mask |= nodes[base->mark].mask;
+      }
+      n.mask[n.pc->mark] = true;
+    }
+    
+    for (node& n : reverse(nodes)) {
+      for (mm_class* spec : n.pc->specs)  {
+        for (int bit = spec->mark; bit < nb; bit++) {
+          n.mask[bit] |= nodes[spec->mark].mask[bit];
+        }
+      }
+    }
+  }
+
+  void hierarchy_initializer::assign_slots() {
+    vector<dynamic_bitset<>> slots;
+
+    for (node& n : nodes) {
+      for (auto& mm : n.pc->mms) {
+        auto available_slot = find_if(
+          slots.begin(), slots.end(),
+          [=](const dynamic_bitset<>& mask) {
+            return (mask & n.mask).none();
+          });
+
+      if (available_slot == slots.end()) {
+        slots.push_back(dynamic_bitset<>(nodes.size()));
+        available_slot = slots.end() - 1;
+      }
+
+      (*available_slot) |= n.mask;
+
+      mm.method->assign_slot(mm.arg, available_slot - slots.begin());
+      }
+    }
+  }
 
   bool method_base::specializes(const method_base* other) const {
 
@@ -124,7 +201,7 @@ namespace multimethods {
   void mm_class::insert_slot(int i) {
     MM_TRACE(std::cout << "allocate slot in " << ti.name() << " at " << i << "\n");
     mmt.insert(mmt.begin() + i, 1, 0);
-    std::for_each(mms.begin(), mms.end(), [=](const mmref& ref) { ref.mm->shift(i); });
+    std::for_each(mms.begin(), mms.end(), [=](const mmref& ref) { ref.method->shift(i); });
   }
 
   int mm_class::add_multimethod(multimethod_base* pm, int arg) {
@@ -135,6 +212,7 @@ namespace multimethods {
     return slot;
   }
 
+  
   get_mm_table<false>::class_of_type* get_mm_table<false>::class_of;
   
   std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes) {

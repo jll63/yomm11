@@ -16,6 +16,7 @@
 
 using namespace std;
 using namespace multimethods;
+using boost::dynamic_bitset;
 
 #define test(exp, res) _test(__FILE__, __LINE__, #exp, exp, #res, res)
 #define testx(exp, res) _test(__FILE__, __LINE__, #exp, exp, 0, res)
@@ -60,6 +61,8 @@ bool throws(function<void()> fun) {
 
   return false;
 }
+
+
 
 DO {
   cout << boolalpha;
@@ -595,6 +598,111 @@ namespace mi {
     test( mm_class_of<E>::the().mmt.size(), 4 );
   }
 }
+
+namespace initializer_tests {
+
+  struct X : selector {
+    MM_CLASS(X);
+    X() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_x, int(const virtual_<X>&));
+
+  struct A : X {
+    MM_CLASS(A, X);
+    A() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_a, int(const virtual_<A>&));
+
+  struct B : virtual A {
+    MM_CLASS(B, A);
+    B() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_b, int(const virtual_<B>&));
+
+  struct C : virtual A {
+    MM_CLASS(C, A);
+    C() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_c, int(const virtual_<C>&));
+
+  struct D : virtual A {
+    MM_CLASS(D, A);
+    D() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_d, int(const virtual_<D>&));
+
+  struct BC : B, C {
+    MM_CLASS(BC, B, C);
+    BC() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_bc, int(const virtual_<BC>&));
+
+  struct CD : C, D {
+    MM_CLASS(CD, C, D);
+    CD() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_cd, int(const virtual_<CD>&));
+
+  struct Y : virtual X {
+    MM_CLASS(Y, X);
+    Y() { MM_INIT(); }
+  };
+
+  MULTIMETHOD(m_y, int(const virtual_<Y>&));
+
+  DO {
+    // have to do this because no spec was added to multimethods
+    m_x.init_base();
+    m_a.init_base();
+    m_b.init_base();
+    m_c.init_base();
+    m_d.init_base();
+    m_bc.init_base();
+    m_cd.init_base();
+    m_y.init_base();
+
+    hierarchy_initializer init(mm_class_of<X>::the());
+
+    init.collect_classes();
+    test( init.nodes.size(), 8);
+    test( init.nodes.size(), 8);
+    test( init.nodes[0].pc, &mm_class_of<X>::the() );
+    test( init.nodes[1].pc, &mm_class_of<A>::the() );
+    test( init.nodes[2].pc, &mm_class_of<B>::the() );
+    test( init.nodes[3].pc, &mm_class_of<C>::the() );
+    test( init.nodes[4].pc, &mm_class_of<BC>::the() );
+    test( init.nodes[5].pc, &mm_class_of<D>::the() );
+    test( init.nodes[6].pc, &mm_class_of<CD>::the() );
+    test( init.nodes[7].pc, &mm_class_of<Y>::the() );
+
+    init.make_masks();
+    testx( init.nodes[0].mask, dynamic_bitset<>(8, 0b11111111) ); // X
+    testx( init.nodes[1].mask, dynamic_bitset<>(8, 0b01111110) ); // A
+    testx( init.nodes[2].mask, dynamic_bitset<>(8, 0b00010100) ); // B
+    testx( init.nodes[3].mask, dynamic_bitset<>(8, 0b01011000) ); // C
+    testx( init.nodes[4].mask, dynamic_bitset<>(8, 0b00010000) ); // BC
+    testx( init.nodes[5].mask, dynamic_bitset<>(8, 0b01100000) ); // D
+    testx( init.nodes[6].mask, dynamic_bitset<>(8, 0b01000000) ); // CD
+    testx( init.nodes[7].mask, dynamic_bitset<>(8, 0b10000000) ); // Y
+
+    init.assign_slots();
+    test(m_x.base->slots[0], 0);
+    test(m_a.base->slots[0], 1);
+    test(m_b.base->slots[0], 2);
+    test(m_c.base->slots[0], 3);
+    test(m_bc.base->slots[0], 4);
+    test(m_d.base->slots[0], 2);
+    test(m_cd.base->slots[0], 4);
+    test(m_y.base->slots[0], 1);
+  }
+};
 
 #endif
 

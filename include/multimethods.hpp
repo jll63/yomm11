@@ -20,8 +20,10 @@
 #include <algorithm>
 #include <stdexcept>
 #include <iostream>
+#include <boost/dynamic_bitset.hpp>
+#include <boost/type_traits/is_virtual_base_of.hpp>
 
-#define MM_ENABLE_TRACE
+//#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
 #define MM_TRACE(e) e
@@ -39,7 +41,7 @@ namespace multimethods {
 
   struct mm_class {
     struct mmref {
-      multimethod_base* mm;
+      multimethod_base* method;
       int arg;
     };
     
@@ -52,16 +54,20 @@ namespace multimethods {
     std::vector<int> mmt;
     std::vector<mmref> mms; // multimethods rooted here for one or more args.
     bool abstract;
+    int mark{0};
 
     const std::string name() const;
     void initialize(std::vector<mm_class*>&& bases);
     int add_multimethod(multimethod_base* pm, int arg);
     void reserve_slot() { mmt.reserve(mmt.size() + 1); }
     void insert_slot(int i);
+    void for_each_spec(std::function<void(mm_class*)> pf);
     void for_each_conforming(std::function<void(mm_class*)> pf);
     bool conforms_to(const mm_class& other) const;
     bool specializes(const mm_class& other) const;
     int assign_slots(std::unordered_set<mm_class*>& seen, int slot);
+    bool is_marked(int current) const { return mark == current; }
+    void set_mark(int current) { mark = current; }
   };
 
   inline const std::string mm_class::name() const {
@@ -70,7 +76,7 @@ namespace multimethods {
 
   inline std::ostream& operator <<(std::ostream& os, const mm_class* pc) {
     if (pc) {
-      pc->name();
+      os << pc->ti.name();
     } else {
       os << "(null)";
     }
@@ -201,33 +207,35 @@ namespace multimethods {
   template<class M, typename Override, class Base>
   struct wrapper;
 
-  template<bool is_base_of, class B, class D>
-  struct is_virtual_base_of_;
+  // template<bool is_base_of, class B, class D>
+  // struct is_virtual_base_of_;
     
-  template<class B, class D>
-  struct is_virtual_base_of_<false, B, D> {
-    static const bool value = false;
-  };
+  // template<class B, class D>
+  // struct is_virtual_base_of_<false, B, D> {
+  //   static const bool value = false;
+  // };
   
-  template<class B, class D>
-  struct is_virtual_base_of_<true, B, D> {
-    struct X : D, private virtual B {
-      virtual void * __init_mm_class() { }
-    };
-    struct Y : D { };
-    static const bool value = sizeof(X) == sizeof(Y);
-  };
+  // template<class B, class D>
+  // struct is_virtual_base_of_<true, B, D> {
+  //   struct X : D, private virtual B {
+  //     virtual void * __init_mm_class() { }
+  //   };
+  //   struct Y : D { };
+  //   static const bool value = sizeof(X) == sizeof(Y);
+  // };
 
-  template<class B, class D>
-  struct is_virtual_base_of {
-    static const bool value = is_virtual_base_of_<std::is_base_of<B, D>::value, B, D>::value;
-  };
+  // template<class B, class D>
+  // struct is_virtual_base_of {
+  //   static const bool value = is_virtual_base_of_<std::is_base_of<B, D>::value, B, D>::value;
+  // };
 
-  template<class C>
-  struct is_virtual_base_of<C, C> {
-    static const bool value = false;
-  };
+  // template<class C>
+  // struct is_virtual_base_of<C, C> {
+  //   static const bool value = false;
+  // };
 
+  using boost::is_virtual_base_of;
+  
   template<class D, class B>
   inline typename std::enable_if<
     !std::is_same<D, B>::value &&
@@ -550,6 +558,25 @@ namespace multimethods {
     multimethod_base::emit_func emit;
     multimethod_base::emit_next_func emit_next;
     int emit_at;
+  };
+
+  struct hierarchy_initializer {
+    hierarchy_initializer(mm_class& root);
+
+    void collect_classes();
+    void topological_sort_visit(mm_class* pc);
+    void make_masks();
+    void assign_slots();
+
+    struct node {
+      mm_class* pc;
+      boost::dynamic_bitset<> mask;
+    };
+
+    mm_class& root;
+    std::vector<node> nodes;
+    int mark{0};
+    
   };
 
   template<template<typename Sig> class Method, typename Sig>
