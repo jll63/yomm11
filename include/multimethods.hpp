@@ -36,6 +36,8 @@
 
 namespace multimethods {
 
+  void initialize();
+
   struct mm_class;
   struct multimethod_base;
 
@@ -47,17 +49,9 @@ namespace multimethods {
     
     mm_class(const std::type_info& t);
     ~mm_class();
-    const std::type_info& ti;
-    std::vector<mm_class*> bases;
-    std::vector<mm_class*> specs;
-    mm_class* root;
-    std::vector<int> mmt;
-    std::vector<mmref> mms; // multimethods rooted here for one or more args.
-    bool abstract;
-    int mark{0};
 
     const std::string name() const;
-    void initialize(std::vector<mm_class*>&& bases);
+    void set_bases(std::vector<mm_class*>&& bases);
     int add_multimethod(multimethod_base* pm, int arg);
     void reserve_slot() { mmt.reserve(mmt.size() + 1); }
     void insert_slot(int i);
@@ -68,6 +62,17 @@ namespace multimethods {
     int assign_slots(std::unordered_set<mm_class*>& seen, int slot);
     bool is_marked(int current) const { return mark == current; }
     void set_mark(int current) { mark = current; }
+    
+    const std::type_info& ti;
+    std::vector<mm_class*> bases;
+    std::vector<mm_class*> specs;
+    mm_class* root;
+    std::vector<int> mmt;
+    std::vector<mmref> rooted_here; // multimethods rooted here for one or more args.
+    bool abstract;
+    int mark{0};
+
+    static std::unordered_map<mm_class*, bool> roots;
   };
 
   inline const std::string mm_class::name() const {
@@ -160,7 +165,7 @@ namespace multimethods {
     mm_class_initializer() {
       mm_class& pc = mm_class_of<Class>::the();
       pc.abstract = std::is_abstract<Class>::value;
-      pc.initialize({ &mm_class_of<Bases>::the()... });
+      pc.set_bases({ &mm_class_of<Bases>::the()... });
 
       if (!std::is_base_of<selector, Class>::value) {
         if (!get_mm_table<false>::class_of) {

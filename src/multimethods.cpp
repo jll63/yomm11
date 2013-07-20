@@ -63,7 +63,7 @@ namespace multimethods {
 
     MM_TRACE(int init = slot);
 
-    for (const mmref& ref : mms) {
+    for (const mmref& ref : rooted_here) {
       ref.method->assign_slot(ref.arg, slot++);
     }
 
@@ -74,7 +74,7 @@ namespace multimethods {
     return slot;
   }
   
-  void mm_class::initialize(std::vector<mm_class*>&& b) {
+  void mm_class::set_bases(std::vector<mm_class*>&& b) {
     MM_TRACE(std::cout << "initialize class_of<" << ti.name() << ">\n");
 
     if (root) {
@@ -158,7 +158,7 @@ namespace multimethods {
     vector<dynamic_bitset<>> slots;
 
     for (node& n : nodes) {
-      for (auto& mm : n.pc->mms) {
+      for (auto& mm : n.pc->rooted_here) {
         auto available_slot = find_if(
           slots.begin(), slots.end(),
           [=](const dynamic_bitset<>& mask) {
@@ -201,14 +201,14 @@ namespace multimethods {
   void mm_class::insert_slot(int i) {
     MM_TRACE(std::cout << "allocate slot in " << ti.name() << " at " << i << "\n");
     mmt.insert(mmt.begin() + i, 1, 0);
-    std::for_each(mms.begin(), mms.end(), [=](const mmref& ref) { ref.method->shift(i); });
+    std::for_each(rooted_here.begin(), rooted_here.end(), [=](const mmref& ref) { ref.method->shift(i); });
   }
 
   int mm_class::add_multimethod(multimethod_base* pm, int arg) {
     int slot = mmt.size();
     for_each_conforming(std::mem_fun(&mm_class::reserve_slot));
     for_each_conforming([=](mm_class* pc) { pc->insert_slot(slot); });
-    mms.push_back(mmref { pm, arg });
+    rooted_here.push_back(mmref { pm, arg });
     return slot;
   }
 
