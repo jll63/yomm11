@@ -149,12 +149,6 @@ namespace multimethods {
     for (node& n : nodes) {
       n.mask.resize(nb);
       n.pc->mark = mark++;
-    }
-    
-    for (node& n : nodes) {
-      for (mm_class* base : n.pc->bases)  {
-        //n.mask |= nodes[base->mark].mask;
-      }
       n.mask[n.pc->mark] = true;
     }
     
@@ -205,7 +199,7 @@ namespace multimethods {
     
     while (multimethod_base::to_initialize().size()) {
       auto pm = *multimethod_base::to_initialize().begin();
-      pm->do_initialize();
+      pm->resolve();
       multimethod_base::to_initialize().erase(pm);
     }
   }
@@ -261,7 +255,7 @@ namespace multimethods {
     return os << ")";
   }
   
-  multimethod_base::multimethod_base(const std::vector<mm_class*>& v, void (*initializer)()) : vargs(v), initializer(initializer) {
+  multimethod_base::multimethod_base(const std::vector<mm_class*>& v) : vargs(v) {
       int i = 0;
       for_each(vargs.begin(), vargs.end(),
                [&](mm_class* pc) {
@@ -290,10 +284,6 @@ namespace multimethods {
 
   void multimethod_base::invalidate() {
     to_initialize().insert(this);
-  }
-
-  void multimethod_base::do_initialize() {
-    initializer();
   }
 
   unordered_set<multimethod_base*>& multimethod_base::to_initialize() {
@@ -347,10 +337,8 @@ namespace multimethods {
     make_steps();
   }
 
-  void resolver::resolve(multimethod_base::emit_func emit, multimethod_base::emit_next_func emit_next) {
-    this->emit = emit;
+  void resolver::resolve() {
     emit_at = 0;
-    this->emit_next = emit_next;
     tuple.resize(dims);
     std::fill(tuple.begin(), tuple.end(), 0);
     do_resolve(tuple.size() - 1, mm.methods);
@@ -369,7 +357,7 @@ namespace multimethods {
       MM_TRACE(copy(candidates.begin(), candidates.end(), ostream_iterator<const method_base*>(cout, "\n")));
       auto best = find_best(candidates);
       MM_TRACE(cout << "next is: " << best << endl);
-      emit_next(pm, best);
+      mm.emit_next(pm, best);
     }
   }
 
@@ -401,7 +389,7 @@ namespace multimethods {
       if (dim == 0) {
         auto best = find_best(viable);
         MM_TRACE(cout << "install " << best << " at offset " << emit_at << endl); 
-        emit(best, emit_at++);
+        mm.emit(best, emit_at++);
       } else {
         do_resolve(dim - 1, viable);
       }

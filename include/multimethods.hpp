@@ -23,7 +23,7 @@
 #include <boost/dynamic_bitset.hpp>
 #include <boost/type_traits/is_virtual_base_of.hpp>
 
-//#define MM_ENABLE_TRACE
+#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
 #define MM_TRACE(e) e
@@ -191,21 +191,19 @@ namespace multimethods {
   std::ostream& operator <<(std::ostream& os, const std::vector<method_base*>& methods);
 
   struct multimethod_base {
-    explicit multimethod_base(const std::vector<mm_class*>& v, void (*initializer)());
+    explicit multimethod_base(const std::vector<mm_class*>& v);
+    virtual void resolve() = 0;
+    virtual void emit(method_base*, int i) = 0;
+    virtual void emit_next(method_base*, method_base*) = 0;
     void invalidate();
     void shift(int pos);
     void assign_slot(int arg, int slot);
     
-    using emit_func = std::function<void(method_base*, int i)>;
-    using emit_next_func = std::function<void(method_base*, method_base*)>;
     std::vector<mm_class*> vargs;
     std::vector<int> slots;
     std::vector<method_base*> methods;
     std::vector<int> steps;
-    void (*initializer)();
     static std::unordered_set<multimethod_base*>& to_initialize();
-
-    void do_initialize();
   };
   
   template<class M, typename Override, class Base>
@@ -544,7 +542,7 @@ namespace multimethods {
 
   struct resolver {
     resolver(multimethod_base& mm);
-    void resolve(multimethod_base::emit_func emit, multimethod_base::emit_next_func emit_next);
+    void resolve();
     void do_resolve(int dim, const std::vector<method_base*>& viable);
     int order(const method_base* a, const method_base* b);
     void assign_next();
@@ -559,8 +557,6 @@ namespace multimethods {
     std::vector<method_base*> methods;
     std::vector<int> tuple;
     std::vector<std::vector<mm_class*>> classes;
-    multimethod_base::emit_func emit;
-    multimethod_base::emit_next_func emit_next;
     int emit_at;
   };
 
@@ -585,21 +581,87 @@ namespace multimethods {
     
   };
 
+  namespace detail {
+  
+    template<typename R, typename... P>
+    struct multimethod_implementation : multimethod_base {
+      using return_type = R;
+      using mptr = return_type (*)(typename remove_virtual<P>::type...);
+      using method_entry = method<mptr>;
+      using signature = R(typename remove_virtual<P>::type...);
+      using virtuals = typename extract_virtuals<P...>::type;
+      
+      multimethod_implementation() : multimethod_base(mm_class_vector_of<virtuals>::get()) {
+      }
+
+      void allocate_dispatch_table(int size);
+      template<class M> method_base* add_spec();
+
+      virtual void resolve();
+      virtual void emit(method_base*, int i);
+      virtual void emit_next(method_base*, method_base*);
+
+      mptr* dispatch_table{0};
+    };
+    
+    template<typename R, typename... P>
+    template<class M>
+    method_base* multimethod_implementation<R, P...>::add_spec() {
+      using method_signature = decltype(M::body);
+      using target = typename wrapper<M, method_signature, signature>::type;
+      using method_virtuals = typename extract_method_virtuals<R(P...), method_signature>::type;
+
+      using namespace std;
+      MM_TRACE(cout << "add " << method_virtuals() << " to " << virtuals() << endl);
+
+      method_base* method = new method_entry(target::body, mm_class_vector_of<method_virtuals>::get(), &M::next);
+    
+      methods.push_back(method);
+      invalidate();
+
+      return method;
+    }
+
+    template<typename R, typename... P>
+    void multimethod_implementation<R, P...>::resolve() {
+      resolver r(*this);
+      allocate_dispatch_table(r.dispatch_table_size);
+      r.resolve();
+    }
+  
+    template<typename R, typename... P>
+    void multimethod_implementation<R, P...>::allocate_dispatch_table(int size) {
+      using namespace std;
+      delete [] dispatch_table;
+      dispatch_table = new mptr[size];
+    }
+  
+    template<typename R, typename... P>
+    void multimethod_implementation<R, P...>::emit(method_base* method, int i) {
+      dispatch_table[i] =
+        method == &method_base::ambiguous ? throw_ambiguous<signature>::body
+        : method == &method_base::undefined ? throw_undefined<signature>::body
+        : static_cast<method_entry*>(method)->pm;
+      using namespace std;
+      MM_TRACE(cout << "installed at " << dispatch_table << " + " << i << endl);
+    }
+  
+    template<typename R, typename... P>
+    void multimethod_implementation<R, P...>::emit_next(method_base* method, method_base* next) {
+      *static_cast<method_entry*>(method)->pn =
+        next == &method_base::ambiguous ? throw_ambiguous<signature>::body
+        : next == &method_base::undefined ? throw_undefined<signature>::body
+        : static_cast<method_entry*>(next)->pm;
+    }
+  }
+
   template<template<typename Sig> class Method, typename Sig>
-  struct multimethod_impl;
+  struct multimethod;
   
   template<template<typename Sig> class Method, typename R, typename... P>
-  struct multimethod_impl<Method, R(P...)> {
-    
-    template<class M>
-    static method_base* add_spec();
-
-    static void init_base();
+  struct multimethod<Method, R(P...)> {
     
     R operator ()(typename remove_virtual<P>::type... args) const;
-
-    static void do_initialize();
-    static void allocate_dispatch_table(int size, multimethod_base::emit_func& emit, multimethod_base::emit_next_func& emit_next);
 
     using return_type = R;
     using mptr = return_type (*)(typename remove_virtual<P>::type...);
@@ -607,19 +669,21 @@ namespace multimethods {
     using signature = R(typename remove_virtual<P>::type...);
     using virtuals = typename extract_virtuals<P...>::type;
 
-    static multimethod_base* base;
-    static mptr* dispatch_table;
-
     template<typename Tag>
     struct next_ptr {
       static mptr next;
     };
+
+    using implementation = detail::multimethod_implementation<R, P...>;
+    static implementation& the();
+  private:
+    static implementation* impl;
   };
 
   template<class Method, class Spec>
   struct register_spec {
     register_spec() {
-      Method::template add_spec<Spec>();
+      Method::the().template add_spec<Spec>();
     }
     static register_spec the;
   };
@@ -628,82 +692,25 @@ namespace multimethods {
   register_spec<Method, Spec> register_spec<Method, Spec>::the;
 
   template<template<typename Sig> class Method, typename R, typename... P>
-  typename multimethod_impl<Method, R(P...)>::mptr* multimethod_impl<Method, R(P...)>::dispatch_table;
-
-  template<template<typename Sig> class Method, typename R, typename... P>
-  multimethod_base* multimethod_impl<Method, R(P...)>::base;
+  typename multimethod<Method, R(P...)>::implementation* multimethod<Method, R(P...)>::impl;
 
   template<template<typename Sig> class Method, typename R, typename... P>
   template<typename Tag>
-  typename multimethod_impl<Method, R(P...)>::mptr multimethod_impl<Method, R(P...)>::next_ptr<Tag>::next;
+  typename multimethod<Method, R(P...)>::mptr multimethod<Method, R(P...)>::next_ptr<Tag>::next;
 
   template<template<typename Sig> class Method, typename R, typename... P>
-  void multimethod_impl<Method, R(P...)>::init_base() {
-    if (!base) {
-      using namespace std;
-      MM_TRACE(cout << "init state for " << virtuals() << "\n");
-      base = new multimethod_base(mm_class_vector_of<typename multimethod_impl<Method, R(P...)>::virtuals>::get(), [=](){ do_initialize(); });
+  typename multimethod<Method, R(P...)>::implementation& multimethod<Method, R(P...)>::the() {
+    if (!impl) {
+      impl = new implementation;
     }
-  }
-  
-  template<template<typename Sig> class Method, typename R, typename... P>
-  inline R multimethod_impl<Method, R(P...)>::operator ()(typename remove_virtual<P>::type... args) const {
-    return dispatch_table[linear<P...>::value(base->slots.begin(), base->steps.begin(), 0, &args...)](args...);
-  }
-  
-  template<template<typename Sig> class Method, typename R, typename... P>
-  void multimethod_impl<Method, R(P...)>::do_initialize() {
-    resolver r(*base);
-    multimethod_base::emit_func emit;
-    multimethod_base::emit_next_func emit_next;
-    allocate_dispatch_table(r.dispatch_table_size, emit, emit_next);
-    r.resolve(emit, emit_next);
-  }
-  
-  template<template<typename Sig> class Method, typename R, typename... P>
-  
-  void multimethod_impl<Method, R(P...)>::allocate_dispatch_table(
-    int size,
-    multimethod_base::emit_func& emit,
-    multimethod_base::emit_next_func& emit_next) {
-    using namespace std;
-    delete [] dispatch_table;
-    dispatch_table = new mptr[size];
-    emit = [=](method_base* method, int i) {
-      dispatch_table[i] =
-        method == &method_base::ambiguous ? throw_ambiguous<signature>::body
-        : method == &method_base::undefined ? throw_undefined<signature>::body
-        : static_cast<method_entry*>(method)->pm;
-      MM_TRACE(cout << "installed at " << dispatch_table << " + " << i << endl);
-    };
-    emit_next = [](method_base* method, method_base* next) {
-      *static_cast<method_entry*>(method)->pn =
-        next == &method_base::ambiguous ? throw_ambiguous<signature>::body
-        : next == &method_base::undefined ? throw_undefined<signature>::body
-        : static_cast<method_entry*>(next)->pm;
-    };
-  }
-  
-  template<template<typename Sig> class Method, typename R, typename... P>
-  template<class M>
-  method_base* multimethod_impl<Method, R(P...)>::add_spec() {
-    using method_signature = decltype(M::body);
-    using target = typename wrapper<M, method_signature, signature>::type;
-    using method_virtuals = typename extract_method_virtuals<R(P...), method_signature>::type;
-    using namespace std;
-    init_base();
-    MM_TRACE(cout << "add " << method_virtuals() << " to " << virtuals() << endl);
-
-    method_base* method = new method_entry(target::body, mm_class_vector_of<method_virtuals>::get(), &M::next);
     
-    base->methods.push_back(method);
-    base->invalidate();
-
-    return method;
+    return *impl;
   }
-
-  template<typename Tag>
-  struct multimethod;
+  
+  template<template<typename Sig> class Method, typename R, typename... P>
+  inline R multimethod<Method, R(P...)>::operator ()(typename remove_virtual<P>::type... args) const {
+    return impl->dispatch_table[linear<P...>::value(impl->slots.begin(), impl->steps.begin(), 0, &args...)](args...);
+  }
 
   template<class MM, class M> struct register_method;
 
@@ -732,7 +739,7 @@ namespace multimethods {
 
 #define MULTIMETHOD(ID, SIG)                                            \
   template<typename Sig> struct ID ## _method;                          \
-  constexpr ::multimethods::multimethod_impl<ID ## _method, SIG> ID;
+  constexpr ::multimethods::multimethod<ID ## _method, SIG> ID;
   
 #define REGISTER_METHOD_ID(MM, M) __register_ ## MM ## _ ## M
 #define REGISTER_METHOD(MM, M)                                  \

@@ -105,7 +105,7 @@ namespace single_inheritance {
 namespace slot_allocation_tests {
 
   DO {
-    cout << "Slot allocation." << endl;
+    cout << "\n--- Slot allocation." << endl;
   }
 
   struct X : selector {
@@ -165,15 +165,14 @@ namespace slot_allocation_tests {
   MULTIMETHOD(m_y, int(const virtual_<Y>&));
 
   DO {
-    // have to do this because no spec was added to multimethods
-    m_x.init_base();
-    m_a.init_base();
-    m_b.init_base();
-    m_c.init_base();
-    m_d.init_base();
-    m_bc.init_base();
-    m_cd.init_base();
-    m_y.init_base();
+    m_x.the();
+    m_a.the();
+    m_b.the();
+    m_c.the();
+    m_bc.the();
+    m_d.the();
+    m_cd.the();
+    m_y.the();
 
     hierarchy_initializer init(mm_class_of<X>::the());
 
@@ -200,18 +199,22 @@ namespace slot_allocation_tests {
     testx( init.nodes[7].mask, dynamic_bitset<>(8, 0b10000000) ); // Y
 
     init.assign_slots();
-    test(m_x.base->slots[0], 0);
-    test(m_a.base->slots[0], 1);
-    test(m_b.base->slots[0], 2);
-    test(m_c.base->slots[0], 3);
-    test(m_bc.base->slots[0], 4);
-    test(m_d.base->slots[0], 2);
-    test(m_cd.base->slots[0], 4);
-    test(m_y.base->slots[0], 1);
+    test(m_x.the().slots[0], 0);
+    test(m_a.the().slots[0], 1);
+    test(m_b.the().slots[0], 2);
+    test(m_c.the().slots[0], 3);
+    test(m_bc.the().slots[0], 4);
+    test(m_d.the().slots[0], 2);
+    test(m_cd.the().slots[0], 4);
+    test(m_y.the().slots[0], 1);
   }
 }
 
 namespace single_inheritance {
+
+  DO {
+    cout << "\n--- Single inheritance." << endl;
+  }
 
   static_assert(
     is_same<
@@ -240,11 +243,10 @@ namespace single_inheritance {
   MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
 
   DO {
-    encounter.init_base();
-    test(encounter.base->vargs.size(), 2);
-    test(encounter.base->slots.size(), 2);
-    test(encounter.base->slots[0], 0);
-    test(encounter.base->slots[1], 1);
+    test(encounter.the().vargs.size(), 2);
+    test(encounter.the().slots.size(), 2);
+    test(encounter.the().slots[0], 0);
+    test(encounter.the().slots[1], 1);
 
     test(mm_class_of<Animal>::the().mmt.size(), 2);
     test(mm_class_of<Herbivore>::the().mmt.size(), 2);
@@ -316,21 +318,21 @@ namespace single_inheritance {
     cout << "\n*** method registration" << endl;
 
     int i = 0;
-    auto aa = encounter.base->methods[i++];
-    auto ca = encounter.base->methods[i++];
-    auto cc = encounter.base->methods[i++];
-    auto ww = encounter.base->methods[i++];
-    auto hc = encounter.base->methods[i++];
+    auto aa = encounter.the().methods[i++];
+    auto ca = encounter.the().methods[i++];
+    auto cc = encounter.the().methods[i++];
+    auto ww = encounter.the().methods[i++];
+    auto hc = encounter.the().methods[i++];
 
-    test(encounter.base->methods.size(), 5);
+    test(encounter.the().methods.size(), 5);
 
-    test(encounter.base->methods[4]->args.size(), 2);
-    test(encounter.base->methods[4]->args[0], &mm_class_of<Herbivore>::the());
-    test(encounter.base->methods[4]->args[0]->name(), mm_class_of<Herbivore>::the().name());
-    test(encounter.base->methods[4]->args[1]->name(), mm_class_of<Carnivore>::the().name());
+    test(encounter.the().methods[4]->args.size(), 2);
+    test(encounter.the().methods[4]->args[0], &mm_class_of<Herbivore>::the());
+    test(encounter.the().methods[4]->args[0]->name(), mm_class_of<Herbivore>::the().name());
+    test(encounter.the().methods[4]->args[1]->name(), mm_class_of<Carnivore>::the().name());
 
     cout << "\nResolver\n";
-    resolver renc(*encounter.base);
+    resolver renc(encounter.the());
 
     test(renc.classes.size(), 2);
     test(renc.classes[0].size(), 6);
@@ -341,9 +343,9 @@ namespace single_inheritance {
     test(renc.classes[0][4]->ti.name(), mm_class_of<Wolf>::the().ti.name());
     test(renc.classes[0][5]->ti.name(), mm_class_of<Tiger>::the().ti.name());
 
-    test(encounter.base->steps.size(), 2);
-    test(encounter.base->steps[0], 1);
-    test(encounter.base->steps[1], 6);
+    test(encounter.the().steps.size(), 2);
+    test(encounter.the().steps[0], 1);
+    test(encounter.the().steps[1], 6);
     test(renc.linear(vector<int>{ 0, 1 }), 6);
     test(renc.linear(vector<int>{ 2, 2 }), 14);
 
@@ -355,7 +357,7 @@ namespace single_inheritance {
     test(renc.order(hc, aa), -1);
 
     cout << "\ndisplay resolver\n";
-    resolver rdisp(*display.base);
+    resolver rdisp(display.the());
 
     test(rdisp.classes.size(), 2);
     test(rdisp.classes[0].size(), 6);
@@ -373,9 +375,9 @@ namespace single_inheritance {
 
     rdisp.make_steps();
 
-    test(display.base->steps.size(), 2);
-    test(display.base->steps[0], 1);
-    test(display.base->steps[1], 6);
+    test(display.the().steps.size(), 2);
+    test(display.the().steps[0], 1);
+    test(display.the().steps[1], 6);
     test(rdisp.linear(vector<int>{ 0, 1 }), 6);
     test(rdisp.linear(vector<int>{ 2, 2 }), 14);
 
@@ -386,14 +388,14 @@ namespace single_inheritance {
     animal_interface->args.push_back(&mm_class_of<Animal>::the());
     animal_interface->args.push_back(&mm_class_of<Interface>::the());
       
-    auto cow_terminal = static_cast<display_method_entry*>(display.base->methods[m++]);
-    auto wolf_terminal = static_cast<display_method_entry*>(display.base->methods[m++]);
-    auto tiger_terminal = static_cast<display_method_entry*>(display.base->methods[m++]);
-    auto cow_window = static_cast<display_method_entry*>(display.base->methods[m++]);
-    auto wolf_window = static_cast<display_method_entry*>(display.base->methods[m++]);
-    auto tiger_window = static_cast<display_method_entry*>(display.base->methods[m++]);
-    auto herbivore_interface = static_cast<display_method_entry*>(display.base->methods[m++]);
-    auto animal_terminal = static_cast<display_method_entry*>(display.base->methods[m++]);
+    auto cow_terminal = static_cast<display_method_entry*>(display.the().methods[m++]);
+    auto wolf_terminal = static_cast<display_method_entry*>(display.the().methods[m++]);
+    auto tiger_terminal = static_cast<display_method_entry*>(display.the().methods[m++]);
+    auto cow_window = static_cast<display_method_entry*>(display.the().methods[m++]);
+    auto wolf_window = static_cast<display_method_entry*>(display.the().methods[m++]);
+    auto tiger_window = static_cast<display_method_entry*>(display.the().methods[m++]);
+    auto herbivore_interface = static_cast<display_method_entry*>(display.the().methods[m++]);
+    auto animal_terminal = static_cast<display_method_entry*>(display.the().methods[m++]);
 
     test(renc.order(cow_window, animal_interface), -1);
     test(renc.order(cow_terminal, animal_interface), -1);
@@ -424,13 +426,11 @@ namespace single_inheritance {
       cout << "\ndisplay.resolve()\n";
       test(rdisp.dispatch_table_size, 18);
       
-      multimethod_base::emit_func emit;
-      multimethod_base::emit_next_func emit_next;
-      display.allocate_dispatch_table(rdisp.dispatch_table_size, emit, emit_next);
-      rdisp.resolve(emit, emit_next);
+      display.the().allocate_dispatch_table(rdisp.dispatch_table_size);
+      rdisp.resolve();
 
       {
-        auto mptr = display.dispatch_table;
+        auto mptr = display.the().dispatch_table;
         //              Interface   Terminal   Window  
         // Animal       0           at         0
         // Herbivore    hi          ?          hi 
@@ -513,14 +513,14 @@ namespace single_inheritance {
       test(win.__mm_ptbl->size(), 1); // display(2)
       test((*win.__mm_ptbl)[0], 2); // 2 => Window
 
-      test((linear<virtual_<Animal>&, virtual_<Interface>&>::value(display.base->slots.begin(), display.base->steps.begin(), 0, &c, &term)), 8);
+      test((linear<virtual_<Animal>&, virtual_<Interface>&>::value(display.the().slots.begin(), display.the().steps.begin(), 0, &c, &term)), 8);
 
       test(display(c, term), print_cow);
       test(display(w, win), draw_wolf);
       test(throws<undefined>([&]() { display(w, interf); }), true);
       test(throws<ambiguous>([&]() { display(herb, term); }), true);
 
-      encounter.do_initialize();
+      encounter.the().resolve();
       test(encounter(c, w), "run");
       test(encounter(c, c), "ignore");
 
