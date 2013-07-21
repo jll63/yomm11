@@ -513,8 +513,6 @@ namespace single_inheritance {
       test(win.__mm_ptbl->size(), 1); // display(2)
       test((*win.__mm_ptbl)[0], 2); // 2 => Window
 
-      display.base->ready = true;
-
       test((linear<virtual_<Animal>&, virtual_<Interface>&>::value(display.base->slots.begin(), display.base->steps.begin(), 0, &c, &term)), 8);
 
       test(display(c, term), print_cow);
@@ -522,6 +520,7 @@ namespace single_inheritance {
       test(throws<undefined>([&]() { display(w, interf); }), true);
       test(throws<ambiguous>([&]() { display(herb, term); }), true);
 
+      encounter.do_initialize();
       test(encounter(c, w), "run");
       test(encounter(c, c), "ignore");
 
@@ -533,6 +532,56 @@ namespace single_inheritance {
       test(encounter_method<string(Carnivore&, Carnivore&)>::next(w, w), "hunt");
       test(encounter_method<string(Carnivore&, Animal&)>::next(w, w), "ignore");
     }
+  }
+}
+
+namespace init_tests {
+
+#include "animals.hpp"
+
+  MULTIMETHOD(encounter, string(const virtual_<Animal>&, const virtual_<Animal>&));
+
+  BEGIN_METHOD(encounter, string, const Animal&, const Animal&) {
+    return "ignore";
+  } END_METHOD;
+
+  DO {
+    multimethods::initialize();
+    test(encounter(Cow(), Wolf()), "ignore");
+    test(encounter(Wolf(), Cow()), "ignore");
+  }
+
+  BEGIN_METHOD(encounter, string, const Herbivore&, const Carnivore&) {
+    return "run";
+  } END_METHOD;
+
+  DO {
+    multimethods::initialize();
+    test(encounter(Cow(), Wolf()), "run");
+    test(encounter(Wolf(), Cow()), "ignore");
+  }
+
+  BEGIN_METHOD(encounter, string, const Carnivore&, const Herbivore&) {
+    return "hunt";
+  } END_METHOD;
+
+  DO {
+    multimethods::initialize();
+    test(encounter(Cow(), Wolf()), "run");
+    test(encounter(Wolf(), Cow()), "hunt");
+  }
+
+  struct Horse : Herbivore {
+    MM_CLASS(Horse, Herbivore);
+    Horse() {
+      MM_INIT();
+    }
+  };
+
+  DO {
+    multimethods::initialize();
+    test(encounter(Horse(), Wolf()), "run");
+    test(encounter(Wolf(), Horse()), "hunt");
   }
 }
 
@@ -552,28 +601,20 @@ namespace mi {
   BEGIN_METHOD(encounter, string, Predator&, Herbivore&) {
     return "hunt";
   } END_METHOD;;
-}
-
-DO {
-  using namespace mi;
-  Stallion stallion;
-  Mare mare;
-  Wolf wolf;
-  static_assert(is_virtual_base_of<Animal, Stallion>::value, "problem with virtual base detection");
-  test( encounter(stallion, mare), "court" );
-  test( encounter(mare, mare), "ignore" );
-  test( encounter(wolf, mare), "hunt" );
-}
-
-namespace init_tests {
-
-#include "animals.hpp"
 
   DO {
-    //multimethod::initialize();
-    //test
+    Stallion stallion;
+    Mare mare;
+    Wolf wolf;
+
+    static_assert(is_virtual_base_of<Animal, Stallion>::value, "problem with virtual base detection");
+
+    multimethods::initialize();
+    
+    test( encounter(stallion, mare), "court" );
+    test( encounter(mare, mare), "ignore" );
+    test( encounter(wolf, mare), "hunt" );
   }
-  
 }
 
 int main() {

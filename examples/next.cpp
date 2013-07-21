@@ -1,4 +1,4 @@
-// -*- compile-command: "g++ -g -std=c++11 -I../include ../src/multimethods.cpp next.cpp -o next && ./next" -*-
+// -*- compile-command: "make next && ./next" -*-
 
 // next.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -66,8 +66,9 @@ BEGIN_METHOD(inspect, void, Car& v, StateInspector& i) {
 } END_METHOD;
 
 int main() {
+  multimethods::initialize(); // IMPORTANT!
   Car car;
   StateInspector inspector;
-  inspect(car, inspector);
+  inspect(car, inspector); // Inspect vehicle. Inspect seat belts. Check insurance.
   return 0;
 }

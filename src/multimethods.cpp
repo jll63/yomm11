@@ -74,7 +74,7 @@ namespace multimethods {
     return slot;
   }
   
-  void mm_class::set_bases(std::vector<mm_class*>&& b) {
+  void mm_class::initialize(std::vector<mm_class*>&& b) {
     MM_TRACE(std::cout << "initialize class_of<" << ti.name() << ">\n");
 
     if (root) {
@@ -104,6 +104,19 @@ namespace multimethods {
       unordered_set<mm_class*> seen;
       assign_slots(seen, 0);
     }
+
+    to_initialize().insert(root);
+
+    root->for_each_conforming([](mm_class* pc) {
+        for (auto& mr : pc->rooted_here) {
+          mr.method->invalidate();
+        }
+      });
+  }
+
+  unordered_set<mm_class*>& mm_class::to_initialize() {
+    static unordered_set<mm_class*> set;
+    return set;
   }
   
   method_base method_base::undefined;
@@ -176,6 +189,26 @@ namespace multimethods {
       }
     }
   }
+  
+  void hierarchy_initializer::execute() {
+    collect_classes();
+    make_masks();
+    assign_slots();
+  }
+
+  void initialize() {
+    while (mm_class::to_initialize().size()) {
+      auto pc = *mm_class::to_initialize().begin();
+      hierarchy_initializer(*pc).execute();
+      mm_class::to_initialize().erase(pc);
+    }
+    
+    while (multimethod_base::to_initialize().size()) {
+      auto pm = *multimethod_base::to_initialize().begin();
+      pm->do_initialize();
+      multimethod_base::to_initialize().erase(pm);
+    }
+  }
 
   bool method_base::specializes(const method_base* other) const {
 
@@ -228,7 +261,7 @@ namespace multimethods {
     return os << ")";
   }
   
-  multimethod_base::multimethod_base(const std::vector<mm_class*>& v) : vargs(v), ready(false) {
+  multimethod_base::multimethod_base(const std::vector<mm_class*>& v, void (*initializer)()) : vargs(v), initializer(initializer) {
       int i = 0;
       for_each(vargs.begin(), vargs.end(),
                [&](mm_class* pc) {
@@ -254,7 +287,20 @@ namespace multimethods {
 
     invalidate();
   }
-  
+
+  void multimethod_base::invalidate() {
+    to_initialize().insert(this);
+  }
+
+  void multimethod_base::do_initialize() {
+    initializer();
+  }
+
+  unordered_set<multimethod_base*>& multimethod_base::to_initialize() {
+    static unordered_set<multimethod_base*> set;
+    return set;
+  }
+
   void resolver::make_steps() {
     mm.steps.resize(dims);
     int step = 1;

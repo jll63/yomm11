@@ -1,4 +1,4 @@
-// -*- compile-command: "g++ -g -std=c++11 -I../include ../src/multimethods.cpp asteroids.cpp -o asteroids && ./asteroids" -*-
+// -*- compile-command: "make asteroids && ./asteroids" -*-
 
 // asteroids.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -52,7 +52,7 @@ MULTIMETHOD(collide, string(virtual_<object>&, virtual_<object>&, bool swapped))
 
 BEGIN_METHOD(collide, string, object& a, object& b, bool swapped) {
   if (swapped) {
-    return "kaboom";
+    return "kaboom!";
   } else {
     return collide(b, a, true);
   }
@@ -63,13 +63,15 @@ BEGIN_METHOD(collide, string, asteroid& a, asteroid& b, bool swapped) {
 } END_METHOD;
 
 int main() {
+  multimethods::initialize(); // IMPORTANT!
+  
   ship player;
   asteroid as;
   saucer small;
   bullet b;
 
-  cout << collide(player, as, false) << endl;
-  cout << collide(as, as, false) << endl;
+  cout << collide(player, as, false) << endl; // kaboom!
+  cout << collide(as, as, false) << endl; // traverse
 
   return 0;
 }

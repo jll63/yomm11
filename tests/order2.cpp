@@ -1,4 +1,4 @@
-// -*- compile-command: "g++ -g -std=c++11 -I../include ../src/multimethods.cpp order2.cpp order1.cpp -o order21 && ./order21" -*-
+// -*- compile-command: "make order21 && ./order21" -*-
 
 // order2.cpp
 // Copyright (c) 2013 Jean-Louis Leroy

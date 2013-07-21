@@ -27,10 +27,16 @@ tests : tests.o multimethods.o
 	g++ tests.o multimethods.o -o tests
 
 order12 : order1.o order2.o multimethods.o
-	g++ order1.o order2.o multimethods.o -o order1
+	g++ order1.o order2.o multimethods.o -o order12
 
 order21 : order1.o order2.o multimethods.o
-	g++ order2.o order1.o multimethods.o -o order2
+	g++ order2.o order1.o multimethods.o -o order21
+
+order1.o : order1.cpp order.hpp ../include/multimethods.hpp
+
+order2.o : order1.cpp order.hpp ../include/multimethods.hpp
+
+multimethods.o : ../src/multimethods.cpp ../include/multimethods.hpp
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $<

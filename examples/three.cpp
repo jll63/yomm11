@@ -1,4 +1,4 @@
-// -*- compile-command: "g++ -g -std=c++11 -I../include ../src/multimethods.cpp three.cpp -o three && ./three" -*-
+// -*- compile-command: "make three && ./three" -*-
 
 // three.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -94,12 +94,15 @@ BEGIN_METHOD(approve, bool, const cab&, const manager&, const business&) {
 #define demo(exp) cout << #exp << " -> " << exp << endl
 
 int main() {
+  multimethods::initialize(); // IMPORTANT!
   cout << boolalpha;
+
   // ceo does as he pleases
-  demo( approve(plane(), ceo(), comfort()) );
-  demo( approve(cab(), ceo(), business()) );
+  demo( approve(plane(), ceo(), comfort()) ); // true
+  demo( approve(cab(), ceo(), business()) ); // true
   // managers only take cabs for business
-  demo( approve(cab(), manager(), business()) );
-  demo( approve(cab(), manager(), comfort()) );
+  demo( approve(cab(), manager(), business()) ); // true
+  demo( approve(cab(), manager(), comfort()) ); // false
+
   return 0;
 }

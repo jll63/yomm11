@@ -1,4 +1,4 @@
-// -*- compile-command: "g++ -g -std=c++11 -I../include ../src/multimethods.cpp order1.cpp order2.cpp -o order12 && ./order12" -*-
+// -*- compile-command: "make order12 && ./order12" -*-
 
 // order2.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -46,6 +46,7 @@ BEGIN_METHOD(approve, bool, const cab&, const manager&, const business&) {
 
 int main() {
   cout << boolalpha;
+  multimethods::initialize();
   unique_ptr<role> ceo = make_ceo();
   // ceo does as he pleases
   demo( approve(plane(), *ceo, comfort()) );
