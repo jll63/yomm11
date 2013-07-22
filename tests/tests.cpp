@@ -207,6 +207,15 @@ namespace slot_allocation_tests {
     test(m_d.the().slots[0], 2);
     test(m_cd.the().slots[0], 4);
     test(m_y.the().slots[0], 1);
+
+    test(mm_class_of<X>::the().mmt.size(), 1);
+    test(mm_class_of<A>::the().mmt.size(), 2);
+    test(mm_class_of<B>::the().mmt.size(), 3);
+    test(mm_class_of<C>::the().mmt.size(), 4);
+    test(mm_class_of<BC>::the().mmt.size(), 5);
+    test(mm_class_of<D>::the().mmt.size(), 3);
+    test(mm_class_of<CD>::the().mmt.size(), 5);
+    test(mm_class_of<Y>::the().mmt.size(), 2);
   }
 }
 
@@ -241,40 +250,26 @@ namespace single_inheritance {
     virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
 
   MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
-
-  DO {
-    test(encounter.the().vargs.size(), 2);
-    test(encounter.the().slots.size(), 2);
-    test(encounter.the().slots[0], 0);
-    test(encounter.the().slots[1], 1);
-
-    test(mm_class_of<Animal>::the().mmt.size(), 2);
-    test(mm_class_of<Herbivore>::the().mmt.size(), 2);
-    test(mm_class_of<Herbivore>::the().mmt.size(), 2);
-    test(mm_class_of<Cow>::the().mmt.size(), 2);
-    test(mm_class_of<Wolf>::the().mmt.size(), 2);
-    test(mm_class_of<Tiger>::the().mmt.size(), 2);
-  }
   
   BEGIN_METHOD(encounter, string, Animal&, Animal&) {
     return "ignore";
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(encounter, string, Carnivore&, Animal&) {
     return "hunt";
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(encounter, string, Carnivore&, Carnivore&) {
     return "fight";
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(encounter, string, Wolf&, Wolf&) {
     return "wag tail";
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(encounter, string, Herbivore&, Carnivore&) {
     return "run";
-  } END_METHOD;;
+  } END_METHOD;
 
   enum action { display_error, print_cow, draw_cow, print_wolf, draw_wolf, print_tiger, draw_tiger, print_herbivore, display_cow, print_animal };
 
@@ -282,37 +277,61 @@ namespace single_inheritance {
 
   BEGIN_METHOD(display, action, Cow& a, Terminal& b) {
     return print_cow;
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(display, action, Wolf& a, Terminal& b) {
     return print_wolf;
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(display, action, Tiger& a, Terminal& b) {
     return print_tiger;
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(display, action, Cow& a, Window& b) {
     return draw_cow;
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(display, action, Wolf& a, Window& b) {
     return draw_wolf;
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(display, action, Tiger& a, Window& b) {
     return draw_tiger;
-  } END_METHOD;;
+  } END_METHOD;
 
 // following two are ambiguous, e.g. for (Cow, Terminal)
 
   BEGIN_METHOD(display, action, Herbivore& a, Interface& b) {
-    return draw_tiger;
-  } END_METHOD;;
+    return display_error;
+  } END_METHOD;
 
   BEGIN_METHOD(display, action, Animal& a, Terminal& b) {
-    return draw_tiger;
-  } END_METHOD;;
+    return display_error;
+  } END_METHOD;
+
+  DO {
+    {
+      hierarchy_initializer hinit(mm_class_of<Animal>::the());
+      hinit.execute();
+    }
+
+    test(encounter.the().vargs.size(), 2);
+    test(encounter.the().slots.size(), 2);
+    test(encounter.the().slots[0], 0);
+    test(encounter.the().slots[1], 1);
+
+    test(mm_class_of<Animal>::the().mmt.size(), 3);
+    test(mm_class_of<Herbivore>::the().mmt.size(), 3);
+    test(mm_class_of<Herbivore>::the().mmt.size(), 3);
+    test(mm_class_of<Cow>::the().mmt.size(), 3);
+    test(mm_class_of<Wolf>::the().mmt.size(), 3);
+    test(mm_class_of<Tiger>::the().mmt.size(), 3);
+
+    {
+      hierarchy_initializer hinit(mm_class_of<Interface>::the());
+      hinit.execute();
+    }
+  }
 
   DO {
     cout << "\n*** method registration" << endl;
@@ -592,15 +611,15 @@ namespace mi {
   
   BEGIN_METHOD(encounter, string, Animal&, Animal&) {
     return "ignore";
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(encounter, string, Stallion&, Mare&) {
     return "court";
-  } END_METHOD;;
+  } END_METHOD;
 
   BEGIN_METHOD(encounter, string, Predator&, Herbivore&) {
     return "hunt";
-  } END_METHOD;;
+  } END_METHOD;
 
   DO {
     Stallion stallion;

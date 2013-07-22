@@ -52,27 +52,6 @@ namespace multimethods {
         return base == &other || base->specializes(other);
       });
   }
-
-  int mm_class::assign_slots(unordered_set<mm_class*>& seen, int slot) {
-    for (mm_class* pb : bases) {
-      if (seen.find(pb) == seen.end()) {
-        seen.insert(pb);
-        slot = pb->assign_slots(seen, slot);
-      }
-    }
-
-    MM_TRACE(int init = slot);
-
-    for (const mmref& ref : rooted_here) {
-      ref.method->assign_slot(ref.arg, slot++);
-    }
-
-    mmt.resize(slot);
-
-    MM_TRACE(std::cout << "assign slots " << init << " - " << slot << " to " << this << "\n");
-
-    return slot;
-  }
   
   void mm_class::initialize(std::vector<mm_class*>&& b) {
     MM_TRACE(std::cout << "initialize class_of<" << ti.name() << ">\n");
@@ -96,13 +75,6 @@ namespace multimethods {
       
     for (mm_class* pb : bases) {
       pb->specs.push_back(this);
-    }
-      
-    if (bases.size() == 1) {
-      mmt = bases[0]->mmt;
-    } else if (bases.size() > 1) {
-      unordered_set<mm_class*> seen;
-      assign_slots(seen, 0);
     }
 
     to_initialize().insert(root);
@@ -136,6 +108,13 @@ namespace multimethods {
       nodes.push_back({ pc });
     }
   }
+  
+  void hierarchy_initializer::execute() {
+    MM_TRACE(cout << "assigning slots for hierarchy rooted in " << &root << endl);
+    collect_classes();
+    make_masks();
+    assign_slots();
+  }
 
   void hierarchy_initializer::collect_classes() {
     mark = root.mark + 1;
@@ -165,6 +144,8 @@ namespace multimethods {
     vector<dynamic_bitset<>> slots;
 
     for (node& n : nodes) {
+      int max_slots = 0;
+      
       for (auto& mm : n.pc->rooted_here) {
         auto available_slot = find_if(
           slots.begin(), slots.end(),
@@ -172,22 +153,29 @@ namespace multimethods {
             return (mask & n.mask).none();
           });
 
-      if (available_slot == slots.end()) {
-        slots.push_back(dynamic_bitset<>(nodes.size()));
-        available_slot = slots.end() - 1;
+        if (available_slot == slots.end()) {
+          slots.push_back(dynamic_bitset<>(nodes.size()));
+          available_slot = slots.end() - 1;
+        }
+
+        (*available_slot) |= n.mask;
+
+        int slot = available_slot - slots.begin();
+        max_slots = max(max_slots, slot + 1);
+
+        MM_TRACE(cout << "slot " << slot << " -> " << mm.method->vargs << "(" << mm.arg << ")" << endl);
+        mm.method->assign_slot(mm.arg, slot);
       }
 
-      (*available_slot) |= n.mask;
+      int max_inherited_slots = n.pc->bases.empty() ? 0
+        : (*max_element(
+             n.pc->bases.begin(), n.pc->bases.end(),
+             [](const mm_class* b1, const mm_class* b2) { return b1->mmt.size() < b2->mmt.size(); }))->mmt.size();
+      
+      MM_TRACE(cout << n.pc << ":max inherited slots: " << max_inherited_slots << ", max direct slots: " << max_slots << endl);
 
-      mm.method->assign_slot(mm.arg, available_slot - slots.begin());
-      }
+      n.pc->mmt.resize(max(max_inherited_slots, max_slots));
     }
-  }
-  
-  void hierarchy_initializer::execute() {
-    collect_classes();
-    make_masks();
-    assign_slots();
   }
 
   void initialize() {
@@ -225,20 +213,9 @@ namespace multimethods {
     return result;
   }
 
-  void mm_class::insert_slot(int i) {
-    MM_TRACE(std::cout << "allocate slot in " << ti.name() << " at " << i << "\n");
-    mmt.insert(mmt.begin() + i, 1, 0);
-    std::for_each(rooted_here.begin(), rooted_here.end(), [=](const mmref& ref) { ref.method->shift(i); });
-  }
-
-  int mm_class::add_multimethod(multimethod_base* pm, int arg) {
-    int slot = mmt.size();
-    for_each_conforming(std::mem_fun(&mm_class::reserve_slot));
-    for_each_conforming([=](mm_class* pc) { pc->insert_slot(slot); });
+  void mm_class::add_multimethod(multimethod_base* pm, int arg) {
     rooted_here.push_back(mmref { pm, arg });
-    return slot;
   }
-
   
   get_mm_table<false>::class_of_type* get_mm_table<false>::class_of;
   
@@ -260,25 +237,13 @@ namespace multimethods {
       for_each(vargs.begin(), vargs.end(),
                [&](mm_class* pc) {
                  MM_TRACE(std::cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
-                 int slot = pc->add_multimethod(this, i);
-                 MM_TRACE(std::cout << "-> at slot " << slot << "\n");
-                 ++i;
-                 slots.push_back(slot);
+                 pc->add_multimethod(this, i++);
                });
+      slots.resize(v.size());
     }
   
   void multimethod_base::assign_slot(int arg, int slot) {
     slots[arg] = slot;
-    invalidate();
-  }
-
-  void multimethod_base::shift(int pos) {
-    for (int& slot : slots) {
-      if (slot >= pos) {
-        ++slot;
-      }
-    }
-
     invalidate();
   }
 

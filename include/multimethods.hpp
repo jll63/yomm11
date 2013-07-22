@@ -23,7 +23,7 @@
 #include <boost/dynamic_bitset.hpp>
 #include <boost/type_traits/is_virtual_base_of.hpp>
 
-#define MM_ENABLE_TRACE
+//#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
 #define MM_TRACE(e) e
@@ -52,14 +52,11 @@ namespace multimethods {
 
     const std::string name() const;
     void initialize(std::vector<mm_class*>&& bases);
-    int add_multimethod(multimethod_base* pm, int arg);
-    void reserve_slot() { mmt.reserve(mmt.size() + 1); }
-    void insert_slot(int i);
+    void add_multimethod(multimethod_base* pm, int arg);
     void for_each_spec(std::function<void(mm_class*)> pf);
     void for_each_conforming(std::function<void(mm_class*)> pf);
     bool conforms_to(const mm_class& other) const;
     bool specializes(const mm_class& other) const;
-    int assign_slots(std::unordered_set<mm_class*>& seen, int slot);
     bool is_marked(int current) const { return mark == current; }
     void set_mark(int current) { mark = current; }
     
@@ -196,7 +193,6 @@ namespace multimethods {
     virtual void emit(method_base*, int i) = 0;
     virtual void emit_next(method_base*, method_base*) = 0;
     void invalidate();
-    void shift(int pos);
     void assign_slot(int arg, int slot);
     
     std::vector<mm_class*> vargs;
