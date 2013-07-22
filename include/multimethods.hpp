@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <functional>
 #include <vector>
+#include <map>
 #include <unordered_set>
 #include <unordered_map>
 #include <memory>
@@ -41,6 +42,8 @@ namespace multimethods {
   struct mm_class;
   struct multimethod_base;
 
+  using class_set = std::unordered_set<const mm_class*>;
+
   struct mm_class {
     struct mmref {
       multimethod_base* method;
@@ -55,19 +58,19 @@ namespace multimethods {
     void add_multimethod(multimethod_base* pm, int arg);
     void for_each_spec(std::function<void(mm_class*)> pf);
     void for_each_conforming(std::function<void(mm_class*)> pf);
+    void for_each_conforming(class_set& visited, std::function<void(mm_class*)> pf);
     bool conforms_to(const mm_class& other) const;
     bool specializes(const mm_class& other) const;
-    bool is_marked(int current) const { return mark == current; }
-    void set_mark(int current) { mark = current; }
     
     const std::type_info& ti;
     std::vector<mm_class*> bases;
     std::vector<mm_class*> specs;
+    boost::dynamic_bitset<> mask;
+    int index{-1};
     mm_class* root;
     std::vector<int> mmt;
     std::vector<mmref> rooted_here; // multimethods rooted here for one or more args.
     bool abstract;
-    int mark{0};
     
     static std::unordered_set<mm_class*>& to_initialize();
   };
@@ -78,7 +81,11 @@ namespace multimethods {
 
   inline std::ostream& operator <<(std::ostream& os, const mm_class* pc) {
     if (pc) {
-      os << pc->ti.name();
+      if (pc->index != -1) {
+        os << "class_" << pc->index;
+      } else{
+        os << pc->ti.name();
+      }
     } else {
       os << "(null)";
     }
@@ -178,18 +185,20 @@ namespace multimethods {
   mm_class_initializer<Class, type_list<Bases...>> mm_class_initializer<Class, type_list<Bases...>>::the;
 
   struct method_base {
+    int index; // inside multimethod
     std::vector<mm_class*> args;
-    bool specializes(const method_base* other) const;
+    bool specializes(method_base* other) const;
     static method_base undefined;
     static method_base ambiguous;
   };
 
-  std::ostream& operator <<(std::ostream& os, const method_base* method);
+  std::ostream& operator <<(std::ostream& os, method_base* method);
   std::ostream& operator <<(std::ostream& os, const std::vector<method_base*>& methods);
 
   struct multimethod_base {
     explicit multimethod_base(const std::vector<mm_class*>& v);
     virtual void resolve() = 0;
+    virtual void allocate_dispatch_table(int size) = 0;
     virtual void emit(method_base*, int i) = 0;
     virtual void emit_next(method_base*, method_base*) = 0;
     void invalidate();
@@ -201,36 +210,11 @@ namespace multimethods {
     std::vector<int> steps;
     static std::unordered_set<multimethod_base*>& to_initialize();
   };
-  
+
+  std::ostream& operator <<(std::ostream& os, const multimethod_base* pc);
+
   template<class M, typename Override, class Base>
   struct wrapper;
-
-  // template<bool is_base_of, class B, class D>
-  // struct is_virtual_base_of_;
-    
-  // template<class B, class D>
-  // struct is_virtual_base_of_<false, B, D> {
-  //   static const bool value = false;
-  // };
-  
-  // template<class B, class D>
-  // struct is_virtual_base_of_<true, B, D> {
-  //   struct X : D, private virtual B {
-  //     virtual void * __init_mm_class() { }
-  //   };
-  //   struct Y : D { };
-  //   static const bool value = sizeof(X) == sizeof(Y);
-  // };
-
-  // template<class B, class D>
-  // struct is_virtual_base_of {
-  //   static const bool value = is_virtual_base_of_<std::is_base_of<B, D>::value, B, D>::value;
-  // };
-
-  // template<class C>
-  // struct is_virtual_base_of<C, C> {
-  //   static const bool value = false;
-  // };
 
   using boost::is_virtual_base_of;
   
@@ -415,8 +399,9 @@ namespace multimethods {
     M pm;
     M* pn; // next
 
-    method(M pm, std::vector<mm_class*> type_tuple, M* pn) : pm(pm), pn(pn) {
-      args = type_tuple;
+    method(int index, M pm, std::vector<mm_class*> type_tuple, M* pn) : pm(pm), pn(pn) {
+      this->index = index;
+      this->args = type_tuple;
     }
   };
 
@@ -536,23 +521,28 @@ namespace multimethods {
     }
   };
 
-  struct resolver {
-    resolver(multimethod_base& mm);
-    void resolve();
-    void do_resolve(int dim, const std::vector<method_base*>& viable);
-    int order(const method_base* a, const method_base* b);
-    void assign_next();
-    void assign_class_indices();
-    void make_steps();
-    int linear(const std::vector<int>& tuple);
-    method_base* find_best(const std::vector<method_base*>& methods);
+  struct grouping_resolver {
+    grouping_resolver(multimethod_base& mm);
 
-    const int dims;
-    int dispatch_table_size;
+    void resolve();
+    void resolve(int dim, const boost::dynamic_bitset<>& candidates);
+    void find_applicable(int dim, const mm_class* pc, std::vector<method_base*>& best);
+    method_base* find_best(const boost::dynamic_bitset<>& candidates);
+    method_base* find_best(const std::vector<method_base*>& methods);
+    void make_mask(const std::vector<method_base*>& best, boost::dynamic_bitset<>& mask);
+    void make_groups();
+    void make_table();
+    void assign_next();
+
+    struct group {
+      boost::dynamic_bitset<> mask;
+      std::vector<method_base*> methods;
+      std::vector<mm_class*> classes;
+    };
+
     multimethod_base& mm;
-    std::vector<method_base*> methods;
-    std::vector<int> tuple;
-    std::vector<std::vector<mm_class*>> classes;
+    const int dims;
+    std::vector<std::vector<group>> groups;
     int emit_at;
   };
 
@@ -564,17 +554,12 @@ namespace multimethods {
     void assign_slots();
     void execute();
 
-    void topological_sort_visit(mm_class* pc);
+    static void initialize(mm_class& root);
 
-    struct node {
-      mm_class* pc;
-      boost::dynamic_bitset<> mask;
-    };
+    void topological_sort_visit(class_set& once, mm_class* pc);
 
     mm_class& root;
-    std::vector<node> nodes;
-    int mark{0};
-    
+    std::vector<mm_class*> nodes;
   };
 
   namespace detail {
@@ -587,13 +572,14 @@ namespace multimethods {
       using signature = R(typename remove_virtual<P>::type...);
       using virtuals = typename extract_virtuals<P...>::type;
       
-      multimethod_implementation() : multimethod_base(mm_class_vector_of<virtuals>::get()) {
+      multimethod_implementation() :
+        multimethod_base(mm_class_vector_of<virtuals>::get()) {
       }
 
-      void allocate_dispatch_table(int size);
       template<class M> method_base* add_spec();
 
       virtual void resolve();
+      virtual void allocate_dispatch_table(int size);
       virtual void emit(method_base*, int i);
       virtual void emit_next(method_base*, method_base*);
 
@@ -610,8 +596,7 @@ namespace multimethods {
       using namespace std;
       MM_TRACE(cout << "add " << method_virtuals() << " to " << virtuals() << endl);
 
-      method_base* method = new method_entry(target::body, mm_class_vector_of<method_virtuals>::get(), &M::next);
-    
+      method_base* method = new method_entry(methods.size(), target::body, mm_class_vector_of<method_virtuals>::get(), &M::next);
       methods.push_back(method);
       invalidate();
 
@@ -620,8 +605,7 @@ namespace multimethods {
 
     template<typename R, typename... P>
     void multimethod_implementation<R, P...>::resolve() {
-      resolver r(*this);
-      allocate_dispatch_table(r.dispatch_table_size);
+      grouping_resolver r(*this);
       r.resolve();
     }
   
@@ -637,17 +621,17 @@ namespace multimethods {
       dispatch_table[i] =
         method == &method_base::ambiguous ? throw_ambiguous<signature>::body
         : method == &method_base::undefined ? throw_undefined<signature>::body
-        : static_cast<method_entry*>(method)->pm;
+        : static_cast<const method_entry*>(method)->pm;
       using namespace std;
       MM_TRACE(cout << "installed at " << dispatch_table << " + " << i << endl);
     }
   
     template<typename R, typename... P>
     void multimethod_implementation<R, P...>::emit_next(method_base* method, method_base* next) {
-      *static_cast<method_entry*>(method)->pn =
+      *static_cast<const method_entry*>(method)->pn =
         next == &method_base::ambiguous ? throw_ambiguous<signature>::body
         : next == &method_base::undefined ? throw_undefined<signature>::body
-        : static_cast<method_entry*>(next)->pm;
+        : static_cast<const method_entry*>(next)->pm;
     }
   }
 
@@ -728,10 +712,12 @@ namespace multimethods {
   namespace { ::multimethods::mm_class_initializer<CLASS, ::multimethods::type_list<BASES>> INIT_ID(CLASS); }
 
 #define MM_INIT() \
-  static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
   static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
   &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; \
-  init_mmptr(this)
+  this->init_mmptr(this)
+
+// normally part of MM_INIT(), disabled because g++ doesn't like it in class templates
+//  static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
 
 #define MULTIMETHOD(ID, SIG)                                            \
   template<typename Sig> struct ID ## _method;                          \

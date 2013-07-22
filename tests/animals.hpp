@@ -5,7 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 struct Animal : multimethods::selector {
-  virtual void foo() = 0;
   MM_CLASS(Animal);
   Animal() {
     MM_INIT();
@@ -13,7 +12,6 @@ struct Animal : multimethods::selector {
 };
 
 struct Herbivore : Animal {
-  virtual void foo() { }
   MM_CLASS(Herbivore, Animal);
   Herbivore() {
     MM_INIT();
@@ -28,7 +26,6 @@ struct Carnivore : Animal {
 };
 
 struct Cow : Herbivore {
-  virtual void foo() { }
   MM_CLASS(Cow, Herbivore);
   Cow() {
     MM_INIT();
@@ -36,7 +33,6 @@ struct Cow : Herbivore {
 };
 
 struct Wolf : Carnivore {
-  virtual void foo() { }
   MM_CLASS(Wolf, Carnivore);
   Wolf() {
     MM_INIT();
@@ -44,7 +40,6 @@ struct Wolf : Carnivore {
 };
 
 struct Tiger : Carnivore {
-  virtual void foo() { }
   MM_CLASS(Tiger, Carnivore);
   Tiger() {
     MM_INIT();
