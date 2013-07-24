@@ -598,6 +598,41 @@ namespace mi {
   }
 }
 
+namespace single_inheritance {
+
+  BEGIN_METHOD(encounter, string, Cow&, Cow&) {
+    return "moo!";
+  } END_METHOD;
+
+  struct Donkey : Herbivore { };
+
+  DO {
+    cout << "\n--- Unloading multimethods." << endl;
+
+    test( mm_class_of<Animal>::the().rooted_here.size(), 3 );
+    test( mm_class_of<Interface>::the().rooted_here.size(), 1 );
+    test( multimethod_base::to_initialize().size(), 1 );
+
+    encounter.impl.reset();
+    test( mm_class_of<Animal>::the().rooted_here.size(), 1 );
+    test( multimethod_base::to_initialize().size(), 0 );
+
+    cout << "\n--- Unloading classes." << endl;
+    {
+      // fake a class
+      mm_class donkey_class(typeid(Donkey));
+      donkey_class.initialize(mm_class_vector_of<Herbivore>::get());
+      test( mm_class::to_initialize().size(), 1 );
+      multimethods::initialize();
+      test( mm_class::to_initialize().size(), 0 );
+    }
+
+    test( mm_class::to_initialize().size(), 1 );
+    multimethods::initialize();
+    test( mm_class::to_initialize().size(), 0 );
+  }
+}
+
 int main() {
     cout << "\n" << success << " tests succeeded, " << failure << " failed.\n";
   return 0;

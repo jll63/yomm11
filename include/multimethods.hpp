@@ -56,6 +56,7 @@ namespace multimethods {
     const std::string name() const;
     void initialize(std::vector<mm_class*>&& bases);
     void add_multimethod(multimethod_base* pm, int arg);
+    void remove_multimethod(multimethod_base* pm);
     void for_each_spec(std::function<void(mm_class*)> pf);
     void for_each_conforming(std::function<void(mm_class*)> pf);
     void for_each_conforming(class_set& visited, std::function<void(mm_class*)> pf);
@@ -67,7 +68,7 @@ namespace multimethods {
     std::vector<mm_class*> specs;
     boost::dynamic_bitset<> mask;
     int index{-1};
-    mm_class* root;
+    mm_class* root{0};
     std::vector<int> mmt;
     std::vector<mmref> rooted_here; // multimethods rooted here for one or more args.
     bool abstract;
@@ -185,6 +186,8 @@ namespace multimethods {
   mm_class_initializer<Class, type_list<Bases...>> mm_class_initializer<Class, type_list<Bases...>>::the;
 
   struct method_base {
+    virtual ~method_base();
+    
     int index; // inside multimethod
     std::vector<mm_class*> args;
     bool specializes(method_base* other) const;
@@ -197,6 +200,8 @@ namespace multimethods {
 
   struct multimethod_base {
     explicit multimethod_base(const std::vector<mm_class*>& v);
+    virtual ~multimethod_base();
+    
     virtual void resolve() = 0;
     virtual void allocate_dispatch_table(int size) = 0;
     virtual void emit(method_base*, int i) = 0;
@@ -656,8 +661,7 @@ namespace multimethods {
 
     using implementation = detail::multimethod_implementation<R, P...>;
     static implementation& the();
-  private:
-    static implementation* impl;
+    static std::unique_ptr<implementation> impl;
   };
 
   template<class Method, class Spec>
@@ -672,7 +676,7 @@ namespace multimethods {
   register_spec<Method, Spec> register_spec<Method, Spec>::the;
 
   template<template<typename Sig> class Method, typename R, typename... P>
-  typename multimethod<Method, R(P...)>::implementation* multimethod<Method, R(P...)>::impl;
+  std::unique_ptr<typename multimethod<Method, R(P...)>::implementation> multimethod<Method, R(P...)>::impl;
 
   template<template<typename Sig> class Method, typename R, typename... P>
   template<typename Tag>
@@ -681,7 +685,7 @@ namespace multimethods {
   template<template<typename Sig> class Method, typename R, typename... P>
   typename multimethod<Method, R(P...)>::implementation& multimethod<Method, R(P...)>::the() {
     if (!impl) {
-      impl = new implementation;
+      impl.reset(new implementation);
     }
     
     return *impl;

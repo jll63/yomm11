@@ -22,7 +22,13 @@ namespace multimethods {
   }
 
   mm_class::~mm_class() {
-    //cout << "~mm_class() at " << this << endl;
+    for (mm_class* base : bases) {
+      base->specs.erase(
+        remove_if(base->specs.begin(), base->specs.end(), [=](mm_class* pc) { return pc == this; }),
+        base->specs.end());
+    }
+    
+    to_initialize().insert(root);
   }
   
   void mm_class::for_each_spec(function<void(mm_class*)> pf) {
@@ -201,6 +207,9 @@ namespace multimethods {
     }
   }
 
+  method_base::~method_base() {
+  }
+
   bool method_base::specializes(method_base* other) const {
 
     if (this == other) {
@@ -224,6 +233,13 @@ namespace multimethods {
 
   void mm_class::add_multimethod(multimethod_base* pm, int arg) {
     rooted_here.push_back(mmref { pm, arg });
+    to_initialize().insert(this);
+  }
+
+  void mm_class::remove_multimethod(multimethod_base* pm) {
+    rooted_here.erase(
+      remove_if(rooted_here.begin(), rooted_here.end(), [=](mmref& ref) { return ref.method == pm;  }),
+      rooted_here.end());
     to_initialize().insert(this);
   }
   
@@ -250,6 +266,19 @@ namespace multimethods {
                pc->add_multimethod(this, i++);
              });
     slots.resize(v.size());
+  }
+  
+  multimethod_base::~multimethod_base() {
+    for (method_base* method : reverse(methods)) {
+      delete method;
+      method = 0;
+    }
+
+    for (mm_class* arg : vargs) {
+      arg->remove_multimethod(this);
+    }
+
+    to_initialize().erase(this);
   }
   
   void multimethod_base::assign_slot(int arg, int slot) {
