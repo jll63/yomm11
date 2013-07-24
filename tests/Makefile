@@ -23,8 +23,13 @@ runall : tests order12 order21
 	./order12
 	./order21
 
+.cpp.o:
+	$(CXX) $(CXXFLAGS) -c $<
+
 tests : tests.o multimethods.o
 	g++ tests.o multimethods.o -o tests
+
+tests.o : tests.cpp ../include/multimethods.hpp animals.hpp mi.hpp
 
 order12 : order1.o order2.o multimethods.o
 	g++ order1.o order2.o multimethods.o -o order12
@@ -36,12 +41,11 @@ order1.o : order1.cpp order.hpp ../include/multimethods.hpp
 
 order2.o : order1.cpp order.hpp ../include/multimethods.hpp
 
-multimethods.o : ../src/multimethods.cpp ../include/multimethods.hpp
+benchmarks : benchmarks.o benchmarks_fast.o multimethods.o
+	g++ benchmarks.o benchmarks_fast.o  multimethods.o -o benchmarks
 
-.cpp.o:
-	$(CXX) $(CXXFLAGS) -c $<
-
-tests.o : tests.cpp ../include/multimethods.hpp animals.hpp mi.hpp
+benchmarks.o : benchmarks.cpp ../include/multimethods.hpp
+	$(CXX) $(CXXFLAGS) -O2 -c $<
 
 multimethods.o : ../src/multimethods.cpp ../include/multimethods.hpp
 	$(CXX) $(CXXFLAGS) -c $<
