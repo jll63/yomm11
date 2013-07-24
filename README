@@ -1,0 +1,7 @@
+This is a work in progress - although it is nearing completion.
+
+There is no documentation yet but take a look at the examples. Using the library is pretty straighforward.
+
+No proper Makefile either. If the Boost community wants to bring this stuff in, it may be bjam soon. Or something else. For the time being, just compile and link multimethods.cpp in your program. You will need a few Boost libraries (type traits, dynamic bitset and iterator adapters). If you want to use the minimal makefiles in the test and examples directories, make sure that your CXXFLAGS adds the Boost include directory.
+
+This code is very C++11-ish. You will need a compiler that is up to it. I use g++ 4.7.2.
