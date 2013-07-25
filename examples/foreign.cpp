@@ -14,26 +14,24 @@ using namespace std;
 
 using multimethods::virtual_;
 
-struct role : multimethods::selector {
-  MM_CLASS(role);
-  role() {
-    MM_INIT();
-  }
+// following hierarchy does not collaborate with multi-methods
+
+struct role {
 };
+
+MM_FOREIGN_CLASS(role);
 
 struct manager : role {
-  MM_CLASS(manager, role);
-  manager() {
-    MM_INIT();
-  }
 };
 
+MM_FOREIGN_CLASS(manager, role);
+
 struct ceo : role {
-  MM_CLASS(ceo, role);
-  ceo() {
-    MM_INIT();
-  }
 };
+
+MM_FOREIGN_CLASS(ceo, role);
+
+// this one does
 
 struct expense : multimethods::selector {
   MM_CLASS(expense);
@@ -56,6 +54,8 @@ struct cab : expense {
   }
 };
 
+// this one does not
+
 struct reason {
   virtual ~reason() { }
 };
@@ -71,6 +71,8 @@ struct comfort : reason {
 };
 
 MM_FOREIGN_CLASS(comfort, reason);
+
+// collaborating and foreign classes can appear in same multi-method definition
 
 MULTIMETHOD(approve, bool(const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&));
 
