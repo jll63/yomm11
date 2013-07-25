@@ -357,20 +357,20 @@ namespace grouping_resolver_tests {
       test(display.the().steps[0], 1) &&
       test(display.the().steps[1], 3);
 
-    test( (*Animal().__mm_ptbl)[0], 0 );
-    test( (*Herbivore().__mm_ptbl)[0], 1 );
-    test( (*Cow().__mm_ptbl)[0], 1 );
-    test( (*Carnivore().__mm_ptbl)[0], 2 );
-    test( (*Wolf().__mm_ptbl)[0], 2 );
-    test( (*Tiger().__mm_ptbl)[0], 2 );
-    test( (*Interface().__mm_ptbl)[1], 0 );
-    test( (*Terminal().__mm_ptbl)[0], 1 );
-    test( (*Window().__mm_ptbl)[0], 2 );
-    test( (*MSWindows().__mm_ptbl)[0], 2 );
-    test( (*X().__mm_ptbl)[0], 2 );
-    test( (*Mobile().__mm_ptbl)[0], 3 );
-    test( (*Nokia().__mm_ptbl)[0], 3 );
-    test( (*Samsung().__mm_ptbl)[0], 3 );
+    test( (*Animal()._mm_ptbl)[0], 0 );
+    test( (*Herbivore()._mm_ptbl)[0], 1 );
+    test( (*Cow()._mm_ptbl)[0], 1 );
+    test( (*Carnivore()._mm_ptbl)[0], 2 );
+    test( (*Wolf()._mm_ptbl)[0], 2 );
+    test( (*Tiger()._mm_ptbl)[0], 2 );
+    test( (*Interface()._mm_ptbl)[1], 0 );
+    test( (*Terminal()._mm_ptbl)[0], 1 );
+    test( (*Window()._mm_ptbl)[0], 2 );
+    test( (*MSWindows()._mm_ptbl)[0], 2 );
+    test( (*X()._mm_ptbl)[0], 2 );
+    test( (*Mobile()._mm_ptbl)[0], 3 );
+    test( (*Nokia()._mm_ptbl)[0], 3 );
+    test( (*Samsung()._mm_ptbl)[0], 3 );
 
     rdisp.make_table();
     auto table = display.the().dispatch_table;

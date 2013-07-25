@@ -113,7 +113,7 @@ namespace multimethods {
   struct get_mm_table<true> {
     template<class C>
     static const std::vector<int>& value(const C* obj) {
-      return *obj->__mm_ptbl;
+      return *obj->_mm_ptbl;
     }
   };
 
@@ -132,12 +132,12 @@ namespace multimethods {
   struct mm_class_of<const Class> : mm_class_of<Class> { };
 
   struct selector {
-    selector() : __mm_ptbl(0) { }
-    std::vector<int>* __mm_ptbl;
+    selector() : _mm_ptbl(0) { }
+    std::vector<int>* _mm_ptbl;
     virtual ~selector() { }
     template<class THIS>
     void init_mmptr(THIS*) {
-      __mm_ptbl = &mm_class_of<THIS>::the().mmt;
+      _mm_ptbl = &mm_class_of<THIS>::the().mmt;
     }
   };
 
