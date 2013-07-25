@@ -48,7 +48,7 @@ bool _test(const char* file, int line, const char* test, const T1& got, const ch
   return ok;
 }
 
-#define DO void CONCAT(fun, __LINE__)(); int CONCAT(var, __LINE__) = (CONCAT(fun, __LINE__)(), 1); void CONCAT(fun, __LINE__)()
+#define DO void BOOST_PP_CAT(fun, __LINE__)(); int BOOST_PP_CAT(var, __LINE__) = (BOOST_PP_CAT(fun, __LINE__)(), 1); void BOOST_PP_CAT(fun, __LINE__)()
 
 #define show(e) #e << " = " << (e)
 

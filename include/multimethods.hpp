@@ -23,6 +23,7 @@
 #include <iostream>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/type_traits/is_virtual_base_of.hpp>
+#include <boost/preprocessor/cat.hpp>
 
 //#define MM_ENABLE_TRACE
 
@@ -136,7 +137,7 @@ namespace multimethods {
     std::vector<int>* _mm_ptbl;
     virtual ~selector() { }
     template<class THIS>
-    void init_mmptr(THIS*) {
+    void _init_mmptr(THIS*) {
       _mm_ptbl = &mm_class_of<THIS>::the().mmt;
     }
   };
@@ -698,27 +699,18 @@ namespace multimethods {
 
   template<class MM, class M> struct register_method;
 
-#define CONCAT(X, Y) CONCAT1(X, Y)
-#define CONCAT1(X, Y) X ## Y
-#define INIT_ID(ID) CONCAT(__add_method_, CONCAT(ID, __LINE__))
-
 #define MM_CLASS(CLASS, BASES...)                  \
   using mm_base_list_type = ::multimethods::type_list<BASES>;           \
   using mm_this_type = CLASS;                                           \
   
-  // static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
-  // static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-  // virtual void* __init_mm_class() {                                     \
-  //   return &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
-  
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
   static_assert(::multimethods::check_bases<CLASS, ::multimethods::type_list<BASES>>::value, "Error in MM_FOREIGN_CLASS(): not a base in base list"); \
-  namespace { ::multimethods::mm_class_initializer<CLASS, ::multimethods::type_list<BASES>> INIT_ID(CLASS); }
+  namespace { ::multimethods::mm_class_initializer<CLASS, ::multimethods::type_list<BASES>> BOOST_PP_CAT(_mm_add_class, CLASS); }
 
 #define MM_INIT() \
   static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
   &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; \
-  this->init_mmptr(this)
+  this->_init_mmptr(this)
 
 // normally part of MM_INIT(), disabled because g++ doesn't like it in class templates
 //  static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
@@ -726,10 +718,6 @@ namespace multimethods {
 #define MULTIMETHOD(ID, SIG)                                            \
   template<typename Sig> struct ID ## _method;                          \
   constexpr ::multimethods::multimethod<ID ## _method, SIG> ID;
-  
-#define REGISTER_METHOD_ID(MM, M) __register_ ## MM ## _ ## M
-#define REGISTER_METHOD(MM, M)                                  \
-  static auto REGISTER_METHOD_ID(MM, M) = MM.add<M>();
 
 #define BEGIN_METHOD(ID, RESULT, ARGS...)                               \
   template<>                                                            \
