@@ -44,7 +44,7 @@ order2.o : order1.cpp order.hpp ../include/multimethods.hpp
 benchmarks : benchmarks.o benchmarks_fast.o multimethods.o
 	g++ benchmarks.o benchmarks_fast.o  multimethods.o -o benchmarks
 
-benchmarks.o : benchmarks.cpp ../include/multimethods.hpp
+benchmarks.o : benchmarks.cpp benchmarks.hpp ../include/multimethods.hpp
 	$(CXX) $(CXXFLAGS) -O2 -c $<
 
 multimethods.o : ../src/multimethods.cpp ../include/multimethods.hpp

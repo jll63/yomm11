@@ -357,29 +357,29 @@ namespace grouping_resolver_tests {
       test(display.the().steps[0], 1) &&
       test(display.the().steps[1], 3);
 
-    test( (*Animal()._mm_ptbl)[0], 0 );
-    test( (*Herbivore()._mm_ptbl)[0], 1 );
-    test( (*Cow()._mm_ptbl)[0], 1 );
-    test( (*Carnivore()._mm_ptbl)[0], 2 );
-    test( (*Wolf()._mm_ptbl)[0], 2 );
-    test( (*Tiger()._mm_ptbl)[0], 2 );
-    test( (*Interface()._mm_ptbl)[1], 0 );
-    test( (*Terminal()._mm_ptbl)[0], 1 );
-    test( (*Window()._mm_ptbl)[0], 2 );
-    test( (*MSWindows()._mm_ptbl)[0], 2 );
-    test( (*X()._mm_ptbl)[0], 2 );
-    test( (*Mobile()._mm_ptbl)[0], 3 );
-    test( (*Nokia()._mm_ptbl)[0], 3 );
-    test( (*Samsung()._mm_ptbl)[0], 3 );
+    test( (*Animal()._mm_ptbl)[0].index, 0 );
+    test( (*Herbivore()._mm_ptbl)[0].index, 1 );
+    test( (*Cow()._mm_ptbl)[0].index, 1 );
+    test( (*Carnivore()._mm_ptbl)[0].index, 2 );
+    test( (*Wolf()._mm_ptbl)[0].index, 2 );
+    test( (*Tiger()._mm_ptbl)[0].index, 2 );
+    test( (*Interface()._mm_ptbl).size(), 1 );
+    test( (*Interface()._mm_ptbl)[0].index, 0 );
+    test( (*Terminal()._mm_ptbl)[0].index, 1 );
+    test( (*Window()._mm_ptbl)[0].index, 2 );
+    test( (*MSWindows()._mm_ptbl)[0].index, 2 );
+    test( (*X()._mm_ptbl)[0].index, 2 );
+    test( (*Mobile()._mm_ptbl)[0].index, 3 );
+    test( (*Nokia()._mm_ptbl)[0].index, 3 );
+    test( (*Samsung()._mm_ptbl)[0].index, 3 );
 
     rdisp.make_table();
     auto table = display.the().dispatch_table;
     auto methods = display.the().methods;
     using method = decltype(display)::method_entry;
-    
-                                                                                        
+
     test( table != 0, true);
-      // Interface
+    // Interface
     test( table[0], throw_undefined<decltype(display)::signature>::body );
     test( table[1], throw_undefined<decltype(display)::signature>::body );
     test( table[2], throw_undefined<decltype(display)::signature>::body );
@@ -400,6 +400,12 @@ namespace grouping_resolver_tests {
     test( table[11], static_cast<method*>(methods[4])->pm );
     
     rdisp.assign_next();
+
+    testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
+           (void*) display.impl->dispatch_table );
+
+    testx( (void*) mm_class_of<Herbivore>::the().mmt[0].ptr,
+           (void*) (display.impl->dispatch_table + 1) );
 
     test( display(Herbivore(), Terminal()), print_herbivore );
     test( display(Cow(), Terminal()), print_herbivore );
@@ -584,6 +590,10 @@ namespace mi {
   } END_METHOD;
 
   DO {
+    cout << "\n--- multiple inheritance" << endl;
+
+    Animal animal;
+    Herbivore herbivore;
     Stallion stallion;
     Mare mare;
     Wolf wolf;
@@ -591,7 +601,18 @@ namespace mi {
     static_assert(is_virtual_base_of<Animal, Stallion>::value, "problem with virtual base detection");
 
     multimethods::initialize();
+
+    testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
+           (void*) encounter.impl->dispatch_table );
+
+    testx( (void*) mm_class_of<Herbivore>::the().mmt[0].ptr,
+           (void*) (encounter.impl->dispatch_table) );
+
+    testx( (void*) mm_class_of<Stallion>::the().mmt[0].ptr,
+           (void*) (encounter.impl->dispatch_table + 1) );
     
+    test( encounter(animal, animal), "ignore" );
+    test( encounter(herbivore, herbivore), "ignore" );
     test( encounter(stallion, mare), "court" );
     test( encounter(mare, mare), "ignore" );
     test( encounter(wolf, mare), "hunt" );

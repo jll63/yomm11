@@ -34,8 +34,6 @@
 #define MM_TRACE(e)
 #endif
 
-#pragma GCC system_header
-
 namespace multimethods {
 
   void initialize();
@@ -45,6 +43,10 @@ namespace multimethods {
 
   using class_set = std::unordered_set<const mm_class*>;
 
+  namespace detail {
+    using void_function_pointer = void (*)();
+  }
+  
   struct mm_class {
     struct mmref {
       multimethod_base* method;
@@ -63,6 +65,11 @@ namespace multimethods {
     void for_each_conforming(class_set& visited, std::function<void(mm_class*)> pf);
     bool conforms_to(const mm_class& other) const;
     bool specializes(const mm_class& other) const;
+
+    union offset {
+      int index;
+      void (**ptr)();
+    };
     
     const std::type_info& ti;
     std::vector<mm_class*> bases;
@@ -70,7 +77,7 @@ namespace multimethods {
     boost::dynamic_bitset<> mask;
     int index{-1};
     mm_class* root{0};
-    std::vector<int> mmt;
+    std::vector<offset> mmt;
     std::vector<mmref> rooted_here; // multimethods rooted here for one or more args.
     bool abstract;
     
@@ -81,19 +88,7 @@ namespace multimethods {
     return ti.name();
   }
 
-  inline std::ostream& operator <<(std::ostream& os, const mm_class* pc) {
-    if (pc) {
-      if (pc->index != -1) {
-        os << "class_" << pc->index;
-      } else{
-        os << pc->ti.name();
-      }
-    } else {
-      os << "(null)";
-    }
-    return os;
-  }
-
+  std::ostream& operator <<(std::ostream& os, const mm_class* pc);
   std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes);
 
   template<typename... T>
@@ -113,17 +108,17 @@ namespace multimethods {
   template<>
   struct get_mm_table<true> {
     template<class C>
-    static const std::vector<int>& value(const C* obj) {
+    static const std::vector<mm_class::offset>& value(const C* obj) {
       return *obj->_mm_ptbl;
     }
   };
 
   template<>
   struct get_mm_table<false> {
-    using class_of_type = std::unordered_map<std::type_index, const std::vector<int>*>;
+    using class_of_type = std::unordered_map<std::type_index, const std::vector<mm_class::offset>*>;
     static class_of_type* class_of;
     template<class C>
-    static const std::vector<int>& value(const C* obj) {
+    static const std::vector<mm_class::offset>& value(const C* obj) {
       MM_TRACE(std::cout << "foreign mm_class_of<" << typeid(*obj).name() << "> = " << (*class_of)[std::type_index(typeid(*obj))] << std::endl);
       return *(*class_of)[std::type_index(typeid(*obj))];
     }
@@ -134,7 +129,7 @@ namespace multimethods {
 
   struct selector {
     selector() : _mm_ptbl(0) { }
-    std::vector<int>* _mm_ptbl;
+    std::vector<mm_class::offset>* _mm_ptbl;
     virtual ~selector() { }
     template<class THIS>
     void _init_mmptr(THIS*) {
@@ -204,7 +199,7 @@ namespace multimethods {
     virtual ~multimethod_base();
     
     virtual void resolve() = 0;
-    virtual void allocate_dispatch_table(int size) = 0;
+    virtual detail::void_function_pointer* allocate_dispatch_table(int size) = 0;
     virtual void emit(method_base*, int i) = 0;
     virtual void emit_next(method_base*, method_base*) = 0;
     void invalidate();
@@ -476,56 +471,6 @@ namespace multimethods {
     R throw_ambiguous<R(A...)>::body(A...) {
     throw ambiguous();
   }
-    
-  template<typename... P>
-  struct linear;
-    
-  template<typename P1, typename... P>
-  struct linear<P1, P...> {
-    template<typename A1, typename... A>
-    static int value(
-      std::vector<int>::const_iterator slot_iter,
-      std::vector<int>::const_iterator step_iter,
-      int offset,
-      A1, A... args) {
-      return linear<P...>::value(slot_iter, step_iter, offset, args...);
-    }
-  };
-    
-  template<typename P1, typename... P>
-    struct linear<virtual_<P1>&, P...> {
-    template<typename A1, typename... A>
-    static int value(
-      std::vector<int>::const_iterator slot_iter,
-      std::vector<int>::const_iterator step_iter,
-      int offset,
-      A1 arg, A... args) {
-      offset = offset + get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
-      return linear<P...>::value(slot_iter, step_iter, offset, args...);
-    }
-  };
-    
-  template<typename P1, typename... P>
-    struct linear<const virtual_<P1>&, P...> {
-    template<typename A1, typename... A>
-    static int value(
-      std::vector<int>::const_iterator slot_iter,
-      std::vector<int>::const_iterator step_iter,
-      int offset,
-      A1 arg, A... args) {
-      offset = offset + get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter++] * *step_iter++;
-      return linear<P...>::value(slot_iter, step_iter, offset, args...);
-    }
-  };
-    
-  template<>
-    struct linear<> {
-    static int value(std::vector<int>::const_iterator slot_iter,
-              std::vector<int>::const_iterator step_iter,
-              int offset) {
-      return offset;
-    }
-  };
 
   struct grouping_resolver {
     grouping_resolver(multimethod_base& mm);
@@ -549,6 +494,7 @@ namespace multimethods {
     multimethod_base& mm;
     const int dims;
     std::vector<std::vector<group>> groups;
+    detail::void_function_pointer* dispatch_table;
     int emit_at;
   };
 
@@ -585,7 +531,7 @@ namespace multimethods {
       template<class M> method_base* add_spec();
 
       virtual void resolve();
-      virtual void allocate_dispatch_table(int size);
+      virtual detail::void_function_pointer* allocate_dispatch_table(int size);
       virtual void emit(method_base*, int i);
       virtual void emit_next(method_base*, method_base*);
 
@@ -616,10 +562,11 @@ namespace multimethods {
     }
   
     template<typename R, typename... P>
-    void multimethod_implementation<R, P...>::allocate_dispatch_table(int size) {
+    detail::void_function_pointer* multimethod_implementation<R, P...>::allocate_dispatch_table(int size) {
       using namespace std;
       delete [] dispatch_table;
       dispatch_table = new mptr[size];
+      return reinterpret_cast<void_function_pointer*>(dispatch_table);
     }
   
     template<typename R, typename... P>
@@ -691,10 +638,108 @@ namespace multimethods {
     
     return *impl;
   }
+    
+  template<int Dim, typename... P>
+  struct linear;
+
+
+  template<typename P1, typename... P>
+  struct linear<0, P1, P...> {
+    template<typename A1, typename... A>
+    static detail::void_function_pointer* value(
+      std::vector<int>::const_iterator slot_iter,
+      std::vector<int>::const_iterator step_iter,
+      A1, A... args) {
+      return linear<0, P...>::value(slot_iter, step_iter, args...);
+    }
+  };
+    
+  template<typename P1, typename... P>
+  struct linear<0, virtual_<P1>&, P...> {
+    template<typename A1, typename... A>
+    static detail::void_function_pointer* value(
+      std::vector<int>::const_iterator slot_iter,
+      std::vector<int>::const_iterator step_iter,
+      A1 arg, A... args) {
+      return linear<1, P...>::value(
+        slot_iter + 1, step_iter + 1,
+        get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter].ptr, args...);
+    }
+  };
+    
+  template<typename P1, typename... P>
+  struct linear<0, const virtual_<P1>&, P...> {
+    template<typename A1, typename... A>
+    static detail::void_function_pointer* value(
+      std::vector<int>::const_iterator slot_iter,
+      std::vector<int>::const_iterator step_iter,
+      A1 arg, A... args) {
+      return linear<1, P...>::value(
+        slot_iter + 1, step_iter + 1,
+        get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter].ptr, args...);
+    }
+  };
+
+
+  
+  template<int Dim, typename P1, typename... P>
+  struct linear<Dim, P1, P...> {
+    template<typename A1, typename... A>
+    static detail::void_function_pointer* value(
+      std::vector<int>::const_iterator slot_iter,
+      std::vector<int>::const_iterator step_iter,
+      detail::void_function_pointer* ptr,
+      A1, A... args) {
+      return linear<Dim, P...>::value(slot_iter, step_iter, ptr, args...);
+    }
+  };
+    
+  template<int Dim, typename P1, typename... P>
+  struct linear<Dim, virtual_<P1>&, P...> {
+    template<typename A1, typename... A>
+    static detail::void_function_pointer* value(
+      std::vector<int>::const_iterator slot_iter,
+      std::vector<int>::const_iterator step_iter,
+      detail::void_function_pointer* ptr,
+      A1 arg, A... args) {
+      MM_TRACE(std::cout << " -> " << ptr);
+      return linear<Dim + 1, P...>::value(
+        slot_iter + 1, step_iter + 1,
+        ptr + get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter].index * *step_iter,
+        args...);
+    }
+  };
+    
+  template<int Dim, typename P1, typename... P>
+  struct linear<Dim, const virtual_<P1>&, P...> {
+    template<typename A1, typename... A>
+    static detail::void_function_pointer* value(
+      std::vector<int>::const_iterator slot_iter,
+      std::vector<int>::const_iterator step_iter,
+      detail::void_function_pointer* ptr,
+      A1 arg, A... args) {
+      MM_TRACE(std::cout << " -> " << ptr);
+      return linear<Dim + 1, P...>::value(
+        slot_iter + 1, step_iter + 1,
+        ptr + get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter].index * *step_iter,
+        args...);
+    }
+  };
+    
+  template<int Dim>
+    struct linear<Dim> {
+    static detail::void_function_pointer* value(std::vector<int>::const_iterator slot_iter,
+              std::vector<int>::const_iterator step_iter,
+              detail::void_function_pointer* ptr) {
+      MM_TRACE(std::cout << " -> " << ptr << std::endl);
+      return ptr;
+    }
+  };
   
   template<template<typename Sig> class Method, typename R, typename... P>
   inline R multimethod<Method, R(P...)>::operator ()(typename remove_virtual<P>::type... args) const {
-    return impl->dispatch_table[linear<P...>::value(impl->slots.begin(), impl->steps.begin(), 0, &args...)](args...);
+    MM_TRACE((std::cout << "() mm table = " << impl->dispatch_table));
+    return reinterpret_cast<mptr>(*linear<0, P...>::value(impl->slots.begin(), impl->steps.begin(), &args...))(args...);
   }
 
   template<class MM, class M> struct register_method;

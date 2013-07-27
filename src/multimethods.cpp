@@ -104,6 +104,11 @@ namespace multimethods {
   hierarchy_initializer::hierarchy_initializer(mm_class& root) : root(root) {
   }
 
+  void hierarchy_initializer::initialize(mm_class& root) {
+    hierarchy_initializer init(root);
+    init.execute();
+  }
+
   void hierarchy_initializer::topological_sort_visit(class_set& once, mm_class* pc) {
     if (once.find(pc) == once.end()) {
       once.insert(pc);
@@ -114,11 +119,6 @@ namespace multimethods {
 
       nodes.push_back({ pc });
     }
-  }
-
-  void hierarchy_initializer::initialize(mm_class& root) {
-    hierarchy_initializer init(root);
-    init.execute();
   }
   
   void hierarchy_initializer::execute() {
@@ -345,7 +345,8 @@ namespace multimethods {
       
       for (auto& group : dim_groups) {
         for (auto pc : group.classes) {
-          pc->mmt[mm.slots[dim]] = offset;
+          MM_TRACE(cout << pc << ": " << offset << endl);
+          pc->mmt[mm.slots[dim]].index = offset;
         }
         ++offset;
       }
@@ -353,12 +354,33 @@ namespace multimethods {
       ++dim;
     }
 
-    mm.allocate_dispatch_table(step);
+    dispatch_table = mm.allocate_dispatch_table(step);
   }
 
   void grouping_resolver::make_table() {
+    MM_TRACE(cout << "make_table" << endl);
+
     emit_at = 0;
     resolve(dims - 1, ~dynamic_bitset<>(mm.methods.size()));
+
+    const int first_slot = mm.slots[0];
+
+    MM_TRACE(cout << "resolve 1st dimension" << endl);
+    dynamic_bitset<> once;
+    
+    for (auto& group : groups[0]) {
+      for (auto pc : group.classes) {
+        if (once.size() <= pc->index) {
+          once.resize(pc->index + 1);
+        }
+        
+        if (!once[pc->index]) {
+          once.set(pc->index);
+          MM_TRACE(cout << pc << ": " << pc->mmt[first_slot].index << " -> " << dispatch_table + pc->mmt[first_slot].index << endl);
+          pc->mmt[first_slot].ptr = dispatch_table + pc->mmt[first_slot].index;
+        }
+      }
+    }
   }
   
   void grouping_resolver::resolve(int dim, const dynamic_bitset<>& candidates) {
@@ -447,7 +469,20 @@ namespace multimethods {
       mask.set(pm->index);
     }
   }
-    
+
+  std::ostream& operator <<(std::ostream& os, const mm_class* pc) {
+    if (pc) {
+      if (pc->index != -1) {
+        os << "class_" << pc->index;
+      } else{
+        os << pc->ti.name();
+      }
+    } else {
+      os << "(null)";
+    }
+    return os;
+  }
+
   ostream& operator <<(ostream& os, method_base* method) {
     using namespace std;
 

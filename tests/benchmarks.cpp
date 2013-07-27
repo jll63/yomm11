@@ -64,17 +64,17 @@ BEGIN_METHOD(do_something_f, double, foreign&, double x, double a, double b, dou
 } END_METHOD;
 
 void post(const string& description, double milli) {
-  cout << setw(40) << left << description << ": " << setw(8) << fixed << right << setprecision(2) << milli << " ms" << endl;
+  cout << setw(40) << left << description << ": " << setw(8) << fixed << right << setprecision(2) << milli << endl;
 }
 
 int main() {
   multimethods::initialize();
 
-  const int repeats = 50 * 1000 * 1000;
+  const int repeats = 100 * 1000 * 1000;
   fast* pfast = fast::make();
   foreign* pforeign = new foreign;
 
-  cout << repeats << " iterations\n";
+  cout << repeats << " iterations, time in millisecs\n";
 
   {
     auto start = steady_clock::now();
