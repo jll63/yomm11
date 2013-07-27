@@ -17,6 +17,7 @@ using multimethods::virtual_;
 // following hierarchy does not collaborate with multi-methods
 
 struct role {
+  virtual ~role() { }
 };
 
 MM_FOREIGN_CLASS(role);

@@ -753,7 +753,8 @@ namespace multimethods {
   using mm_this_type = CLASS;                                           \
   
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
-  static_assert(::multimethods::check_bases<CLASS, ::multimethods::type_list<BASES>>::value, "Error in MM_FOREIGN_CLASS(): not a base in base list"); \
+  static_assert(::multimethods::check_bases<CLASS, ::multimethods::type_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
+  static_assert(std::is_polymorphic<CLASS>::value, "error: class must be polymorphic"); \
   namespace { ::multimethods::mm_class_initializer<CLASS, ::multimethods::type_list<BASES>> BOOST_PP_CAT(_mm_add_class, CLASS); }
 
 #define MM_INIT() \
