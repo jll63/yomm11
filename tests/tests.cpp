@@ -632,25 +632,28 @@ namespace single_inheritance {
 
     test( mm_class_of<Animal>::the().rooted_here.size(), 3 );
     test( mm_class_of<Interface>::the().rooted_here.size(), 1 );
-    test( multimethod_base::to_initialize().size(), 1 );
+    test( multimethod_base::to_initialize != nullptr, true );
+    test( multimethod_base::to_initialize->size(), 1 );
 
     encounter.impl.reset();
     test( mm_class_of<Animal>::the().rooted_here.size(), 1 );
-    test( multimethod_base::to_initialize().size(), 0 );
+    test( !multimethod_base::to_initialize, true );
 
     cout << "\n--- Unloading classes." << endl;
     {
       // fake a class
       mm_class donkey_class(typeid(Donkey));
       donkey_class.initialize(mm_class_vector_of<Herbivore>::get());
-      test( mm_class::to_initialize().size(), 1 );
+      test( mm_class::to_initialize != nullptr, true );
+      test( mm_class::to_initialize->size(), 1 );
       multimethods::initialize();
-      test( mm_class::to_initialize().size(), 0 );
+      test( !mm_class::to_initialize, true );
     }
 
-    test( mm_class::to_initialize().size(), 1 );
+    test( mm_class::to_initialize != nullptr, true );
+    test( mm_class::to_initialize->size(), 1 );
     multimethods::initialize();
-    test( mm_class::to_initialize().size(), 0 );
+    test( !mm_class::to_initialize, true );
   }
 }
 

@@ -28,7 +28,7 @@ namespace multimethods {
         base->specs.end());
     }
     
-    to_initialize().insert(root);
+    add_to_initialize(root);
   }
   
   void mm_class::for_each_spec(function<void(mm_class*)> pf) {
@@ -84,7 +84,7 @@ namespace multimethods {
       pb->specs.push_back(this);
     }
 
-    to_initialize().insert(root);
+    add_to_initialize(root);
 
     root->for_each_conforming([](mm_class* pc) {
         for (auto& mr : pc->rooted_here) {
@@ -92,10 +92,25 @@ namespace multimethods {
         }
       });
   }
+  
+  unique_ptr<unordered_set<mm_class*>> mm_class::to_initialize;
+  
+  void mm_class::add_to_initialize(mm_class* pc) {
+    if (!to_initialize) {
+      to_initialize.reset(new unordered_set<mm_class*>);
+    }
 
-  unordered_set<mm_class*>& mm_class::to_initialize() {
-    static unordered_set<mm_class*> set;
-    return set;
+    to_initialize->insert(pc);
+  }
+  
+  void mm_class::remove_from_initialize(mm_class* pc) {
+    if (to_initialize){
+      to_initialize->erase(pc);
+
+      if (to_initialize->empty()) {
+        to_initialize.reset();
+      }
+    }
   }
   
   method_base method_base::undefined;
@@ -194,16 +209,16 @@ namespace multimethods {
   }
 
   void initialize() {
-    while (mm_class::to_initialize().size()) {
-      auto pc = *mm_class::to_initialize().begin();
+    while (mm_class::to_initialize) {
+      auto pc = *mm_class::to_initialize->begin();
       hierarchy_initializer::initialize(*pc);
-      mm_class::to_initialize().erase(pc);
+      mm_class::remove_from_initialize(pc);
     }
     
-    while (multimethod_base::to_initialize().size()) {
-      auto pm = *multimethod_base::to_initialize().begin();
+    while (multimethod_base::to_initialize) {
+      auto pm = *multimethod_base::to_initialize->begin();
       pm->resolve();
-      multimethod_base::to_initialize().erase(pm);
+      multimethod_base::remove_from_initialize(pm);
     }
   }
 
@@ -233,14 +248,14 @@ namespace multimethods {
 
   void mm_class::add_multimethod(multimethod_base* pm, int arg) {
     rooted_here.push_back(mmref { pm, arg });
-    to_initialize().insert(this);
+    add_to_initialize(this);
   }
 
   void mm_class::remove_multimethod(multimethod_base* pm) {
     rooted_here.erase(
       remove_if(rooted_here.begin(), rooted_here.end(), [=](mmref& ref) { return ref.method == pm;  }),
       rooted_here.end());
-    to_initialize().insert(this);
+    add_to_initialize(this);
   }
   
   get_mm_table<false>::class_of_type* get_mm_table<false>::class_of;
@@ -278,7 +293,7 @@ namespace multimethods {
       arg->remove_multimethod(this);
     }
 
-    to_initialize().erase(this);
+    remove_from_initialize(this);
   }
   
   void multimethod_base::assign_slot(int arg, int slot) {
@@ -288,12 +303,27 @@ namespace multimethods {
 
   void multimethod_base::invalidate() {
     MM_TRACE(cout << "add " << this << " to init list" << endl);
-    to_initialize().insert(this);
+    add_to_initialize(this);
   }
+  
+  unique_ptr<unordered_set<multimethod_base*>> multimethod_base::to_initialize;
+  
+  void multimethod_base::add_to_initialize(multimethod_base* pm) {
+    if (!to_initialize) {
+      to_initialize.reset(new unordered_set<multimethod_base*>);
+    }
 
-  unordered_set<multimethod_base*>& multimethod_base::to_initialize() {
-    static unordered_set<multimethod_base*> set;
-    return set;
+    to_initialize->insert(pm);
+  }
+  
+  void multimethod_base::remove_from_initialize(multimethod_base* pm) {
+    if (to_initialize) {
+      to_initialize->erase(pm);
+
+      if (to_initialize->empty()) {
+        to_initialize.reset();
+      }
+    }
   }
 
   grouping_resolver::grouping_resolver(multimethod_base& mm) : mm(mm), dims(mm.vargs.size()) {

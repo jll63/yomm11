@@ -81,7 +81,9 @@ namespace multimethods {
     std::vector<mmref> rooted_here; // multimethods rooted here for one or more args.
     bool abstract;
     
-    static std::unordered_set<mm_class*>& to_initialize();
+    static std::unique_ptr<std::unordered_set<mm_class*>> to_initialize;
+    static void add_to_initialize(mm_class* pc);
+    static void remove_from_initialize(mm_class* pc);
   };
 
   inline const std::string mm_class::name() const {
@@ -209,7 +211,10 @@ namespace multimethods {
     std::vector<int> slots;
     std::vector<method_base*> methods;
     std::vector<int> steps;
-    static std::unordered_set<multimethod_base*>& to_initialize();
+    
+    static std::unique_ptr<std::unordered_set<multimethod_base*>> to_initialize;
+    static void add_to_initialize(multimethod_base* pm);
+    static void remove_from_initialize(multimethod_base* pm);
   };
 
   std::ostream& operator <<(std::ostream& os, const multimethod_base* pc);
