@@ -400,6 +400,7 @@ namespace grouping_resolver_tests {
     test( table[11], static_cast<method*>(methods[4])->pm );
     
     rdisp.assign_next();
+    test( (display_method<action(const Carnivore&, const Window&)>::next) == nullptr, true );
 
     testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
            (void*) display.impl->dispatch_table );

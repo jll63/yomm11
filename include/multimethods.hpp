@@ -587,8 +587,7 @@ namespace multimethods {
     template<typename R, typename... P>
     void multimethod_implementation<R, P...>::emit_next(method_base* method, method_base* next) {
       *static_cast<const method_entry*>(method)->pn =
-        next == &method_base::ambiguous ? throw_ambiguous<signature>::body
-        : next == &method_base::undefined ? throw_undefined<signature>::body
+        (next == &method_base::ambiguous || next == &method_base::undefined) ? nullptr
         : static_cast<const method_entry*>(next)->pm;
     }
   }
