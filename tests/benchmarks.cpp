@@ -70,69 +70,69 @@ void post(const string& description, double milli) {
 int main() {
   multimethods::initialize();
 
-  const int repeats = 100 * 1000 * 1000;
+  const int repeats = 10 * 1000 * 1000;
   fast* pfast = fast::make();
   foreign* pforeign = new foreign;
 
   cout << repeats << " iterations, time in millisecs\n";
 
   {
-    auto start = steady_clock::now();
+    auto start = high_resolution_clock::now();
     
     for (int i = 0; i < repeats; i++)
       pfast->do_nothing();
     
-    auto diff = steady_clock::now() - start;
+    auto diff = high_resolution_clock::now() - start;
     post("virtual function, do_nothing", duration<double, milli>(diff).count());
   }
 
   {
-    auto start = steady_clock::now();
+    auto start = high_resolution_clock::now();
     
     for (int i = 0; i < repeats; i++)
       do_nothing(*pfast);
     
-    auto diff = steady_clock::now() - start;
+    auto diff = high_resolution_clock::now() - start;
     post("open method, intrusive, do_nothing", duration<double, milli>(diff).count());
   }
 
   {
-    auto start = steady_clock::now();
+    auto start = high_resolution_clock::now();
     
     for (int i = 0; i < repeats; i++)
       do_nothing_f(*pforeign);
     
-    auto diff = steady_clock::now() - start;
+    auto diff = high_resolution_clock::now() - start;
     post("open method, foreign, do_nothing", duration<double, milli>(diff).count());
   }
 
   {
-    auto start = steady_clock::now();
+    auto start = high_resolution_clock::now();
     
     for (int i = 0; i < repeats; i++)
       pfast->do_something(1, 2, 3, 4);
     
-    auto diff = steady_clock::now() - start;
+    auto diff = high_resolution_clock::now() - start;
     post("virtual function, do_something", duration<double, milli>(diff).count());
   }
 
   {
-    auto start = steady_clock::now();
+    auto start = high_resolution_clock::now();
     
     for (int i = 0; i < repeats; i++)
       do_something(*pfast, 1, 2, 3, 4);
     
-    auto diff = steady_clock::now() - start;
+    auto diff = high_resolution_clock::now() - start;
     post("open method, intrusive, do_something", duration<double, milli>(diff).count());
   }
 
   {
-    auto start = steady_clock::now();
+    auto start = high_resolution_clock::now();
     
     for (int i = 0; i < repeats; i++)
       do_something_f(*pforeign, 1, 2, 3, 4);
     
-    auto diff = steady_clock::now() - start;
+    auto diff = high_resolution_clock::now() - start;
     post("open method, foreign, do_something", duration<double, milli>(diff).count());
   }
   
