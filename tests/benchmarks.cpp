@@ -6,13 +6,14 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-// 50000000 iterations
-// virtual function, do_nothing            :   142.91 ms
-// open method, intrusive, do_nothing      :   260.79 ms
-// open method, foreign, do_nothing        :  3048.16 ms
-// virtual function, do_something          :  2929.18 ms
-// open method, intrusive, do_something    :  3104.17 ms
-// open method, foreign, do_something      :  5651.20 ms
+// chrt -f 99 ./benchmarks
+// 10000000 iterations, time in millisecs
+// virtual function, do_nothing            :    75.50
+// open method, intrusive, do_nothing      :   100.58
+// open method, foreign, do_nothing        :  1542.95
+// virtual function, do_something          :  1558.85
+// open method, intrusive, do_something    :  1609.00
+// open method, foreign, do_something      :  2990.99
 
 // results obtained on my computer (ThinkPad x200s):
 // processor	: 0 & 1
