@@ -57,7 +57,7 @@ namespace multimethods {
     ~mm_class();
 
     const std::string name() const;
-    void initialize(std::vector<mm_class*>&& bases);
+    void initialize(const std::vector<mm_class*>& bases);
     void add_multimethod(multimethod_base* pm, int arg);
     void remove_multimethod(multimethod_base* pm);
     void for_each_spec(std::function<void(mm_class*)> pf);
@@ -75,8 +75,8 @@ namespace multimethods {
     std::vector<mm_class*> bases;
     std::vector<mm_class*> specs;
     boost::dynamic_bitset<> mask;
-    int index{-1};
-    mm_class* root{0};
+    int index;
+    mm_class* root;
     std::vector<offset> mmt;
     std::vector<mmref> rooted_here; // multimethods rooted here for one or more args.
     bool abstract;
@@ -101,6 +101,31 @@ namespace multimethods {
     static mm_class& the() {
       static mm_class instance(typeid(Class));
       return instance;
+    }
+  };
+
+  template<class... Class> struct mm_class_vector_of_;
+
+  template<class First, class... Rest>
+  struct mm_class_vector_of_<First, Rest...> {
+    static void get(std::vector<mm_class*>& classes) {
+      classes.push_back(&mm_class_of<First>::the());
+      mm_class_vector_of_<Rest...>::get(classes);
+    }
+  };
+
+  template<>
+  struct mm_class_vector_of_<> {
+    static void get(std::vector<mm_class*>& classes) {
+    }
+  };
+
+  template<class... Class>
+  struct mm_class_vector_of {
+    static std::vector<mm_class*> get() {
+      std::vector<mm_class*> classes;
+      mm_class_vector_of_<Class...>::get(classes);
+      return classes;
     }
   };
   
@@ -168,7 +193,7 @@ namespace multimethods {
     mm_class_initializer() {
       mm_class& pc = mm_class_of<Class>::the();
       pc.abstract = std::is_abstract<Class>::value;
-      pc.initialize({ &mm_class_of<Bases>::the()... });
+      pc.initialize(mm_class_vector_of<Bases...>::get());
 
       if (!std::is_base_of<selector, Class>::value) {
         if (!get_mm_table<false>::class_of) {
@@ -411,31 +436,6 @@ namespace multimethods {
     }
   };
 
-  template<class... Class> struct mm_class_vector_of_;
-
-  template<class First, class... Rest>
-  struct mm_class_vector_of_<First, Rest...> {
-    static void get(std::vector<mm_class*>& classes) {
-      classes.push_back(&mm_class_of<First>::the());
-      mm_class_vector_of_<Rest...>::get(classes);
-    }
-  };
-
-  template<>
-  struct mm_class_vector_of_<> {
-    static void get(std::vector<mm_class*>& classes) {
-    }
-  };
-
-  template<class... Class>
-  struct mm_class_vector_of {
-    static std::vector<mm_class*> get() {
-      std::vector<mm_class*> classes;
-      mm_class_vector_of_<Class...>::get(classes);
-      return classes;
-    }
-  };
-
   template<class... Class>
   struct mm_class_vector_of<virtuals<Class...>> {
     static std::vector<mm_class*> get() {
@@ -530,7 +530,8 @@ namespace multimethods {
       using virtuals = typename extract_virtuals<P...>::type;
       
       multimethod_implementation() :
-        multimethod_base(mm_class_vector_of<virtuals>::get()) {
+        multimethod_base(mm_class_vector_of<virtuals>::get()),
+        dispatch_table(nullptr) {
       }
 
       template<class M> method_base* add_spec();
@@ -540,7 +541,7 @@ namespace multimethods {
       virtual void emit(method_base*, int i);
       virtual void emit_next(method_base*, method_base*);
 
-      mptr* dispatch_table{0};
+      mptr* dispatch_table;
     };
     
     template<typename R, typename... P>
@@ -611,10 +612,20 @@ namespace multimethods {
       static mptr next;
     };
 
+    mptr next_ptr_type() const;
+
     using implementation = detail::multimethod_implementation<R, P...>;
     static implementation& the();
     static std::unique_ptr<implementation> impl;
   };
+
+  template<typename Multimethod, typename Sig>
+  struct specializer {
+    static typename Multimethod::mptr next;
+  };
+
+  template<typename Multimethod, typename Sig>
+  typename Multimethod::mptr specializer<Multimethod, Sig>::next;
 
   template<class Method, class Spec>
   struct register_spec {
@@ -767,11 +778,11 @@ namespace multimethods {
 
 #define MULTIMETHOD(ID, SIG)                                            \
   template<typename Sig> struct ID ## _method;                          \
-  constexpr ::multimethods::multimethod<ID ## _method, SIG> ID;
+  constexpr ::multimethods::multimethod<ID ## _method, SIG> ID{};
 
 #define BEGIN_METHOD(ID, RESULT, ARGS...)                               \
   template<>                                                            \
-  struct ID ## _method<RESULT(ARGS)> : decltype(ID)::next_ptr<RESULT(ARGS)> { \
+  struct ID ## _method<RESULT(ARGS)> : ::multimethods::specializer<decltype(ID), RESULT(ARGS)> { \
   static RESULT body(ARGS) {                                            \
   &::multimethods::register_spec<decltype(ID), ID ## _method>::the;
 

@@ -17,14 +17,16 @@ using boost::adaptors::reverse;
 
 namespace multimethods {
 
-  mm_class::mm_class(const type_info& t) : ti(t), abstract(false) {
+  mm_class::mm_class(const type_info& t) : ti(t), abstract(false), index(-1), root(nullptr) {
     //cout << "mm_class() for " << ti.name() << " at " << this << endl;
   }
 
   mm_class::~mm_class() {
     for (mm_class* base : bases) {
       base->specs.erase(
-        remove_if(base->specs.begin(), base->specs.end(), [=](mm_class* pc) { return pc == this; }),
+        remove_if(base->specs.begin(), base->specs.end(), [=](mm_class* pc) {
+            return pc == this;
+          }),
         base->specs.end());
     }
     
@@ -60,14 +62,14 @@ namespace multimethods {
     return index > other.index && other.mask[index];
   }
   
-  void mm_class::initialize(vector<mm_class*>&& b) {
+  void mm_class::initialize(const vector<mm_class*>& b) {
     MM_TRACE(cout << "initialize class_of<" << ti.name() << ">\n");
 
     if (root) {
       throw runtime_error("multimethods: class redefinition");
     }
 
-    bases.swap(b);
+    bases = b;
 
     if (bases.empty()) {
       root = this;

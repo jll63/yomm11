@@ -71,48 +71,9 @@ DO {
 namespace single_inheritance {
 
 #include "animals.hpp"
-
-  static_assert(
-    is_same<
-    typename extract_virtuals<virtual_<Animal>&, const virtual_<Animal>&>::type,
-    virtuals<Animal, Animal>
-    >::value, "not ok !!!");
-
-  static_assert(
-    is_same<
-    typename extract_virtuals<virtual_<Animal>&, int, virtual_<Animal>&>::type,
-    virtuals<Animal, Animal>
-    >::value, "not ok !!!");
-  
-  static_assert(
-    is_same<
-    extract_method_virtuals<
-    void(int, virtual_<Animal>&, char, const virtual_<Animal>&),
-    void(int, Cow&, char, const Wolf&)
-    >::type,
-    virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
-
-  DO {
-    cout << "\nClass registration" << endl;
-    test(mm_class_of<Cow>::the().bases.size(), 1);
-    test(mm_class_of<Cow>::the().bases[0] == &mm_class_of<Herbivore>::the(), true);
-    test(mm_class_of<Animal>::the().specs.size(), 2);
-    test(mm_class_of<Animal>::the().specs[0] == &mm_class_of<Herbivore>::the(), true);
-    test(mm_class_of<Animal>::the().specs[1] == &mm_class_of<Carnivore>::the(), true);
-
-    test(mm_class_of<Animal>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Herbivore>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Carnivore>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Cow>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Wolf>::the().root, mm_class_of<Animal>::the().root);
-  }
 }
 
 namespace slot_allocation_tests {
-
-  DO {
-    cout << "\n--- Slot allocation." << endl;
-  }
 
   struct X : selector {
     MM_CLASS(X);
@@ -169,8 +130,246 @@ namespace slot_allocation_tests {
   };
 
   MULTIMETHOD(m_y, int(const virtual_<Y>&));
+}
+
+namespace grouping_resolver_tests {
+  
+  #include "animals.hpp"
+
+#define MAKE_CLASS(Class, Base)                 \
+  struct Class : Base {                         \
+  MM_CLASS(Class, Base);                        \
+  Class() {                                     \
+    MM_INIT();                                  \
+  }                                             \
+  }
+
+  MAKE_CLASS(Mobile, Interface);
+  MAKE_CLASS(MSWindows, Window);
+  MAKE_CLASS(X, Window);
+  MAKE_CLASS(Nokia, Mobile);
+  MAKE_CLASS(Samsung, Mobile);
+
+  enum action { whatever, print_herbivore, draw_herbivore, print_carnivore, draw_carnivore, mobile };
+
+  MULTIMETHOD(display, action(const virtual_<Animal>&, const virtual_<Interface>&));
+
+  // 0
+  BEGIN_METHOD(display, action, const Herbivore& a, const Terminal& b) {
+    return print_herbivore;
+  } END_METHOD;
+
+  // 1
+  BEGIN_METHOD(display, action, const Herbivore& a, const Window& b) {
+    return draw_herbivore;
+  } END_METHOD;
+
+  // 2
+  BEGIN_METHOD(display, action, const Carnivore& a, const Terminal& b) {
+    return print_carnivore;
+  } END_METHOD;
+
+  // 3
+  BEGIN_METHOD(display, action, const Carnivore& a, const Window& b) {
+    return draw_carnivore;
+  } END_METHOD;
+
+  // 4
+  BEGIN_METHOD(display, action, const Animal& a, const Mobile& b) {
+    return mobile;
+  } END_METHOD;
+  
+}
+
+#ifndef __clang__
+
+namespace init_tests {
+
+#include "animals.hpp"
+
+  MULTIMETHOD(encounter, string(const virtual_<Animal>&, const virtual_<Animal>&));
+
+  BEGIN_METHOD(encounter, string, const Animal&, const Animal&) {
+    return "ignore";
+  } END_METHOD;
 
   DO {
+    multimethods::initialize();
+    test(encounter(Cow(), Wolf()), "ignore");
+    test(encounter(Wolf(), Cow()), "ignore");
+  }
+
+  BEGIN_METHOD(encounter, string, const Herbivore&, const Carnivore&) {
+    return "run";
+  } END_METHOD;
+
+  DO {
+    multimethods::initialize();
+    test(encounter(Cow(), Wolf()), "run");
+    test(encounter(Wolf(), Cow()), "ignore");
+  }
+
+  BEGIN_METHOD(encounter, string, const Carnivore&, const Herbivore&) {
+    return "hunt";
+  } END_METHOD;
+
+  DO {
+    multimethods::initialize();
+    test(encounter(Cow(), Wolf()), "run");
+    test(encounter(Wolf(), Cow()), "hunt");
+  }
+
+  struct Horse : Herbivore {
+    MM_CLASS(Horse, Herbivore);
+    Horse() {
+      MM_INIT();
+    }
+  };
+
+  DO {
+    multimethods::initialize();
+    test(encounter(Horse(), Wolf()), "run");
+    test(encounter(Wolf(), Horse()), "hunt");
+  }
+}
+
+#endif
+
+namespace single_inheritance {
+
+  MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
+  
+  BEGIN_METHOD(encounter, string, Animal&, Animal&) {
+    return "ignore";
+  } END_METHOD;
+
+  BEGIN_METHOD(encounter, string, Carnivore&, Animal&) {
+    return "hunt";
+  } END_METHOD;
+
+  BEGIN_METHOD(encounter, string, Carnivore&, Carnivore&) {
+    return "fight";
+  } END_METHOD;
+
+  BEGIN_METHOD(encounter, string, Wolf&, Wolf&) {
+    return "wag tail";
+  } END_METHOD;
+
+  BEGIN_METHOD(encounter, string, Herbivore&, Carnivore&) {
+    return "run";
+  } END_METHOD;
+
+  enum action { display_error, print_cow, draw_cow, print_wolf, draw_wolf, print_tiger, draw_tiger, print_herbivore, display_cow, print_animal };
+
+  MULTIMETHOD(display, action(virtual_<Animal>&, virtual_<Interface>&));
+
+  BEGIN_METHOD(display, action, Cow& a, Terminal& b) {
+    return print_cow;
+  } END_METHOD;
+
+  BEGIN_METHOD(display, action, Wolf& a, Terminal& b) {
+    return print_wolf;
+  } END_METHOD;
+
+  BEGIN_METHOD(display, action, Tiger& a, Terminal& b) {
+    return print_tiger;
+  } END_METHOD;
+
+  BEGIN_METHOD(display, action, Cow& a, Window& b) {
+    return draw_cow;
+  } END_METHOD;
+
+  BEGIN_METHOD(display, action, Wolf& a, Window& b) {
+    return draw_wolf;
+  } END_METHOD;
+
+  BEGIN_METHOD(display, action, Tiger& a, Window& b) {
+    return draw_tiger;
+  } END_METHOD;
+
+// following two are ambiguous, e.g. for (Cow, Terminal)
+
+  BEGIN_METHOD(display, action, Herbivore& a, Interface& b) {
+    return display_error;
+  } END_METHOD;
+
+  BEGIN_METHOD(display, action, Animal& a, Terminal& b) {
+    return display_error;
+  } END_METHOD;
+
+  // following un-registered stuff is for unloading tests
+
+  struct Donkey : Herbivore { };
+  
+  template<>
+  struct encounter_method<string(Cow&, Cow&)> : ::multimethods::specializer<decltype(encounter), string(Cow&, Cow&)> {
+    static string body(Cow&, Cow&) {
+      return "moo!";
+    }
+  };
+}
+
+namespace mi {
+  #include "mi.hpp"
+
+  MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
+  
+  BEGIN_METHOD(encounter, string, Animal&, Animal&) {
+    return "ignore";
+  } END_METHOD;
+
+  BEGIN_METHOD(encounter, string, Stallion&, Mare&) {
+    return "court";
+  } END_METHOD;
+
+  BEGIN_METHOD(encounter, string, Predator&, Herbivore&) {
+    return "hunt";
+  } END_METHOD;
+}
+
+int main() {
+
+  {
+    using namespace single_inheritance;
+    static_assert(
+      is_same<
+      typename extract_virtuals<virtual_<Animal>&, const virtual_<Animal>&>::type,
+      virtuals<Animal, Animal>
+      >::value, "not ok !!!");
+
+    static_assert(
+      is_same<
+      typename extract_virtuals<virtual_<Animal>&, int, virtual_<Animal>&>::type,
+      virtuals<Animal, Animal>
+      >::value, "not ok !!!");
+  
+    static_assert(
+      is_same<
+      extract_method_virtuals<
+      void(int, virtual_<Animal>&, char, const virtual_<Animal>&),
+      void(int, Cow&, char, const Wolf&)
+      >::type,
+      virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
+    
+    cout << "\nClass registration" << endl;
+    test(mm_class_of<Cow>::the().bases.size(), 1);
+    test(mm_class_of<Cow>::the().bases[0] == &mm_class_of<Herbivore>::the(), true);
+    test(mm_class_of<Animal>::the().specs.size(), 2);
+    test(mm_class_of<Animal>::the().specs[0] == &mm_class_of<Herbivore>::the(), true);
+    test(mm_class_of<Animal>::the().specs[1] == &mm_class_of<Carnivore>::the(), true);
+
+    test(mm_class_of<Animal>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Herbivore>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Carnivore>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Cow>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Wolf>::the().root, mm_class_of<Animal>::the().root);
+  }
+
+  {
+    cout << "\n--- Slot allocation." << endl;
+
+    using namespace slot_allocation_tests;
+
     // Init multimethod implementations; this is normally done when the
     // first method is added.
     m_x.the();
@@ -225,65 +424,18 @@ namespace slot_allocation_tests {
     test(mm_class_of<CD>::the().mmt.size(), 5);
     test(mm_class_of<Y>::the().mmt.size(), 2);
   }
-}
-namespace grouping_resolver_tests {
 
-  DO {
-    cout << "\n--- Grouping resolver tests\n";
-  }
-  
-  #include "animals.hpp"
+  cout << "\n--- Grouping resolver tests\n";
 
-#define MAKE_CLASS(Class, Base)                 \
-  struct Class : Base {                         \
-  MM_CLASS(Class, Base);                        \
-  Class() {                                     \
-    MM_INIT();                                  \
-  }                                             \
-  }
+  {
+    using namespace grouping_resolver_tests;
+    
+    // we want to build:
+    //              Interface   Terminal   Window+ Mobile+
+    // Animal       0           0          0       mob
+    // Herbivore+   0           p_herb     d_herb  mob
+    // Carnivore+   0           p_carn     d_carn  mob
 
-  MAKE_CLASS(Mobile, Interface);
-  MAKE_CLASS(MSWindows, Window);
-  MAKE_CLASS(X, Window);
-  MAKE_CLASS(Nokia, Mobile);
-  MAKE_CLASS(Samsung, Mobile);
-
-  enum action { whatever, print_herbivore, draw_herbivore, print_carnivore, draw_carnivore, mobile };
-
-  MULTIMETHOD(display, action(const virtual_<Animal>&, const virtual_<Interface>&));
-
-  // 0
-  BEGIN_METHOD(display, action, const Herbivore& a, const Terminal& b) {
-    return print_herbivore;
-  } END_METHOD;
-
-  // 1
-  BEGIN_METHOD(display, action, const Herbivore& a, const Window& b) {
-    return draw_herbivore;
-  } END_METHOD;
-
-  // 2
-  BEGIN_METHOD(display, action, const Carnivore& a, const Terminal& b) {
-    return print_carnivore;
-  } END_METHOD;
-
-  // 3
-  BEGIN_METHOD(display, action, const Carnivore& a, const Window& b) {
-    return draw_carnivore;
-  } END_METHOD;
-
-  // 4
-  BEGIN_METHOD(display, action, const Animal& a, const Mobile& b) {
-    return mobile;
-  } END_METHOD;
-
-  // we want to build:
-  //              Interface   Terminal   Window+ Mobile+
-  // Animal       0           0          0       mob
-  // Herbivore+   0           p_herb     d_herb  mob
-  // Carnivore+   0           p_carn     d_carn  mob
-
-  DO {
     hierarchy_initializer::initialize(mm_class_of<Animal>::the());
     hierarchy_initializer::initialize(mm_class_of<Interface>::the());
 
@@ -384,12 +536,12 @@ namespace grouping_resolver_tests {
     test( table[1], throw_undefined<decltype(display)::signature>::body );
     test( table[2], throw_undefined<decltype(display)::signature>::body );
 
-      // Terminal
+    // Terminal
     test( table[3], throw_undefined<decltype(display)::signature>::body );
     test( table[4], static_cast<method*>(methods[0])->pm );
     test( table[5], static_cast<method*>(methods[2])->pm );
 
-      // Window
+    // Window
     test( table[6], throw_undefined<decltype(display)::signature>::body );
     test( table[7], static_cast<method*>(methods[1])->pm );
     test( table[8], static_cast<method*>(methods[3])->pm );
@@ -430,126 +582,12 @@ namespace grouping_resolver_tests {
     test( display(Carnivore(), Samsung()), mobile );
     test( display(Wolf(), Nokia()), mobile );
   }
+
+  cout << "\n--- Single inheritance." << endl;
   
-}
+  {
+    using namespace single_inheritance;
 
-namespace init_tests {
-
-#include "animals.hpp"
-
-  MULTIMETHOD(encounter, string(const virtual_<Animal>&, const virtual_<Animal>&));
-
-  BEGIN_METHOD(encounter, string, const Animal&, const Animal&) {
-    return "ignore";
-  } END_METHOD;
-
-  DO {
-    multimethods::initialize();
-    test(encounter(Cow(), Wolf()), "ignore");
-    test(encounter(Wolf(), Cow()), "ignore");
-  }
-
-  BEGIN_METHOD(encounter, string, const Herbivore&, const Carnivore&) {
-    return "run";
-  } END_METHOD;
-
-  DO {
-    multimethods::initialize();
-    test(encounter(Cow(), Wolf()), "run");
-    test(encounter(Wolf(), Cow()), "ignore");
-  }
-
-  BEGIN_METHOD(encounter, string, const Carnivore&, const Herbivore&) {
-    return "hunt";
-  } END_METHOD;
-
-  DO {
-    multimethods::initialize();
-    test(encounter(Cow(), Wolf()), "run");
-    test(encounter(Wolf(), Cow()), "hunt");
-  }
-
-  struct Horse : Herbivore {
-    MM_CLASS(Horse, Herbivore);
-    Horse() {
-      MM_INIT();
-    }
-  };
-
-  DO {
-    multimethods::initialize();
-    test(encounter(Horse(), Wolf()), "run");
-    test(encounter(Wolf(), Horse()), "hunt");
-  }
-}
-
-namespace single_inheritance {
-
-  DO {
-    cout << "\n--- Single inheritance." << endl;
-  }
-
-  MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
-  
-  BEGIN_METHOD(encounter, string, Animal&, Animal&) {
-    return "ignore";
-  } END_METHOD;
-
-  BEGIN_METHOD(encounter, string, Carnivore&, Animal&) {
-    return "hunt";
-  } END_METHOD;
-
-  BEGIN_METHOD(encounter, string, Carnivore&, Carnivore&) {
-    return "fight";
-  } END_METHOD;
-
-  BEGIN_METHOD(encounter, string, Wolf&, Wolf&) {
-    return "wag tail";
-  } END_METHOD;
-
-  BEGIN_METHOD(encounter, string, Herbivore&, Carnivore&) {
-    return "run";
-  } END_METHOD;
-
-  enum action { display_error, print_cow, draw_cow, print_wolf, draw_wolf, print_tiger, draw_tiger, print_herbivore, display_cow, print_animal };
-
-  MULTIMETHOD(display, action(virtual_<Animal>&, virtual_<Interface>&));
-
-  BEGIN_METHOD(display, action, Cow& a, Terminal& b) {
-    return print_cow;
-  } END_METHOD;
-
-  BEGIN_METHOD(display, action, Wolf& a, Terminal& b) {
-    return print_wolf;
-  } END_METHOD;
-
-  BEGIN_METHOD(display, action, Tiger& a, Terminal& b) {
-    return print_tiger;
-  } END_METHOD;
-
-  BEGIN_METHOD(display, action, Cow& a, Window& b) {
-    return draw_cow;
-  } END_METHOD;
-
-  BEGIN_METHOD(display, action, Wolf& a, Window& b) {
-    return draw_wolf;
-  } END_METHOD;
-
-  BEGIN_METHOD(display, action, Tiger& a, Window& b) {
-    return draw_tiger;
-  } END_METHOD;
-
-// following two are ambiguous, e.g. for (Cow, Terminal)
-
-  BEGIN_METHOD(display, action, Herbivore& a, Interface& b) {
-    return display_error;
-  } END_METHOD;
-
-  BEGIN_METHOD(display, action, Animal& a, Terminal& b) {
-    return display_error;
-  } END_METHOD;
-
-  DO {
     Cow c;
     Wolf w;
     Tiger t;
@@ -560,6 +598,8 @@ namespace single_inheritance {
 
     multimethods::initialize();
     
+    test(encounter.impl != nullptr, true);
+    test(encounter.impl->dispatch_table != nullptr, true);
     test(encounter(c, w), "run");
     test(encounter(c, c), "ignore");
 
@@ -571,27 +611,11 @@ namespace single_inheritance {
     test(encounter_method<string(Carnivore&, Carnivore&)>::next(w, w), "hunt");
     test(encounter_method<string(Carnivore&, Animal&)>::next(w, w), "ignore");
   }
-}
 
-namespace mi {
-  #include "mi.hpp"
+  cout << "\n--- multiple inheritance" << endl;
 
-  MULTIMETHOD(encounter, string(virtual_<Animal>&, virtual_<Animal>&));
-  
-  BEGIN_METHOD(encounter, string, Animal&, Animal&) {
-    return "ignore";
-  } END_METHOD;
-
-  BEGIN_METHOD(encounter, string, Stallion&, Mare&) {
-    return "court";
-  } END_METHOD;
-
-  BEGIN_METHOD(encounter, string, Predator&, Herbivore&) {
-    return "hunt";
-  } END_METHOD;
-
-  DO {
-    cout << "\n--- multiple inheritance" << endl;
+  {
+    using namespace mi;
 
     Animal animal;
     Herbivore herbivore;
@@ -617,20 +641,14 @@ namespace mi {
     test( encounter(stallion, mare), "court" );
     test( encounter(mare, mare), "ignore" );
     test( encounter(wolf, mare), "hunt" );
-  }
-}
+  }    
 
-namespace single_inheritance {
-
-  BEGIN_METHOD(encounter, string, Cow&, Cow&) {
-    return "moo!";
-  } END_METHOD;
-
-  struct Donkey : Herbivore { };
-
-  DO {
+  {
     cout << "\n--- Unloading multimethods." << endl;
+    using namespace single_inheritance;
 
+    encounter.the().add_spec<encounter_method<string(Cow&, Cow&)>>();
+    
     test( mm_class_of<Animal>::the().rooted_here.size(), 3 );
     test( mm_class_of<Interface>::the().rooted_here.size(), 1 );
     test( multimethod_base::to_initialize != nullptr, true );
@@ -656,10 +674,9 @@ namespace single_inheritance {
     multimethods::initialize();
     test( !mm_class::to_initialize, true );
   }
-}
-
-int main() {
-    cout << "\n" << success << " tests succeeded, " << failure << " failed.\n";
+  
+  cout << "\n" << success << " tests succeeded, " << failure << " failed.\n";
+  
   return 0;
 }
 
