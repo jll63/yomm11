@@ -8,12 +8,15 @@
 
 // chrt -f 99 ./benchmarks
 // 10000000 iterations, time in millisecs
-// virtual function, do_nothing            :    75.50
-// open method, intrusive, do_nothing      :   100.58
-// open method, foreign, do_nothing        :  1542.95
-// virtual function, do_something          :  1558.85
-// open method, intrusive, do_something    :  1609.00
-// open method, foreign, do_something      :  2990.99
+// virtual function, do_nothing                      :    75.50
+// open method, intrusive, do_nothing                :   100.56
+// open method, foreign, do_nothing                  :  1397.75
+// virtual function, do_something                    :  1541.11
+// open method, intrusive, do_something              :  1608.20
+// open method, foreign, do_something                :  2607.76
+// virtual function, 2-dispatch, do_nothing          :   250.75
+// open method with 2 args, intrusive, do_nothing    :   150.77
+// open method with 2 args, foreign, do_nothing      :  2832.26
 
 // results obtained on my computer (ThinkPad x200s):
 // processor	: 0 & 1
@@ -47,6 +50,11 @@ MULTIMETHOD(do_nothing, void(virtual_<fast>&));
 BEGIN_METHOD(do_nothing, void, fast&) {
 } END_METHOD;
 
+MULTIMETHOD(do_nothing_2, void(virtual_<fast>&, virtual_<fast>&));
+
+BEGIN_METHOD(do_nothing_2, void, fast&, fast&) {
+} END_METHOD;
+
 struct foreign {
   virtual ~foreign() { }
 };
@@ -58,14 +66,21 @@ MULTIMETHOD(do_nothing_f, void(virtual_<foreign>&));
 BEGIN_METHOD(do_nothing_f, void, foreign&) {
 } END_METHOD;
 
+MULTIMETHOD(do_nothing_2_f, void(virtual_<foreign>&, virtual_<foreign>&));
+
+BEGIN_METHOD(do_nothing_2_f, void, foreign&, foreign&) {
+} END_METHOD;
+
 MULTIMETHOD(do_something_f, double(virtual_<foreign>&, double x, double a, double b, double c));
 
 BEGIN_METHOD(do_something_f, double, foreign&, double x, double a, double b, double c) {
   return log(a * x * x + b * x + c);
 } END_METHOD;
 
-void post(const string& description, double milli) {
-  cout << setw(40) << left << description << ": " << setw(8) << fixed << right << setprecision(2) << milli << endl;
+using time_type = decltype(high_resolution_clock::now());
+
+void post(const string& description, time_type start, time_type end) {
+  cout << setw(50) << left << description << ": " << setw(8) << fixed << right << setprecision(2) << duration<double, milli>(end - start).count() << endl;
 }
 
 int main() {
@@ -83,8 +98,8 @@ int main() {
     for (int i = 0; i < repeats; i++)
       pfast->do_nothing();
     
-    auto diff = high_resolution_clock::now() - start;
-    post("virtual function, do_nothing", duration<double, milli>(diff).count());
+    auto end = high_resolution_clock::now();
+    post("virtual function, do_nothing", start, end);
   }
 
   {
@@ -93,8 +108,8 @@ int main() {
     for (int i = 0; i < repeats; i++)
       do_nothing(*pfast);
     
-    auto diff = high_resolution_clock::now() - start;
-    post("open method, intrusive, do_nothing", duration<double, milli>(diff).count());
+    auto end = high_resolution_clock::now();
+    post("open method, intrusive, do_nothing", start, end);
   }
 
   {
@@ -103,8 +118,8 @@ int main() {
     for (int i = 0; i < repeats; i++)
       do_nothing_f(*pforeign);
     
-    auto diff = high_resolution_clock::now() - start;
-    post("open method, foreign, do_nothing", duration<double, milli>(diff).count());
+    auto end = high_resolution_clock::now();
+    post("open method, foreign, do_nothing", start, end);
   }
 
   {
@@ -113,8 +128,8 @@ int main() {
     for (int i = 0; i < repeats; i++)
       pfast->do_something(1, 2, 3, 4);
     
-    auto diff = high_resolution_clock::now() - start;
-    post("virtual function, do_something", duration<double, milli>(diff).count());
+    auto end = high_resolution_clock::now();
+    post("virtual function, do_something", start, end);
   }
 
   {
@@ -123,8 +138,8 @@ int main() {
     for (int i = 0; i < repeats; i++)
       do_something(*pfast, 1, 2, 3, 4);
     
-    auto diff = high_resolution_clock::now() - start;
-    post("open method, intrusive, do_something", duration<double, milli>(diff).count());
+    auto end = high_resolution_clock::now();
+    post("open method, intrusive, do_something", start, end);
   }
 
   {
@@ -133,8 +148,40 @@ int main() {
     for (int i = 0; i < repeats; i++)
       do_something_f(*pforeign, 1, 2, 3, 4);
     
-    auto diff = high_resolution_clock::now() - start;
-    post("open method, foreign, do_something", duration<double, milli>(diff).count());
+    auto end = high_resolution_clock::now();
+    post("open method, foreign, do_something", start, end);
+  }
+
+  // double dispatch
+
+  {
+    auto start = high_resolution_clock::now();
+    
+    for (int i = 0; i < repeats; i++)
+      pfast->dd1_do_nothing(pfast);
+    
+    auto end = high_resolution_clock::now();
+    post("virtual function, 2-dispatch, do_nothing", start, end);
+  }
+
+  {
+    auto start = high_resolution_clock::now();
+    
+    for (int i = 0; i < repeats; i++)
+      do_nothing_2(*pfast, *pfast);
+    
+    auto end = high_resolution_clock::now();
+    post("open method with 2 args, intrusive, do_nothing", start, end);
+  }
+
+  {
+    auto start = high_resolution_clock::now();
+    
+    for (int i = 0; i < repeats; i++)
+      do_nothing_2_f(*pforeign, *pforeign);
+    
+    auto end = high_resolution_clock::now();
+    post("open method with 2 args, foreign, do_nothing", start, end);
   }
   
   return 0;

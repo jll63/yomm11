@@ -16,11 +16,10 @@ struct fast : multimethods::selector {
     MM_INIT();
   }
 
-  virtual void do_nothing() { }
-  
-  virtual double do_something(double x, double a, double b, double c) {
-    return log(a * x * x + b * x + c);
-  }
+  virtual void do_nothing();
+  virtual double do_something(double x, double a, double b, double c);
+  virtual void dd1_do_nothing(fast* pf);
+  virtual void dd2_do_nothing(fast* pf);
 };
 
 MULTIMETHOD(do_something, double(multimethods::virtual_<fast>&, double x, double a, double b, double c));

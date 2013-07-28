@@ -10,6 +10,20 @@ fast* fast::make() {
   return new fast;
 }
 
+double fast::do_something(double x, double a, double b, double c) {
+  return log(a * x * x + b * x + c);
+}
+
+void fast::do_nothing() {
+}
+
+void fast::dd1_do_nothing(fast* pf) {
+  pf->dd2_do_nothing(pf);
+}
+
+void fast::dd2_do_nothing(fast* pf) {
+}
+
 BEGIN_METHOD(do_something, double, fast&, double x, double a, double b, double c) {
   return log(a * x * x + b * x + c);
 } END_METHOD;
