@@ -45,37 +45,70 @@ using namespace std;
 using namespace std::chrono;
 using multimethods::virtual_;
 
-MULTIMETHOD(do_nothing, void(virtual_<fast>&));
+namespace intrusive {
 
-BEGIN_METHOD(do_nothing, void, fast&) {
-} END_METHOD;
+  MULTIMETHOD(do_nothing, void(virtual_<object>&));
 
-MULTIMETHOD(do_nothing_2, void(virtual_<fast>&, virtual_<fast>&));
+  BEGIN_METHOD(do_nothing, void, object&) {
+  } END_METHOD;
 
-BEGIN_METHOD(do_nothing_2, void, fast&, fast&) {
-} END_METHOD;
+  MULTIMETHOD(do_something, double(multimethods::virtual_<object>&, double x, double a, double b, double c));
 
-struct foreign {
-  virtual ~foreign() { }
-};
+  BEGIN_METHOD(do_something, double, object&, double x, double a, double b, double c) {
+    return log(a * x * x + b * x + c);
+  } END_METHOD;
 
-MM_FOREIGN_CLASS(foreign);
+  MULTIMETHOD(do_nothing_2, void(virtual_<object>&, virtual_<object>&));
 
-MULTIMETHOD(do_nothing_f, void(virtual_<foreign>&));
+  BEGIN_METHOD(do_nothing_2, void, object&, object&) {
+  } END_METHOD;
 
-BEGIN_METHOD(do_nothing_f, void, foreign&) {
-} END_METHOD;
+}
 
-MULTIMETHOD(do_nothing_2_f, void(virtual_<foreign>&, virtual_<foreign>&));
+namespace vbase {
 
-BEGIN_METHOD(do_nothing_2_f, void, foreign&, foreign&) {
-} END_METHOD;
+  MULTIMETHOD(do_nothing, void(virtual_<object>&));
 
-MULTIMETHOD(do_something_f, double(virtual_<foreign>&, double x, double a, double b, double c));
+  BEGIN_METHOD(do_nothing, void, object&) {
+  } END_METHOD;
 
-BEGIN_METHOD(do_something_f, double, foreign&, double x, double a, double b, double c) {
-  return log(a * x * x + b * x + c);
-} END_METHOD;
+  MULTIMETHOD(do_something, double(multimethods::virtual_<object>&, double x, double a, double b, double c));
+
+  BEGIN_METHOD(do_something, double, derived&, double x, double a, double b, double c) {
+    return log(a * x * x + b * x + c);
+  } END_METHOD;
+
+  MULTIMETHOD(do_nothing_2, void(virtual_<object>&, virtual_<object>&));
+
+  BEGIN_METHOD(do_nothing_2, void, object&, object&) {
+  } END_METHOD;
+
+}
+
+namespace foreign {
+  
+  struct object {
+    virtual ~object() { }
+  };
+
+  MM_FOREIGN_CLASS(object);
+
+  MULTIMETHOD(do_nothing, void(virtual_<object>&));
+
+  BEGIN_METHOD(do_nothing, void, object&) {
+  } END_METHOD;
+
+  MULTIMETHOD(do_nothing_2, void(virtual_<object>&, virtual_<object>&));
+
+  BEGIN_METHOD(do_nothing_2, void, object&, object&) {
+  } END_METHOD;
+
+  MULTIMETHOD(do_something, double(virtual_<object>&, double x, double a, double b, double c));
+
+  BEGIN_METHOD(do_something, double, object&, double x, double a, double b, double c) {
+    return log(a * x * x + b * x + c);
+  } END_METHOD;
+}
 
 using time_type = decltype(high_resolution_clock::now());
 
@@ -83,105 +116,130 @@ void post(const string& description, time_type start, time_type end) {
   cout << setw(50) << left << description << ": " << setw(8) << fixed << right << setprecision(2) << duration<double, milli>(end - start).count() << endl;
 }
 
+struct benchmark {
+  benchmark(const string& label) : label(label), start(high_resolution_clock::now()) {
+  }
+  
+  ~benchmark() {
+      auto end = high_resolution_clock::now();
+      cout << setw(50) << left << label << ": "
+           << setw(8) << fixed << right << setprecision(2)
+           << duration<double, milli>(end - start).count() << endl;
+  }
+
+  const string label;
+  decltype(high_resolution_clock::now()) start;
+};
+
 int main() {
   multimethods::initialize();
 
   const int repeats = 10 * 1000 * 1000;
-  fast* pfast = fast::make();
-  foreign* pforeign = new foreign;
-
-  cout << repeats << " iterations, time in millisecs\n";
 
   {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      pfast->do_nothing();
-    
-    auto end = high_resolution_clock::now();
-    post("virtual function, do_nothing", start, end);
+    auto pf = new foreign::object;
+    auto pi = intrusive::object::make();
+
+    cout << repeats << " iterations, time in millisecs\n";
+
+    {
+      benchmark b("virtual function, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        pi->do_nothing();
+    }
+  
+    {
+      benchmark b("open method, intrusive, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        intrusive::do_nothing(*pi);
+    }
+
+    {
+      benchmark b("open method, foreign, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        foreign::do_nothing(*pf);
+    }
+
+    {
+      benchmark b("virtual function, do_something");
+      for (int i = 0; i < repeats; i++)
+        pi->do_something(1, 2, 3, 4);
+    }
+
+    {
+      benchmark b("open method, intrusive, do_something");
+      for (int i = 0; i < repeats; i++)
+        intrusive::do_something(*pi, 1, 2, 3, 4);
+    }
+
+    {
+      benchmark b("open method, foreign, do_something");
+      for (int i = 0; i < repeats; i++)
+        foreign::do_something(*pf, 1, 2, 3, 4);
+    }
+
+    // double dispatch
+
+    {
+      benchmark b("virtual function, 2-dispatch, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        pi->dd1_do_nothing(pi);
+    }
+
+    {
+      benchmark b("open method with 2 args, intrusive, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        intrusive::do_nothing_2(*pi, *pi);
+    }
+
+    {
+      benchmark b("open method with 2 args, foreign, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        foreign::do_nothing_2(*pf, *pf);
+    }
   }
-
+  
+  // virtual inheritance
   {
-    auto start = high_resolution_clock::now();
+    auto pi = vbase::object::make();
     
-    for (int i = 0; i < repeats; i++)
-      do_nothing(*pfast);
-    
-    auto end = high_resolution_clock::now();
-    post("open method, intrusive, do_nothing", start, end);
-  }
+    {
+      benchmark b("virtual function, vbase, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        pi->do_nothing();
+    }
+  
+    {
+      benchmark b("open method, vbase, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        vbase::do_nothing(*pi);
+    }
 
-  {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      do_nothing_f(*pforeign);
-    
-    auto end = high_resolution_clock::now();
-    post("open method, foreign, do_nothing", start, end);
-  }
+    {
+      benchmark b("virtual function, vbase, do_something");
+      for (int i = 0; i < repeats; i++)
+        pi->do_something(1, 2, 3, 4);
+    }
 
-  {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      pfast->do_something(1, 2, 3, 4);
-    
-    auto end = high_resolution_clock::now();
-    post("virtual function, do_something", start, end);
-  }
+    {
+      benchmark b("open method, vbase, do_something");
+      for (int i = 0; i < repeats; i++)
+        vbase::do_something(*pi, 1, 2, 3, 4);
+    }
 
-  {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      do_something(*pfast, 1, 2, 3, 4);
-    
-    auto end = high_resolution_clock::now();
-    post("open method, intrusive, do_something", start, end);
-  }
+    // double dispatch
 
-  {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      do_something_f(*pforeign, 1, 2, 3, 4);
-    
-    auto end = high_resolution_clock::now();
-    post("open method, foreign, do_something", start, end);
-  }
+    {
+      benchmark b("virtual function, 2-dispatch, vbase, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        pi->dd1_do_nothing(pi);
+    }
 
-  // double dispatch
-
-  {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      pfast->dd1_do_nothing(pfast);
-    
-    auto end = high_resolution_clock::now();
-    post("virtual function, 2-dispatch, do_nothing", start, end);
-  }
-
-  {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      do_nothing_2(*pfast, *pfast);
-    
-    auto end = high_resolution_clock::now();
-    post("open method with 2 args, intrusive, do_nothing", start, end);
-  }
-
-  {
-    auto start = high_resolution_clock::now();
-    
-    for (int i = 0; i < repeats; i++)
-      do_nothing_2_f(*pforeign, *pforeign);
-    
-    auto end = high_resolution_clock::now();
-    post("open method with 2 args, foreign, do_nothing", start, end);
+    {
+      benchmark b("open method with 2 args, vbase, do_nothing");
+      for (int i = 0; i < repeats; i++)
+        vbase::do_nothing_2(*pi, *pi);
+    }
   }
   
   return 0;

@@ -6,20 +6,56 @@
 
 #include <multimethods.hpp>
 
-struct fast : multimethods::selector {
+namespace intrusive {
 
-  MM_CLASS(fast);
+  struct object : multimethods::selector {
 
-  static fast* make();
+    MM_CLASS(object);
+
+    static object* make();
   
-  fast() {
-    MM_INIT();
-  }
+    object() {
+      MM_INIT();
+    }
 
-  virtual void do_nothing();
-  virtual double do_something(double x, double a, double b, double c);
-  virtual void dd1_do_nothing(fast* pf);
-  virtual void dd2_do_nothing(fast* pf);
-};
+    virtual void do_nothing();
+    virtual double do_something(double x, double a, double b, double c);
+    virtual void dd1_do_nothing(object* pf);
+    virtual void dd2_do_nothing(object* pf);
+  };
 
-MULTIMETHOD(do_something, double(multimethods::virtual_<fast>&, double x, double a, double b, double c));
+}
+
+namespace vbase {
+
+  struct object : multimethods::selector {
+
+    MM_CLASS(object);
+
+    static object* make();
+  
+    object() {
+      MM_INIT();
+    }
+
+    virtual void do_nothing() = 0;
+    virtual double do_something(double x, double a, double b, double c) = 0;
+    virtual void dd1_do_nothing(object* pf) = 0;
+    virtual void dd2_do_nothing(object* pf) = 0;
+  };
+
+  struct derived : virtual object {
+
+    MM_CLASS(derived, object);
+  
+    derived() {
+      MM_INIT();
+    }
+
+    virtual void do_nothing();
+    virtual double do_something(double x, double a, double b, double c);
+    virtual void dd1_do_nothing(object* pf);
+    virtual void dd2_do_nothing(object* pf);
+  };
+
+}
