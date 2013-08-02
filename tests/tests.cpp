@@ -329,7 +329,7 @@ namespace mi {
 
 namespace adjust {
 #define VIRTUAL
-#include "adjust.hpp" 
+#include "adjust.hpp"
 #undef VIRTUAL
 }
 
@@ -434,41 +434,41 @@ namespace multi_roots_foreign {
 int main() {
 
   {
-  using namespace single_inheritance;
-  static_assert(
-  is_same<
-    typename extract_virtuals<virtual_<Animal>&, const virtual_<Animal>&>::type,
-    virtuals<Animal, Animal>
-    >::value, "not ok !!!");
+    using namespace single_inheritance;
+    static_assert(
+      is_same<
+      typename extract_virtuals<virtual_<Animal>&, const virtual_<Animal>&>::type,
+      virtuals<Animal, Animal>
+      >::value, "not ok !!!");
 
-  static_assert(
-  is_same<
-    typename extract_virtuals<virtual_<Animal>&, int, virtual_<Animal>&>::type,
-    virtuals<Animal, Animal>
-    >::value, "not ok !!!");
+    static_assert(
+      is_same<
+      typename extract_virtuals<virtual_<Animal>&, int, virtual_<Animal>&>::type,
+      virtuals<Animal, Animal>
+      >::value, "not ok !!!");
   
-  static_assert(
-  is_same<
-    extract_method_virtuals<
+    static_assert(
+      is_same<
+      extract_method_virtuals<
       void(int, virtual_<Animal>&, char, const virtual_<Animal>&),
       void(int, Cow&, char, const Wolf&)
       >::type,
-    virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
+      virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
     
-  cout << "\nClass registration" << endl;
-  test(mm_class_of<Cow>::the().bases.size(), 1);
-  test(mm_class_of<Cow>::the().bases[0] == &mm_class_of<Herbivore>::the(), true);
-  test(mm_class_of<Animal>::the().specs.size(), 2);
-  test(mm_class_of<Animal>::the().specs[0] == &mm_class_of<Herbivore>::the(), true);
-  test(mm_class_of<Animal>::the().specs[1] == &mm_class_of<Carnivore>::the(), true);
+    cout << "\nClass registration" << endl;
+    test(mm_class_of<Cow>::the().bases.size(), 1);
+    test(mm_class_of<Cow>::the().bases[0] == &mm_class_of<Herbivore>::the(), true);
+    test(mm_class_of<Animal>::the().specs.size(), 2);
+    test(mm_class_of<Animal>::the().specs[0] == &mm_class_of<Herbivore>::the(), true);
+    test(mm_class_of<Animal>::the().specs[1] == &mm_class_of<Carnivore>::the(), true);
 
-  test(mm_class_of<Animal>::the().root, mm_class_of<Animal>::the().root);
-  test(mm_class_of<Herbivore>::the().root, mm_class_of<Animal>::the().root);
-  test(mm_class_of<Carnivore>::the().root, mm_class_of<Animal>::the().root);
-  test(mm_class_of<Cow>::the().root, mm_class_of<Animal>::the().root);
-  test(mm_class_of<Wolf>::the().root, mm_class_of<Animal>::the().root);
-}
-
+    test(mm_class_of<Animal>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Herbivore>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Carnivore>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Cow>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class_of<Wolf>::the().root, mm_class_of<Animal>::the().root);
+  }
+  
   {
   cout << "\n--- Slot allocation." << endl;
 
@@ -746,6 +746,39 @@ int main() {
     test( encounter(mare, mare), "ignore" );
     test( encounter(wolf, mare), "hunt" );
   }    
+
+  {
+    cout << "\n--- adjustments." << endl;
+    using namespace adjust;
+
+    A a;
+    a.val = 2;
+    B b;
+    b.val = 5;
+
+    test( (void*) &b != (void*) (X*) &a, true );
+  
+    test( foo(a, a), 4 );
+    test( foo(a, b), -3 );
+    test( foo(b, b), 25 );
+  }
+
+  {
+    cout << "\n--- adjustments." << endl;
+    using namespace adjust_virtual;
+
+    A a;
+    a.val = 2;
+    B b;
+    b.val = 5;
+
+    test( (void*) &a != (void*) (X*) &a, true );
+    test( (void*) &b != (void*) (X*) &a, true );
+
+    test( foo(a, a), 4 );
+    test( foo(a, b), -3 );
+    test( foo(b, b), 25 );
+  }
 
   {
     cout << "\n--- Unloading multimethods." << endl;
