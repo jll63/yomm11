@@ -136,7 +136,7 @@ namespace multimethods {
   struct get_mm_table<true> {
     template<class C>
     static const std::vector<mm_class::offset>& value(const C* obj) {
-      return *obj->_mm_ptbl;
+      return *obj->_get_mm_ptbl();
     }
   };
 
@@ -162,6 +162,7 @@ namespace multimethods {
     void _init_mmptr(THIS*) {
       _mm_ptbl = &mm_class_of<THIS>::the().mmt;
     }
+    std::vector<mm_class::offset>* _get_mm_ptbl() const { return _mm_ptbl; }
   };
 
   template<class... Bases>
@@ -753,7 +754,7 @@ namespace multimethods {
   
   template<template<typename Sig> class Method, typename R, typename... P>
   inline R multimethod<Method, R(P...)>::operator ()(typename remove_virtual<P>::type... args) const {
-    MM_TRACE((std::cout << "() mm table = " << impl->dispatch_table));
+    MM_TRACE((std::cout << "() mm table = " << impl->dispatch_table << std::flush));
     return reinterpret_cast<mptr>(*linear<0, P...>::value(impl->slots.begin(), impl->steps.begin(), &args...))(args...);
   }
 
@@ -762,6 +763,7 @@ namespace multimethods {
 #define MM_CLASS(CLASS, BASES...)                  \
   using mm_base_list_type = ::multimethods::type_list<BASES>;           \
   using mm_this_type = CLASS;                                           \
+  virtual void _mm_init_class_() { &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
   
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
   static_assert(::multimethods::check_bases<CLASS, ::multimethods::type_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
@@ -770,9 +772,16 @@ namespace multimethods {
 
 #define MM_INIT() \
   static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-  &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; \
   this->_init_mmptr(this)
 
+#define MM_CLASS_MULTI_ROOTS(CLASS, BASE, BASES...)                     \
+  MM_CLASS(CLASS, BASE, BASES)                                          \
+  std::vector<mm_class::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
+
+#define MM_INIT_MULTI_ROOTS(BASE)                                       \
+  static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
+  this->BASE::_init_mmptr(this)
+  
 // normally part of MM_INIT(), disabled because g++ doesn't like it in class templates
 //  static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
 

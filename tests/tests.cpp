@@ -333,13 +333,105 @@ namespace adjust {
 #undef VIRTUAL
 }
 
-  namespace adjust_virtual {
+namespace adjust_virtual {
 #define VIRTUAL virtual
 #include "adjust.hpp"
 #undef VIRTUAL
 }
 
-  int main() {
+namespace multi_roots {
+
+  struct X : selector {
+    MM_CLASS(X);
+
+    int x;
+
+    X() {
+      MM_INIT();
+    }
+  };
+
+  struct Y : selector {
+    MM_CLASS(Y);
+
+    int y;
+
+    Y() {
+      MM_INIT();
+    }
+  };
+
+  struct XY : X, Y {
+    MM_CLASS_MULTI_ROOTS(XY, X, Y);
+    
+    XY() {
+      MM_INIT_MULTI_ROOTS(X);
+      MM_INIT_MULTI_ROOTS(Y);
+    }
+  };
+
+  MULTIMETHOD(mx, int(const virtual_<X>&));
+
+  BEGIN_METHOD(mx, int, const X& x) {
+    return x.x;
+  } END_METHOD;
+
+  MULTIMETHOD(my, int(const virtual_<Y>&));
+
+  BEGIN_METHOD(my, int, const Y& y) {
+    return y.y;
+  } END_METHOD;
+
+  MULTIMETHOD(mxy, int(const virtual_<XY>&));
+
+  BEGIN_METHOD(mxy, int, const XY& xy) {
+    return xy.x + xy.y;
+  } END_METHOD;
+
+}
+
+namespace multi_roots_foreign {
+
+  struct X {
+    virtual ~X() { }
+    int x;
+  };
+
+  MM_FOREIGN_CLASS(X);
+
+  struct Y {
+    virtual ~Y() { }
+    int y;
+  };
+
+  MM_FOREIGN_CLASS(Y);
+
+  struct XY : X, Y {
+  };
+
+  MM_FOREIGN_CLASS(XY, X, Y);
+
+  MULTIMETHOD(mx, int(const virtual_<X>&));
+
+  BEGIN_METHOD(mx, int, const X& x) {
+    return x.x;
+  } END_METHOD;
+
+  MULTIMETHOD(my, int(const virtual_<Y>&));
+
+  BEGIN_METHOD(my, int, const Y& y) {
+    return y.y;
+  } END_METHOD;
+
+  MULTIMETHOD(mxy, int(const virtual_<XY>&));
+
+  BEGIN_METHOD(mxy, int, const XY& xy) {
+    return xy.x + xy.y;
+  } END_METHOD;
+
+}
+
+int main() {
 
   {
   using namespace single_inheritance;
@@ -688,7 +780,7 @@ namespace adjust {
   }
 
   {
-    cout << "\n--- adjustments." << endl;
+    cout << "\n--- Adjustments." << endl;
     using namespace adjust;
 
     A a;
@@ -702,9 +794,9 @@ namespace adjust {
     test( foo(a, b), -3 );
     test( foo(b, b), 25 );
   }
-
+  
   {
-    cout << "\n--- adjustments." << endl;
+    cout << "\n--- Adjustments - virtual." << endl;
     using namespace adjust_virtual;
 
     A a;
@@ -718,6 +810,32 @@ namespace adjust {
     test( foo(a, a), 4 );
     test( foo(a, b), -3 );
     test( foo(b, b), 25 );
+  }
+
+  {
+    cout << "\n--- Multiple roots." << endl;
+    using namespace multi_roots;
+
+    XY xy;
+    xy.x = 1;
+    xy.y = 2;
+
+    test( mx(xy), 1 );
+    test( my(xy), 2 );
+    test( mxy(xy), 3 );
+  }
+
+  {
+    cout << "\n--- Multiple roots - foreign." << endl;
+    using namespace multi_roots_foreign;
+
+    XY xy;
+    xy.x = 1;
+    xy.y = 2;
+
+    test( mx(xy), 1 );
+    test( my(xy), 2 );
+    test( mxy(xy), 3 );
   }
   
   cout << "\n" << success << " tests succeeded, " << failure << " failed.\n";

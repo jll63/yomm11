@@ -74,11 +74,11 @@ namespace multimethods {
     if (bases.empty()) {
       root = this;
     } else {
-      if (any_of(bases.begin(), bases.end(), [&](const mm_class* base) {
-            return base->root != bases.front()->root;
-          })) {
-        throw runtime_error("hierarchy must have a single root");
-      }
+      // if (any_of(bases.begin(), bases.end(), [&](const mm_class* base) {
+      //       return base->root != bases.front()->root;
+      //     })) {
+      //   throw runtime_error("hierarchy must have a single root");
+      // }
       root = bases[0]->root;
     }
       
