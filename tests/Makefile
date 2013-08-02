@@ -29,7 +29,7 @@ runall : tests order12 order21
 tests : tests.o multimethods.o
 	g++ tests.o multimethods.o -o tests
 
-tests.o : tests.cpp ../include/multimethods.hpp animals.hpp mi.hpp
+tests.o : tests.cpp ../include/multimethods.hpp animals.hpp mi.hpp adjust.hpp
 
 order12 : order1.o order2.o multimethods.o
 	g++ order1.o order2.o multimethods.o -o order12
