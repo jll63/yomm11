@@ -470,116 +470,116 @@ int main() {
   }
   
   {
-  cout << "\n--- Slot allocation." << endl;
+    cout << "\n--- Slot allocation." << endl;
 
-  using namespace slot_allocation_tests;
+    using namespace slot_allocation_tests;
 
-  // Init multimethod implementations; this is normally done when the
-  // first method is added.
-  m_x.the();
-  m_a.the();
-  m_b.the();
-  m_c.the();
-  m_bc.the();
-  m_d.the();
-  m_cd.the();
-  m_y.the();
+    // Init multimethod implementations; this is normally done when the
+    // first method is added.
+    m_x.the();
+    m_a.the();
+    m_b.the();
+    m_c.the();
+    m_bc.the();
+    m_d.the();
+    m_cd.the();
+    m_y.the();
 
-  hierarchy_initializer init(mm_class_of<X>::the());
+    hierarchy_initializer init(mm_class_of<X>::the());
 
-  init.collect_classes();
-  test( init.nodes.size(), 8);
-  test( init.nodes.size(), 8);
-  test( init.nodes[0], &mm_class_of<X>::the() );
-  test( init.nodes[1], &mm_class_of<A>::the() );
-  test( init.nodes[2], &mm_class_of<B>::the() );
-  test( init.nodes[3], &mm_class_of<C>::the() );
-  test( init.nodes[4], &mm_class_of<BC>::the() );
-  test( init.nodes[5], &mm_class_of<D>::the() );
-  test( init.nodes[6], &mm_class_of<CD>::the() );
-  test( init.nodes[7], &mm_class_of<Y>::the() );
+    init.collect_classes();
+    test( init.nodes.size(), 8);
+    test( init.nodes.size(), 8);
+    test( init.nodes[0], &mm_class_of<X>::the() );
+    test( init.nodes[1], &mm_class_of<A>::the() );
+    test( init.nodes[2], &mm_class_of<B>::the() );
+    test( init.nodes[3], &mm_class_of<C>::the() );
+    test( init.nodes[4], &mm_class_of<BC>::the() );
+    test( init.nodes[5], &mm_class_of<D>::the() );
+    test( init.nodes[6], &mm_class_of<CD>::the() );
+    test( init.nodes[7], &mm_class_of<Y>::the() );
 
-  init.make_masks();
-  testx( init.nodes[0]->mask, dynamic_bitset<>(8, 0b11111111) ); // X
-  testx( init.nodes[1]->mask, dynamic_bitset<>(8, 0b01111110) ); // A
-  testx( init.nodes[2]->mask, dynamic_bitset<>(8, 0b00010100) ); // B
-  testx( init.nodes[3]->mask, dynamic_bitset<>(8, 0b01011000) ); // C
-  testx( init.nodes[4]->mask, dynamic_bitset<>(8, 0b00010000) ); // BC
-  testx( init.nodes[5]->mask, dynamic_bitset<>(8, 0b01100000) ); // D
-  testx( init.nodes[6]->mask, dynamic_bitset<>(8, 0b01000000) ); // CD
-  testx( init.nodes[7]->mask, dynamic_bitset<>(8, 0b10000000) ); // Y
+    init.make_masks();
+    testx( init.nodes[0]->mask, dynamic_bitset<>(8, 0b11111111) ); // X
+    testx( init.nodes[1]->mask, dynamic_bitset<>(8, 0b01111110) ); // A
+    testx( init.nodes[2]->mask, dynamic_bitset<>(8, 0b00010100) ); // B
+    testx( init.nodes[3]->mask, dynamic_bitset<>(8, 0b01011000) ); // C
+    testx( init.nodes[4]->mask, dynamic_bitset<>(8, 0b00010000) ); // BC
+    testx( init.nodes[5]->mask, dynamic_bitset<>(8, 0b01100000) ); // D
+    testx( init.nodes[6]->mask, dynamic_bitset<>(8, 0b01000000) ); // CD
+    testx( init.nodes[7]->mask, dynamic_bitset<>(8, 0b10000000) ); // Y
 
-  init.assign_slots();
-  test(m_x.the().slots[0], 0);
-  test(m_a.the().slots[0], 1);
-  test(m_b.the().slots[0], 2);
-  test(m_c.the().slots[0], 3);
-  test(m_bc.the().slots[0], 4);
-  test(m_d.the().slots[0], 2);
-  test(m_cd.the().slots[0], 4);
-  test(m_y.the().slots[0], 1);
+    init.assign_slots();
+    test(m_x.the().slots[0], 0);
+    test(m_a.the().slots[0], 1);
+    test(m_b.the().slots[0], 2);
+    test(m_c.the().slots[0], 3);
+    test(m_bc.the().slots[0], 4);
+    test(m_d.the().slots[0], 2);
+    test(m_cd.the().slots[0], 4);
+    test(m_y.the().slots[0], 1);
 
-  test(mm_class_of<X>::the().mmt.size(), 1);
-  test(mm_class_of<A>::the().mmt.size(), 2);
-  test(mm_class_of<B>::the().mmt.size(), 3);
-  test(mm_class_of<C>::the().mmt.size(), 4);
-  test(mm_class_of<BC>::the().mmt.size(), 5);
-  test(mm_class_of<D>::the().mmt.size(), 3);
-  test(mm_class_of<CD>::the().mmt.size(), 5);
-  test(mm_class_of<Y>::the().mmt.size(), 2);
-}
+    test(mm_class_of<X>::the().mmt.size(), 1);
+    test(mm_class_of<A>::the().mmt.size(), 2);
+    test(mm_class_of<B>::the().mmt.size(), 3);
+    test(mm_class_of<C>::the().mmt.size(), 4);
+    test(mm_class_of<BC>::the().mmt.size(), 5);
+    test(mm_class_of<D>::the().mmt.size(), 3);
+    test(mm_class_of<CD>::the().mmt.size(), 5);
+    test(mm_class_of<Y>::the().mmt.size(), 2);
+  }
 
   cout << "\n--- Grouping resolver tests\n";
 
   {
-  using namespace grouping_resolver_tests;
+    using namespace grouping_resolver_tests;
     
-  // we want to build:
-  //              Interface   Terminal   Window+ Mobile+
-  // Animal       0           0          0       mob
-  // Herbivore+   0           p_herb     d_herb  mob
-  // Carnivore+   0           p_carn     d_carn  mob
+    // we want to build:
+    //              Interface   Terminal   Window+ Mobile+
+    // Animal       0           0          0       mob
+    // Herbivore+   0           p_herb     d_herb  mob
+    // Carnivore+   0           p_carn     d_carn  mob
 
-  hierarchy_initializer::initialize(mm_class_of<Animal>::the());
-  hierarchy_initializer::initialize(mm_class_of<Interface>::the());
+    hierarchy_initializer::initialize(mm_class_of<Animal>::the());
+    hierarchy_initializer::initialize(mm_class_of<Interface>::the());
 
-  grouping_resolver rdisp(display.the());
+    grouping_resolver rdisp(display.the());
     
-  methods animal_applicable;
-  rdisp.find_applicable(0, &mm_class_of<Animal>::the(), animal_applicable);
-  test( animal_applicable, methods { display.the().methods[4] } );
+    methods animal_applicable;
+    rdisp.find_applicable(0, &mm_class_of<Animal>::the(), animal_applicable);
+    test( animal_applicable, methods { display.the().methods[4] } );
 
-  methods herbivore_applicable;
-  rdisp.find_applicable(0, &mm_class_of<Herbivore>::the(), herbivore_applicable);
-  test( herbivore_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
+    methods herbivore_applicable;
+    rdisp.find_applicable(0, &mm_class_of<Herbivore>::the(), herbivore_applicable);
+    test( herbivore_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
 
-  methods cow_applicable;
-  rdisp.find_applicable(0, &mm_class_of<Cow>::the(), cow_applicable);
-  test( cow_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
+    methods cow_applicable;
+    rdisp.find_applicable(0, &mm_class_of<Cow>::the(), cow_applicable);
+    test( cow_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
 
-  methods carnivore_applicable;
-  rdisp.find_applicable(0, &mm_class_of<Carnivore>::the(), carnivore_applicable);
-  test( carnivore_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
+    methods carnivore_applicable;
+    rdisp.find_applicable(0, &mm_class_of<Carnivore>::the(), carnivore_applicable);
+    test( carnivore_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
 
-  methods wolf_applicable;
-  rdisp.find_applicable(0, &mm_class_of<Wolf>::the(), wolf_applicable);
-  test( wolf_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
+    methods wolf_applicable;
+    rdisp.find_applicable(0, &mm_class_of<Wolf>::the(), wolf_applicable);
+    test( wolf_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
 
-  methods interface_applicable;
-  rdisp.find_applicable(1, &mm_class_of<Interface>::the(), interface_applicable);
-  test( interface_applicable, methods { } );
+    methods interface_applicable;
+    rdisp.find_applicable(1, &mm_class_of<Interface>::the(), interface_applicable);
+    test( interface_applicable, methods { } );
 
-  methods terminal_applicable;
-  rdisp.find_applicable(1, &mm_class_of<Terminal>::the(), terminal_applicable);
-  test( terminal_applicable, (methods { display.the().methods[0], display.the().methods[2] }) );
+    methods terminal_applicable;
+    rdisp.find_applicable(1, &mm_class_of<Terminal>::the(), terminal_applicable);
+    test( terminal_applicable, (methods { display.the().methods[0], display.the().methods[2] }) );
 
-  methods window_applicable;
-  rdisp.find_applicable(1, &mm_class_of<Window>::the(), window_applicable);
-  test( window_applicable, (methods { display.the().methods[1], display.the().methods[3] }) );
+    methods window_applicable;
+    rdisp.find_applicable(1, &mm_class_of<Window>::the(), window_applicable);
+    test( window_applicable, (methods { display.the().methods[1], display.the().methods[3] }) );
 
-  methods mobile_applicable;
-  rdisp.find_applicable(1, &mm_class_of<Mobile>::the(), mobile_applicable);
-  test( mobile_applicable, (methods { display.the().methods[4] }) );
+    methods mobile_applicable;
+    rdisp.find_applicable(1, &mm_class_of<Mobile>::the(), mobile_applicable);
+    test( mobile_applicable, (methods { display.the().methods[4] }) );
 
 // Animal = class_0
 // Herbivore = class_1
@@ -597,94 +597,94 @@ int main() {
 // Nokia = class_6
 // Samsung = class_7
     
-  rdisp.make_groups();
-  test( rdisp.groups.size(), 2 ) &&
-    test( rdisp.groups[0].size(), 3) &&
-    test( rdisp.groups[0][0].methods, animal_applicable) &&
-    test( rdisp.groups[0][1].methods, herbivore_applicable) &&
-    test( rdisp.groups[0][2].methods, carnivore_applicable) &&
-    test( rdisp.groups[1].size(), 4) &&
-    test( rdisp.groups[1][0].methods, interface_applicable) &&
-    test( rdisp.groups[1][1].methods, terminal_applicable) &&
-    test( rdisp.groups[1][2].methods, window_applicable) &&
-    test( rdisp.groups[1][3].methods, mobile_applicable);
+    rdisp.make_groups();
+    test( rdisp.groups.size(), 2 ) &&
+      test( rdisp.groups[0].size(), 3) &&
+      test( rdisp.groups[0][0].methods, animal_applicable) &&
+      test( rdisp.groups[0][1].methods, herbivore_applicable) &&
+      test( rdisp.groups[0][2].methods, carnivore_applicable) &&
+      test( rdisp.groups[1].size(), 4) &&
+      test( rdisp.groups[1][0].methods, interface_applicable) &&
+      test( rdisp.groups[1][1].methods, terminal_applicable) &&
+      test( rdisp.groups[1][2].methods, window_applicable) &&
+      test( rdisp.groups[1][3].methods, mobile_applicable);
 
-  test(display.the().steps.size(), 2) &&
-    test(display.the().steps[0], 1) &&
-    test(display.the().steps[1], 3);
+    test(display.the().steps.size(), 2) &&
+      test(display.the().steps[0], 1) &&
+      test(display.the().steps[1], 3);
 
-  test( (*Animal()._mm_ptbl)[0].index, 0 );
-  test( (*Herbivore()._mm_ptbl)[0].index, 1 );
-  test( (*Cow()._mm_ptbl)[0].index, 1 );
-  test( (*Carnivore()._mm_ptbl)[0].index, 2 );
-  test( (*Wolf()._mm_ptbl)[0].index, 2 );
-  test( (*Tiger()._mm_ptbl)[0].index, 2 );
-  test( (*Interface()._mm_ptbl).size(), 1 );
-  test( (*Interface()._mm_ptbl)[0].index, 0 );
-  test( (*Terminal()._mm_ptbl)[0].index, 1 );
-  test( (*Window()._mm_ptbl)[0].index, 2 );
-  test( (*MSWindows()._mm_ptbl)[0].index, 2 );
-  test( (*X()._mm_ptbl)[0].index, 2 );
-  test( (*Mobile()._mm_ptbl)[0].index, 3 );
-  test( (*Nokia()._mm_ptbl)[0].index, 3 );
-  test( (*Samsung()._mm_ptbl)[0].index, 3 );
+    test( (*Animal()._mm_ptbl)[0].index, 0 );
+    test( (*Herbivore()._mm_ptbl)[0].index, 1 );
+    test( (*Cow()._mm_ptbl)[0].index, 1 );
+    test( (*Carnivore()._mm_ptbl)[0].index, 2 );
+    test( (*Wolf()._mm_ptbl)[0].index, 2 );
+    test( (*Tiger()._mm_ptbl)[0].index, 2 );
+    test( (*Interface()._mm_ptbl).size(), 1 );
+    test( (*Interface()._mm_ptbl)[0].index, 0 );
+    test( (*Terminal()._mm_ptbl)[0].index, 1 );
+    test( (*Window()._mm_ptbl)[0].index, 2 );
+    test( (*MSWindows()._mm_ptbl)[0].index, 2 );
+    test( (*X()._mm_ptbl)[0].index, 2 );
+    test( (*Mobile()._mm_ptbl)[0].index, 3 );
+    test( (*Nokia()._mm_ptbl)[0].index, 3 );
+    test( (*Samsung()._mm_ptbl)[0].index, 3 );
 
-  rdisp.make_table();
-  auto table = display.the().dispatch_table;
-  auto methods = display.the().methods;
-  using method = decltype(display)::method_entry;
+    rdisp.make_table();
+    auto table = display.the().dispatch_table;
+    auto methods = display.the().methods;
+    using method = decltype(display)::method_entry;
 
-  test( table != 0, true);
-  // Interface
-  test( table[0], throw_undefined<decltype(display)::signature>::body );
-  test( table[1], throw_undefined<decltype(display)::signature>::body );
-  test( table[2], throw_undefined<decltype(display)::signature>::body );
+    test( table != 0, true);
+    // Interface
+    test( table[0], throw_undefined<decltype(display)::signature>::body );
+    test( table[1], throw_undefined<decltype(display)::signature>::body );
+    test( table[2], throw_undefined<decltype(display)::signature>::body );
 
-  // Terminal
-  test( table[3], throw_undefined<decltype(display)::signature>::body );
-  test( table[4], static_cast<method*>(methods[0])->pm );
-  test( table[5], static_cast<method*>(methods[2])->pm );
+    // Terminal
+    test( table[3], throw_undefined<decltype(display)::signature>::body );
+    test( table[4], static_cast<method*>(methods[0])->pm );
+    test( table[5], static_cast<method*>(methods[2])->pm );
 
-  // Window
-  test( table[6], throw_undefined<decltype(display)::signature>::body );
-  test( table[7], static_cast<method*>(methods[1])->pm );
-  test( table[8], static_cast<method*>(methods[3])->pm );
+    // Window
+    test( table[6], throw_undefined<decltype(display)::signature>::body );
+    test( table[7], static_cast<method*>(methods[1])->pm );
+    test( table[8], static_cast<method*>(methods[3])->pm );
 
-  // Mobile
-  test( table[9], static_cast<method*>(methods[4])->pm );
-  test( table[10], static_cast<method*>(methods[4])->pm );
-  test( table[11], static_cast<method*>(methods[4])->pm );
+    // Mobile
+    test( table[9], static_cast<method*>(methods[4])->pm );
+    test( table[10], static_cast<method*>(methods[4])->pm );
+    test( table[11], static_cast<method*>(methods[4])->pm );
     
-  rdisp.assign_next();
-  test( (display_method<action(const Carnivore&, const Window&)>::next) == nullptr, true );
+    rdisp.assign_next();
+    test( (display_method<action(const Carnivore&, const Window&)>::next) == nullptr, true );
 
-  testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
-         (void*) display.impl->dispatch_table );
+    testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
+           (void*) display.impl->dispatch_table );
 
-  testx( (void*) mm_class_of<Herbivore>::the().mmt[0].ptr,
-         (void*) (display.impl->dispatch_table + 1) );
+    testx( (void*) mm_class_of<Herbivore>::the().mmt[0].ptr,
+           (void*) (display.impl->dispatch_table + 1) );
 
-  test( display(Herbivore(), Terminal()), print_herbivore );
-  test( display(Cow(), Terminal()), print_herbivore );
+    test( display(Herbivore(), Terminal()), print_herbivore );
+    test( display(Cow(), Terminal()), print_herbivore );
 
-  test( display(Carnivore(), Terminal()), print_carnivore );
-  test( display(Wolf(), Terminal()), print_carnivore );
-  test( display(Tiger(), Terminal()), print_carnivore );
+    test( display(Carnivore(), Terminal()), print_carnivore );
+    test( display(Wolf(), Terminal()), print_carnivore );
+    test( display(Tiger(), Terminal()), print_carnivore );
 
-  test( display(Herbivore(), Window()), draw_herbivore );
-  test( display(Cow(), Window()), draw_herbivore );
-  test( display(Cow(), MSWindows()), draw_herbivore );
-  test( display(Cow(), X()), draw_herbivore );
+    test( display(Herbivore(), Window()), draw_herbivore );
+    test( display(Cow(), Window()), draw_herbivore );
+    test( display(Cow(), MSWindows()), draw_herbivore );
+    test( display(Cow(), X()), draw_herbivore );
 
-  test( display(Carnivore(), Window()), draw_carnivore );
-  test( display(Wolf(), X()), draw_carnivore );
-  test( display(Tiger(), MSWindows()), draw_carnivore );
+    test( display(Carnivore(), Window()), draw_carnivore );
+    test( display(Wolf(), X()), draw_carnivore );
+    test( display(Tiger(), MSWindows()), draw_carnivore );
 
-  test( display(Herbivore(), Samsung()), mobile );
-  test( display(Cow(), Nokia()), mobile );
+    test( display(Herbivore(), Samsung()), mobile );
+    test( display(Cow(), Nokia()), mobile );
     
-  test( display(Carnivore(), Samsung()), mobile );
-  test( display(Wolf(), Nokia()), mobile );
+    test( display(Carnivore(), Samsung()), mobile );
+    test( display(Wolf(), Nokia()), mobile );
   }
 
   cout << "\n--- Single inheritance." << endl;
