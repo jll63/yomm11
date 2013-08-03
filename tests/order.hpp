@@ -42,6 +42,6 @@ struct comfort : reason {
   }
 };
 
-MULTIMETHOD(approve, bool(const multimethods::virtual_<expense>&, const multimethods::virtual_<role>&, const multimethods::virtual_<reason>&));
+MULTI_METHOD(approve, bool, const multimethods::virtual_<expense>&, const multimethods::virtual_<role>&, const multimethods::virtual_<reason>&);
 
 extern std::unique_ptr<role> make_ceo();

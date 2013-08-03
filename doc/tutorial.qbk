@@ -1,0 +1,177 @@
+[/ -*- compile-command: "bjam" -*-; auto-fill-mode: t /]
+
+[section Tutorial]
+
+[import next.cpp]
+
+This tutorial shows how to create a multi-method, specialize it and
+call it. It is a based on an
+[@http://opendylan.org/documentation/intro-dylan/multiple-dispatch.html
+example] from the documentation of Dylan, a language that natively
+supports multi-methods. The example implements multi-method `inspect()`, which takes two
+arguments: a Vehicle (either a Car or a Truck) and an Inspector
+(either a regular inspector or a more picky State inspector). Depending on the
+type of the vehicle, different checks are be performed. A State inspector
+will also check if the road tax has been paid.
+
+[heading Accessing the library]
+
+The library is accessed by including the header and possibly importing
+names in the current namespace:
+
+[prologue]
+
+The library exposes its facilities mostly via a small set of
+macros, although it is possible - and sometimes necessary - to bypass
+them.
+
+The `virtual_` modifier denotes the parameters of a multi-method that
+determine the selection of the specialization to be called. It is used
+quite frequently, so it makes sense to import it in the current
+namespace. You may also want to import the class `selector` (see
+below). Other than that, if you stick to the macros, it does not make
+much sense to import the `multimethods` namepace as a whole.
+
+[heading Declaring classes]
+
+The library needs to know about the inheritance relationships between
+the classes involved in multi-methods. Currently C++ does not make it
+possible to infer it from class declarations, so you will need to
+provide the information.
+
+You will get the best performance if your classes collaborate with the
+framework. Essentially, this amounts to hosting a pointer to a
+multi-method table and initializing it in the constructors. In that
+case, multi-method calls will be nearly as fast as virtual function
+calls if there is a single virtual argument - and much faster than
+solutions based on multiple dispatch otherwise. Under this scheme, the
+roots of the class hierarchies derive from `multimethods::selector`.
+
+The definition of class `Vehicle` thus looks like this:
+
+[vehicle]
+
+For classes `Car` and `Truck` we specify the base classes as an extra
+argument to the MM_CLASS macro. In our example, there is only one base
+- `Vehicle` - but the library supports multiple and virtual
+inheritance, although repeated inheritance is not allowed (yet).
+
+Class `Car` will thus look like this:
+
+[car]
+
+...and likewise for the Inspector hierarchy.
+
+[heading Using existing classes, without modifications]
+
+Sometimes it is not possible to modify the source of a hierarchy. In
+that case, we can declare the inheritance relationships "from the
+outside", via the `MM_FOREIGN_CLASS` macro:
+
+``
+struct Vehicle {
+  // ...
+};
+
+struct Car {
+  // ...
+};
+
+MM_FOREIGN_CLASS(Vehicle);
+MM_FOREIGN_CLASS(Car, Vehicle);
+
+``
+The classes must be polymorpic, i.e. have at least one virtual function.
+
+[heading Declaring multi-methods]
+
+Multi-methods are declared via the `MULTI_METHOD` macro:
+
+[inspect]
+
+The first parameter is the multi-method name. The second is the return
+type. The other parameters are the multi-method's
+arguments.
+
+Parameters that intervene in the selection of the
+specialization are decorated with the `virtual_` class
+template. Virtual parameters must be references to classes declared as
+above. Thus the form of a virtual parameter is either
+`virtual_<Type>&` or `const virtual_<Type>&`.
+
+There is no artifical limitation to the number of virtual
+parameters. They can be freely mixed with non-virtual parameters.
+
+The MULTI_METHOD declaration can be placed in a header file.
+
+Currently, a multi-method cannot be overloaded.
+
+[heading Defining specializations]
+
+Specialization are defined via the two `_SPECIALIZATION` macros:
+
+[specialization]
+
+Here we define a behavior for the most general case. The arguments
+passed to the macro are again the multi-method name, the return type,
+and a list of arguments. Note that the `virtual_` speficier is not
+used in specializations.
+
+Specializations normally go in implementation files.
+
+[heading Calling the next specialization]
+
+The previous "specialization" dealt in fact with the most general
+case. Here are two more:
+
+[next]
+
+Note the expression `next(v, i)`. In ordinary virtual functions, you
+often want to call the function that is overriden as part of the
+overriding function. Multi-methods have a similar notion of
+"super-method". Inside a specialization, the variable `next` contains
+a pointer to the next most specific specialization after the one being
+executed - if it exists and is unique.
+
+[heading Calling multi-methods]
+
+Before actually calling any multi-method, the
+`multimethods::initialize()` function must be called. It must also be
+called whenever classes or methods are added or removed, for example
+when loading or un-loading dynamic libraries. `initialize()` builds the
+dispatch tables for all the classes and all the multi-methods that
+have been modified since the last time it was called or since the
+program has started.
+
+Once that is done, our `inspect()` multi-method can be called just
+like any ordinary function - or rather, function object:
+
+[call]
+
+The output is:
+
+``
+First inspection:
+Inspect vehicle.
+Inspect seat belts.
+Check road tax.
+
+Second inspection:
+Inspect vehicle.
+``
+
+Note that what is happening here has nothing to do with function
+overloading: the real type of the objects are hidden (at the cost of
+memory leaks I admit). Multi-method dispatch happens at run time.
+
+[heading Where to go next]
+
+That is pretty much all there is to it.
+
+You may want to check the other examples in the `examples`
+directory. They feature: non-virtual arguments; a multi-method with
+three virtual arguments; and foreign classes.
+
+[@../examples/three.cpp three.cpp]
+
+[endsect]

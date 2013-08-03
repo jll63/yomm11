@@ -48,19 +48,19 @@ struct bullet : object {
   }
 };
 
-MULTIMETHOD(collide, string(virtual_<object>&, virtual_<object>&, bool swapped));
+MULTI_METHOD(collide, string, virtual_<object>&, virtual_<object>&, bool swapped);
 
-BEGIN_METHOD(collide, string, object& a, object& b, bool swapped) {
+BEGIN_SPECIALIZATION(collide, string, object& a, object& b, bool swapped) {
   if (swapped) {
     return "kaboom!";
   } else {
     return collide(b, a, true);
   }
-} END_METHOD;
+} END_SPECIALIZATION;
 
-BEGIN_METHOD(collide, string, asteroid& a, asteroid& b, bool swapped) {
+BEGIN_SPECIALIZATION(collide, string, asteroid& a, asteroid& b, bool swapped) {
   return "traverse";
-} END_METHOD;
+} END_SPECIALIZATION;
 
 int main() {
   multimethods::initialize(); // IMPORTANT!

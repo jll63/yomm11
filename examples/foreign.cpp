@@ -75,19 +75,19 @@ MM_FOREIGN_CLASS(comfort, reason);
 
 // collaborating and foreign classes can appear in same multi-method definition
 
-MULTIMETHOD(approve, bool(const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&));
+MULTI_METHOD(approve, bool, const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&);
 
-BEGIN_METHOD(approve, bool, const expense&, const role&, const reason&) {
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const role&, const reason&) {
   return false;
-} END_METHOD;
+} END_SPECIALIZATION;
 
-BEGIN_METHOD(approve, bool, const expense&, const ceo&, const reason&) {
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const ceo&, const reason&) {
   return true;
-} END_METHOD;
+} END_SPECIALIZATION;
 
-BEGIN_METHOD(approve, bool, const cab&, const manager&, const business&) {
+BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&) {
   return true;
-} END_METHOD;
+} END_SPECIALIZATION;
 
 #define demo(exp) cout << #exp << " -> " << exp << endl
 

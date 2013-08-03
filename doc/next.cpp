@@ -1,4 +1,4 @@
-// -*- compile-command: "make next && ./next" -*-
+// -*- compile-command: "g++ -std=c++11 -I$BOOST_ROOT -I../include -o next next.cpp ../src/multimethods.cpp && ./next" -*-
 
 // next.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -9,28 +9,33 @@
 // Example taken Dylan's documentation, see http://opendylan.org/documentation/intro-dylan/multiple-dispatch.html
 
 #include <iostream>
-#include <multimethods.hpp>
 
 using namespace std;
-using multimethods::selector;
-using multimethods::virtual_;
 
-// Vehicle is the root of a class hierarchy that includes support for fast dispatch.
-// That means:
-struct Vehicle : selector { // inherit from class selector
-  MM_CLASS(Vehicle); // register class
+//[ prologue
+#include <multimethods.hpp>
+
+using multimethods::virtual_;
+//]
+
+
+//[ vehicle
+struct Vehicle : multimethods::selector {
+  MM_CLASS(Vehicle);
   Vehicle() {
-    MM_INIT(); // initialize pointer to multi-method table
+    MM_INIT();
   }
 };
+//]
 
+//[ car
 struct Car : Vehicle {
-  MM_CLASS(Car, Vehicle); // register class and its base
+  MM_CLASS(Car, Vehicle);
   Car() {
     MM_INIT();
   }
 };
-
+//]
 struct Truck : Vehicle {
   MM_CLASS(Truck, Vehicle);
   Truck() {
@@ -52,31 +57,43 @@ struct StateInspector : Inspector {
   }
 };
 
-// declare a multi-method with two virtual arguments
-// this can go in a header file
+//[ inspect
 MULTI_METHOD(inspect, void, virtual_<Vehicle>&, virtual_<Inspector>&);
+//]
 
-// define a specialization
-// this must go in an implementation file
+//[ specialization
 BEGIN_SPECIALIZATION(inspect, void, Vehicle& v, Inspector& i) {
   cout << "Inspect vehicle.\n";
 } END_SPECIALIZATION;
+//]
 
+//[ next
 BEGIN_SPECIALIZATION(inspect, void, Car& v, Inspector& i) {
-  next(v, i); // next calls the next most specialized method
+  next(v, i);
   cout << "Inspect seat belts.\n";
 } END_SPECIALIZATION;
 
 BEGIN_SPECIALIZATION(inspect, void, Car& v, StateInspector& i) {
   next(v, i);
-  cout << "Check insurance.\n";
+  cout << "Check road tax.\n";
 } END_SPECIALIZATION;
+//]
 
+//[ call
 int main() {
   multimethods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
-  Car car;
-  StateInspector inspector;
-  // call method:
-  inspect(car, inspector); // Inspect vehicle. Inspect seat belts. Check insurance.
+
+  Vehicle& vehicle1 = *new Car;
+  Inspector& inspector1 = *new StateInspector;
+  Vehicle& vehicle2 = *new Truck;
+  Inspector& inspector2 = *new Inspector;
+
+  cout << "First inspection:\n";
+  inspect(vehicle1, inspector1);
+
+  cout << "\nSecond inspection:\n";
+  inspect(vehicle2, inspector2);
+
   return 0;
 }
+//]

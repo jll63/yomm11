@@ -13,15 +13,15 @@
 
 CXXFLAGS+=-std=c++11 -I../include -g
 
-.PHONY: runtests runall
+.PHONY: runtests run
 
-runtests : tests
-	./tests
-
-runall : tests order12 order21
+run : tests order12 order21
 	./tests
 	./order12
 	./order21
+
+runtests : tests
+	./tests
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $<

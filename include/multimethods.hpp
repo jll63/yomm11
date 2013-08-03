@@ -1,7 +1,7 @@
 // -*- compile-command: "cd ../tests && make" -*-
 
-#ifndef MULTIMETHODS_INCLUDED
-#define MULTIMETHODS_INCLUDED
+#ifndef MULTI_METHODS_INCLUDED
+#define MULTI_METHODS_INCLUDED
 
 // multimethod.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -25,6 +25,8 @@
 #include <boost/type_traits/is_virtual_base_of.hpp>
 #include <boost/preprocessor/cat.hpp>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 //#define MM_ENABLE_TRACE
 
 #ifdef MM_ENABLE_TRACE
@@ -34,9 +36,29 @@
 #define MM_TRACE(e)
 #endif
 
+# endif
+
 namespace multimethods {
 
+  namespace detail {
+    union offset {
+      int index;
+      void (**ptr)();
+    };
+  }
+
   void initialize();
+
+  struct selector {
+    selector() : _mm_ptbl(0) { }
+    std::vector<detail::offset>* _mm_ptbl;
+    virtual ~selector() { }
+    template<class THIS>
+    void _init_mmptr(THIS*);
+    std::vector<detail::offset>* _get_mm_ptbl() const { return _mm_ptbl; }
+  };
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
   struct mm_class;
   struct multimethod_base;
@@ -65,11 +87,6 @@ namespace multimethods {
     void for_each_conforming(class_set& visited, std::function<void(mm_class*)> pf);
     bool conforms_to(const mm_class& other) const;
     bool specializes(const mm_class& other) const;
-
-    union offset {
-      int index;
-      void (**ptr)();
-    };
     
     const std::type_info& ti;
     std::vector<mm_class*> bases;
@@ -77,7 +94,7 @@ namespace multimethods {
     boost::dynamic_bitset<> mask;
     int index;
     mm_class* root;
-    std::vector<offset> mmt;
+    std::vector<detail::offset> mmt;
     std::vector<mmref> rooted_here; // multimethods rooted here for one or more args.
     bool abstract;
     
@@ -103,6 +120,11 @@ namespace multimethods {
       return instance;
     }
   };
+
+  template<class THIS>
+  inline void selector::_init_mmptr(THIS*) {
+    _mm_ptbl = &mm_class_of<THIS>::the().mmt;
+  }
 
   template<class... Class> struct mm_class_vector_of_;
 
@@ -135,17 +157,17 @@ namespace multimethods {
   template<>
   struct get_mm_table<true> {
     template<class C>
-    static const std::vector<mm_class::offset>& value(const C* obj) {
+    static const std::vector<detail::offset>& value(const C* obj) {
       return *obj->_get_mm_ptbl();
     }
   };
 
   template<>
   struct get_mm_table<false> {
-    using class_of_type = std::unordered_map<std::type_index, const std::vector<mm_class::offset>*>;
+    using class_of_type = std::unordered_map<std::type_index, const std::vector<detail::offset>*>;
     static class_of_type* class_of;
     template<class C>
-    static const std::vector<mm_class::offset>& value(const C* obj) {
+    static const std::vector<detail::offset>& value(const C* obj) {
       MM_TRACE(std::cout << "foreign mm_class_of<" << typeid(*obj).name() << "> = " << (*class_of)[std::type_index(typeid(*obj))] << std::endl);
       return *(*class_of)[std::type_index(typeid(*obj))];
     }
@@ -153,17 +175,6 @@ namespace multimethods {
 
   template<class Class>
   struct mm_class_of<const Class> : mm_class_of<Class> { };
-
-  struct selector {
-    selector() : _mm_ptbl(0) { }
-    std::vector<mm_class::offset>* _mm_ptbl;
-    virtual ~selector() { }
-    template<class THIS>
-    void _init_mmptr(THIS*) {
-      _mm_ptbl = &mm_class_of<THIS>::the().mmt;
-    }
-    std::vector<mm_class::offset>* _get_mm_ptbl() const { return _mm_ptbl; }
-  };
 
   template<class... Bases>
   struct bases;
@@ -618,6 +629,12 @@ namespace multimethods {
     using implementation = detail::multimethod_implementation<R, P...>;
     static implementation& the();
     static std::unique_ptr<implementation> impl;
+
+    template<class Spec>
+    static bool specialize() {
+      the().template add_spec<Spec>();
+      return true;
+    }
   };
 
   template<typename Multimethod, typename Sig>
@@ -760,10 +777,28 @@ namespace multimethods {
 
   template<class MM, class M> struct register_method;
 
+#endif
+
 #define MM_CLASS(CLASS, BASES...)                  \
   using mm_base_list_type = ::multimethods::type_list<BASES>;           \
   using mm_this_type = CLASS;                                           \
   virtual void _mm_init_class_() { &::multimethods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
+
+/**
+  \def MM_CLASS(CLASS, BASES...)
+  \brief Register class for efficient multi-method dispatch.
+
+  This macro must be called inside the definition of \a CLASS. The subsequent arguments \a BASES consist in the
+  (possibly empty) list of base classes that the dispatcher must take into account.
+
+  MM_CLASS introduces three items: in the class scope, all of which are implementation details:
+  mm_base_list type, mm_this_type and _mm_init_class.
+*/
+
+/**  
+  \example MM_CLASS.ex.cpp
+*/  
+
   
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
   static_assert(::multimethods::check_bases<CLASS, ::multimethods::type_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
@@ -776,7 +811,7 @@ namespace multimethods {
 
 #define MM_CLASS_MULTI_ROOTS(CLASS, BASE, BASES...)                     \
   MM_CLASS(CLASS, BASE, BASES)                                          \
-  std::vector<mm_class::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
+  std::vector<detail::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
 
 #define MM_INIT_MULTI_ROOTS(BASE)                                       \
   static_assert(::multimethods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
@@ -785,17 +820,17 @@ namespace multimethods {
 // normally part of MM_INIT(), disabled because g++ doesn't like it in class templates
 //  static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
 
-#define MULTIMETHOD(ID, SIG)                                            \
+#define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                           \
   template<typename Sig> struct ID ## _method;                          \
-  constexpr ::multimethods::multimethod<ID ## _method, SIG> ID{};
+  constexpr ::multimethods::multimethod<ID ## _method, RETURN_TYPE(ARGS)> ID{};
 
-#define BEGIN_METHOD(ID, RESULT, ARGS...)                               \
+#define BEGIN_SPECIALIZATION(ID, RESULT, ARGS...)                               \
   template<>                                                            \
   struct ID ## _method<RESULT(ARGS)> : ::multimethods::specializer<decltype(ID), RESULT(ARGS)> { \
   static RESULT body(ARGS) {                                            \
   &::multimethods::register_spec<decltype(ID), ID ## _method>::the;
 
-#define END_METHOD } };
+#define END_SPECIALIZATION } };
 
 #define STATIC_CALL_METHOD(ID, SIG) ID ## _method<SIG>::body
     

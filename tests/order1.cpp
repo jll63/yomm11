@@ -34,13 +34,13 @@ struct cab : expense {
   }
 };
 
-BEGIN_METHOD(approve, bool, const expense&, const role&, const reason&) {
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const role&, const reason&) {
   return false;
-} END_METHOD;
+} END_SPECIALIZATION;
 
-BEGIN_METHOD(approve, bool, const cab&, const manager&, const business&) {
+BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&) {
   return true;
-} END_METHOD;
+} END_SPECIALIZATION;
 
 #define demo(exp) cout << #exp << " -> " << exp << endl
 

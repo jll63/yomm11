@@ -20,9 +20,9 @@ struct ceo : role {
   }
 };
 
-BEGIN_METHOD(approve, bool, const expense&, const ceo&, const reason&) {
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const ceo&, const reason&) {
   return true;
-} END_METHOD;
+} END_SPECIALIZATION;
 
 unique_ptr<role> make_ceo() {
   return unique_ptr<role>(new ceo());

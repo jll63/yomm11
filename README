@@ -12,4 +12,4 @@ examples directories, make sure that your CXXFLAGS adds the Boost
 include directory.
 
 This code is very C++11-ish. You will need a compiler that is up to
-the task. I use g++ 4.7.2.
+the task. I use g++ 4.7.2 and clang++ 3.4.

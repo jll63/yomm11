@@ -36,16 +36,16 @@ struct B : Pad, VIRTUAL X {
   }
 };
 
-MULTIMETHOD(foo, int(const virtual_<X>&, const virtual_<X>&));
+MULTI_METHOD(foo, int, const virtual_<X>&, const virtual_<X>&);
 
-BEGIN_METHOD(foo, int, const A& x, const A& y) {
+BEGIN_SPECIALIZATION(foo, int, const A& x, const A& y) {
   return x.val + y.val;
-} END_METHOD;
+} END_SPECIALIZATION;
 
-BEGIN_METHOD(foo, int, const A& x, const B& y) {
+BEGIN_SPECIALIZATION(foo, int, const A& x, const B& y) {
   return x.val - y.val;
-} END_METHOD;
+} END_SPECIALIZATION;
 
-BEGIN_METHOD(foo, int, const B& x, const B& y) {
+BEGIN_SPECIALIZATION(foo, int, const B& x, const B& y) {
   return x.val * y.val;
-} END_METHOD;
+} END_SPECIALIZATION;

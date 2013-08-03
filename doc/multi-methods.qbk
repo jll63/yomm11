@@ -1,0 +1,117 @@
+[/ -*- compile-command: "bjam" -*-; auto-fill-mode: t /]
+[/==============================================================================
+Copyright Jean-Louis Leroy 2013.
+Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
+===============================================================================/]
+[library Multi-methods
+    [quickbook 1.5]
+    [id multi_methods]
+    [version 1.0]
+    [authors [Leroy, Jean-Louis]]
+    [copyright 2013 Jean-Louis Leroy]
+    [purpose Open multi-methods for C++]
+    [license
+        Distributed under the Boost Software License, Version 1.0.
+        (See accompanying file LICENSE_1_0.txt or copy at
+        [@http://www.boost.org/LICENSE_1_0.txt])]]
+        
+[section Overview]
+Virtual functions allow us to select a function depending on the dynamic type of the object on which the method is called. I often use this metaphore when teaching polymorphism: if you kick a dog, it barks; if you kick a cat, it meows. The reaction you get depends on the animal's nature. Schematically:
+
+``
+kick(dog) -> bow wow wow
+kick(cat) -> meow, scratch
+``
+Sometimes, however, we would like to select a function based on the
+type of two arguments. To carry on with the animal metaphore, imagine
+that you want to model the encounter of two animals:
+
+``
+encounter(animal, animal) -> ignore
+encounter(cow, wolf)      -> run
+encounter(wolf, cow)      -> hunt
+encounter(wolf, wolf)     -> wag tail
+``
+
+On a more serious side, think the addition of two matrices whose exact
+type (plain, diagonal, symmetrical) is not known at compile time:
+
+``
+add(matrix, matrix)       -> add elements one by one
+add(diagonal, matrix)     -> no need to add all the zeroes
+add(diagonal, diagonal)   -> just add the two diagonals
+``
+
+The problem may even involve a higher number of dynamic arguments, for
+example an expense approval system that depends on the nature of the
+expense, the reason and the role of the person spending the money:
+
+``
+approve(expense, reason, role)      -> false - the default
+approve(plane, business, executive) -> true
+approve(bus, business, employee)    -> true
+approve(expense, reason, ceo)       -> true
+``
+
+These sorts of problems are easily addressed in languages like Common
+Lisp, Dylan or Clojure: they support something called multi-methods,
+which are just like virtual functions without the limitation of being
+able to dispatch a call on the basis of one argument only.
+
+C++ programmers have to rely instead on cumbersome techniques, like double dispatch or runtime type enquiry. An extension of C++ - Cmm - implements multi-methods, but requires using an ad-hoc compiler.
+
+When asked about which features he likes in other languages, Bjarne
+Stroustrup regularly cites multi-methods. Several years ago, he
+co-authored a paper describing an extension of C++ in that direction:
+"Open Multi-Methods for C++".
+
+Now what is an /open/ multi-method? It is simply a multi-method that is
+defined outside of any class, like a (non-member) function. Dogma
+aside, this is very useful because it gives you "polymorphism from
+outside" - it un-ties two good features, namely polymorphism and
+encapsulation, that are unnecessarily tied together in C++. Let's look
+at one more example: we want to create a user interface element for a
+business object. Of course the user interface depends on the object's
+type. Conventional solutions include: using an abstract factory,
+sticking a virtual function that returns a dialog box in the business
+object (ugh). With an open "mono-method", the solution is simple and
+elegant:
+
+``
+make_dialog(natural_person) -> return new natural_person_dialog()
+make_dialog(legal_person)   -> return new legal_person_dialog()
+make_dialog(audience)       -> ...
+...
+``
+
+This library is pretty much an implementation of what Stroustrup et al
+describe in their paper, done entirely using the existing C++11
+features.
+
+[endsect]
+
+[section Requirements]
+
+A C++11 compiler. The library has been tested with g++ 4.7.2 and clang++ 3.4.
+
+Three Boost libraries: TypeTraits, Preprocessor and Dynamic Bitset.
+
+[endsect]
+
+[include tutorial.qbk]
+
+[/ [xinclude reference.xml] ]
+
+[include reference.qbk]
+
+[section Acknowledgements]
+
+This library is strongly inspired by Pirkelbauer, Solodkyy and
+Stroustrup's paper [@http://www.stroustrup.com/multimethods.pdf "Open Multi-Methods for C++"].
+
+The paper [@http://hal.inria.fr/docs/00/07/37/21/PDF/RR-2977.pdf
+"Fast algorithms for compressed multi-method dispatch tables
+generation"] by Amiel, Dujardin and Simon was influential in the design
+of the algorithm for dispatch table generation.
+
+[endsect]

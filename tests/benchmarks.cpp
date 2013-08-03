@@ -47,41 +47,41 @@ using multimethods::virtual_;
 
 namespace intrusive {
 
-  MULTIMETHOD(do_nothing, void(virtual_<object>&));
+  MULTI_METHOD(do_nothing, void, virtual_<object>&);
 
-  BEGIN_METHOD(do_nothing, void, object&) {
-  } END_METHOD;
+  BEGIN_SPECIALIZATION(do_nothing, void, object&) {
+  } END_SPECIALIZATION;
 
-  MULTIMETHOD(do_something, double(multimethods::virtual_<object>&, double x, double a, double b, double c));
+  MULTI_METHOD(do_something, double, multimethods::virtual_<object>&, double x, double a, double b, double c);
 
-  BEGIN_METHOD(do_something, double, object&, double x, double a, double b, double c) {
+  BEGIN_SPECIALIZATION(do_something, double, object&, double x, double a, double b, double c) {
     return log(a * x * x + b * x + c);
-  } END_METHOD;
+  } END_SPECIALIZATION;
 
-  MULTIMETHOD(do_nothing_2, void(virtual_<object>&, virtual_<object>&));
+  MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
 
-  BEGIN_METHOD(do_nothing_2, void, object&, object&) {
-  } END_METHOD;
+  BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
+  } END_SPECIALIZATION;
 
 }
 
 namespace vbase {
 
-  MULTIMETHOD(do_nothing, void(virtual_<object>&));
+  MULTI_METHOD(do_nothing, void, virtual_<object>&);
 
-  BEGIN_METHOD(do_nothing, void, object&) {
-  } END_METHOD;
+  BEGIN_SPECIALIZATION(do_nothing, void, object&) {
+  } END_SPECIALIZATION;
 
-  MULTIMETHOD(do_something, double(multimethods::virtual_<object>&, double x, double a, double b, double c));
+  MULTI_METHOD(do_something, double, multimethods::virtual_<object>&, double x, double a, double b, double c);
 
-  BEGIN_METHOD(do_something, double, derived&, double x, double a, double b, double c) {
+  BEGIN_SPECIALIZATION(do_something, double, derived&, double x, double a, double b, double c) {
     return log(a * x * x + b * x + c);
-  } END_METHOD;
+  } END_SPECIALIZATION;
 
-  MULTIMETHOD(do_nothing_2, void(virtual_<object>&, virtual_<object>&));
+  MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
 
-  BEGIN_METHOD(do_nothing_2, void, object&, object&) {
-  } END_METHOD;
+  BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
+  } END_SPECIALIZATION;
 
 }
 
@@ -93,21 +93,21 @@ namespace foreign {
 
   MM_FOREIGN_CLASS(object);
 
-  MULTIMETHOD(do_nothing, void(virtual_<object>&));
+  MULTI_METHOD(do_nothing, void, virtual_<object>&);
 
-  BEGIN_METHOD(do_nothing, void, object&) {
-  } END_METHOD;
+  BEGIN_SPECIALIZATION(do_nothing, void, object&) {
+  } END_SPECIALIZATION;
 
-  MULTIMETHOD(do_nothing_2, void(virtual_<object>&, virtual_<object>&));
+  MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
 
-  BEGIN_METHOD(do_nothing_2, void, object&, object&) {
-  } END_METHOD;
+  BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
+  } END_SPECIALIZATION;
 
-  MULTIMETHOD(do_something, double(virtual_<object>&, double x, double a, double b, double c));
+  MULTI_METHOD(do_something, double, virtual_<object>&, double x, double a, double b, double c);
 
-  BEGIN_METHOD(do_something, double, object&, double x, double a, double b, double c) {
+  BEGIN_SPECIALIZATION(do_something, double, object&, double x, double a, double b, double c) {
     return log(a * x * x + b * x + c);
-  } END_METHOD;
+  } END_SPECIALIZATION;
 }
 
 using time_type = decltype(high_resolution_clock::now());
