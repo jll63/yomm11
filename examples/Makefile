@@ -21,21 +21,21 @@ run : asteroids three next foreign
 	./next
 	./foreign
 
-asteroids : asteroids.o multimethods.o
+asteroids : asteroids.o multi_methods.o
 	$(CXX) $^ -o $@
 
-three : three.o multimethods.o
+three : three.o multi_methods.o
 	$(CXX) $^ -o $@
 
-next : next.o multimethods.o
+next : next.o multi_methods.o
 	$(CXX) $^ -o $@
 
-foreign : foreign.o multimethods.o
+foreign : foreign.o multi_methods.o
 	$(CXX) $^ -o $@
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $<
 
-multimethods.o : ../src/multimethods.cpp ../include/multimethods.hpp
+multi_methods.o : ../src/multi_methods.cpp ../include/multi_methods.hpp
 	$(CXX) $(CXXFLAGS) -c $<
 

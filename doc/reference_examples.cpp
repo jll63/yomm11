@@ -1,11 +1,11 @@
-// -*- compile-command: "g++ -std=c++11 -I../include -I$BOOST_ROOT reference_examples.cpp ../src/multimethods.cpp -o examples && ./examples" -*-
+// -*- compile-command: "g++ -std=c++11 -I../include -I$BOOST_ROOT reference_examples.cpp ../src/multi_methods.cpp -o examples && ./examples" -*-
 
 #include <iostream>
-#include <multimethods.hpp>
+#include <multi_methods.hpp>
 
 using namespace std;
 
-struct role : multimethods::selector {
+struct role : multi_methods::selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
@@ -26,7 +26,7 @@ struct ceo : role {
   }
 };
 
-struct expense : multimethods::selector {
+struct expense : multi_methods::selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -47,7 +47,7 @@ struct cab : expense {
   }
 };
 
-struct reason : multimethods::selector {
+struct reason : multi_methods::selector {
   MM_CLASS(reason);
   reason() {
     MM_INIT();
@@ -68,13 +68,13 @@ struct comfort : reason {
   }
 };
 
-using namespace multimethods;
+using namespace multi_methods;
 
 //[ ref_multi_method
 
 template<typename Signature> struct approve_specialization;
 
-constexpr multimethod<
+constexpr multi_method<
   approve_specialization,
   bool(const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&)
 > approve;

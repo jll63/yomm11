@@ -43,7 +43,7 @@
 
 using namespace std;
 using namespace std::chrono;
-using multimethods::virtual_;
+using multi_methods::virtual_;
 
 namespace intrusive {
 
@@ -52,7 +52,7 @@ namespace intrusive {
   BEGIN_SPECIALIZATION(do_nothing, void, object&) {
   } END_SPECIALIZATION;
 
-  MULTI_METHOD(do_something, double, multimethods::virtual_<object>&, double x, double a, double b, double c);
+  MULTI_METHOD(do_something, double, multi_methods::virtual_<object>&, double x, double a, double b, double c);
 
   BEGIN_SPECIALIZATION(do_something, double, object&, double x, double a, double b, double c) {
     return log(a * x * x + b * x + c);
@@ -72,7 +72,7 @@ namespace vbase {
   BEGIN_SPECIALIZATION(do_nothing, void, object&) {
   } END_SPECIALIZATION;
 
-  MULTI_METHOD(do_something, double, multimethods::virtual_<object>&, double x, double a, double b, double c);
+  MULTI_METHOD(do_something, double, multi_methods::virtual_<object>&, double x, double a, double b, double c);
 
   BEGIN_SPECIALIZATION(do_something, double, derived&, double x, double a, double b, double c) {
     return log(a * x * x + b * x + c);
@@ -132,7 +132,7 @@ struct benchmark {
 };
 
 int main() {
-  multimethods::initialize();
+  multi_methods::initialize();
 
   const int repeats = 10 * 1000 * 1000;
 

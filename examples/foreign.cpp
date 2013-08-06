@@ -6,13 +6,13 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <multimethods.hpp>
+#include <multi_methods.hpp>
 
 #include <iostream>
 
 using namespace std;
 
-using multimethods::virtual_;
+using multi_methods::virtual_;
 
 // following hierarchy does not collaborate with multi-methods
 
@@ -34,7 +34,7 @@ MM_FOREIGN_CLASS(ceo, role);
 
 // this one does
 
-struct expense : multimethods::selector {
+struct expense : multi_methods::selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -92,7 +92,7 @@ BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&)
 #define demo(exp) cout << #exp << " -> " << exp << endl
 
 int main() {
-  multimethods::initialize(); // IMPORTANT!
+  multi_methods::initialize(); // IMPORTANT!
   cout << boolalpha;
 
   // ceo does as he pleases

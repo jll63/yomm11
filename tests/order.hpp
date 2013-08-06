@@ -4,17 +4,17 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <multimethods.hpp>
+#include <multi_methods.hpp>
 #include <memory>
 
-struct role : multimethods::selector {
+struct role : multi_methods::selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
   }
 };
 
-struct expense : multimethods::selector {
+struct expense : multi_methods::selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -28,7 +28,7 @@ struct plane : expense {
   }
 };
 
-struct reason : multimethods::selector {
+struct reason : multi_methods::selector {
   MM_CLASS(reason);
   reason() {
     MM_INIT();
@@ -42,6 +42,6 @@ struct comfort : reason {
   }
 };
 
-MULTI_METHOD(approve, bool, const multimethods::virtual_<expense>&, const multimethods::virtual_<role>&, const multimethods::virtual_<reason>&);
+MULTI_METHOD(approve, bool, const multi_methods::virtual_<expense>&, const multi_methods::virtual_<role>&, const multi_methods::virtual_<reason>&);
 
 extern std::unique_ptr<role> make_ceo();

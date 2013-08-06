@@ -6,14 +6,14 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include "multimethods.hpp"
+#include "multi_methods.hpp"
 
 #include <iostream>
 
 using namespace std;
-using multimethods::virtual_;
+using multi_methods::virtual_;
 
-struct object : multimethods::selector {
+struct object : multi_methods::selector {
   MM_CLASS(object);
   object() {
     MM_INIT();
@@ -63,7 +63,7 @@ BEGIN_SPECIALIZATION(collide, string, asteroid& a, asteroid& b, bool swapped) {
 } END_SPECIALIZATION;
 
 int main() {
-  multimethods::initialize(); // IMPORTANT!
+  multi_methods::initialize(); // IMPORTANT!
   
   ship player;
   asteroid as;

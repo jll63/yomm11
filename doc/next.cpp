@@ -1,4 +1,4 @@
-// -*- compile-command: "g++ -std=c++11 -I$BOOST_ROOT -I../include -o next next.cpp ../src/multimethods.cpp && ./next" -*-
+// -*- compile-command: "g++ -std=c++11 -I$BOOST_ROOT -I../include -o next next.cpp ../src/multi_methods.cpp && ./next" -*-
 
 // next.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -13,14 +13,14 @@
 using namespace std;
 
 //[ prologue
-#include <multimethods.hpp>
+#include <multi_methods.hpp>
 
-using multimethods::virtual_;
+using multi_methods::virtual_;
 //]
 
 
 //[ vehicle
-struct Vehicle : multimethods::selector {
+struct Vehicle : multi_methods::selector {
   MM_CLASS(Vehicle);
   Vehicle() {
     MM_INIT();
@@ -43,7 +43,7 @@ struct Truck : Vehicle {
   }
 };
 
-struct Inspector : multimethods::selector {
+struct Inspector : multi_methods::selector {
   MM_CLASS(Inspector);
   Inspector() {
     MM_INIT();
@@ -81,7 +81,7 @@ BEGIN_SPECIALIZATION(inspect, void, Car& v, StateInspector& i) {
 
 //[ call
 int main() {
-  multimethods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
+  multi_methods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
 
   Vehicle& vehicle1 = *new Car;
   Inspector& inspector1 = *new StateInspector;

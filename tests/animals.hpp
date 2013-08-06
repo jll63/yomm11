@@ -4,7 +4,7 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-struct Animal : multimethods::selector {
+struct Animal : multi_methods::selector {
   MM_CLASS(Animal);
   Animal() {
     MM_INIT();

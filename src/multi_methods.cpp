@@ -1,12 +1,12 @@
 // -*- compile-command: "cd ../tests && make" -*-
 
-// multimethod.cpp
+// multi_method.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <multimethods.hpp>
+#include <multi_methods.hpp>
 #include <unordered_set>
 #include <functional>
 #include <boost/range/adaptor/reversed.hpp>
@@ -15,7 +15,7 @@ using namespace std;
 using boost::dynamic_bitset;
 using boost::adaptors::reverse;
 
-namespace multimethods {
+namespace multi_methods {
 
   mm_class::mm_class(const type_info& t) : ti(t), abstract(false), index(-1), root(nullptr) {
     //cout << "mm_class() for " << ti.name() << " at " << this << endl;
@@ -66,7 +66,7 @@ namespace multimethods {
     MM_TRACE(cout << "initialize class_of<" << ti.name() << ">\n");
 
     if (root) {
-      throw runtime_error("multimethods: class redefinition");
+      throw runtime_error("multi_methods: class redefinition");
     }
 
     bases = b;
@@ -217,10 +217,10 @@ namespace multimethods {
       mm_class::remove_from_initialize(pc);
     }
     
-    while (multimethod_base::to_initialize) {
-      auto pm = *multimethod_base::to_initialize->begin();
+    while (multi_method_base::to_initialize) {
+      auto pm = *multi_method_base::to_initialize->begin();
       pm->resolve();
-      multimethod_base::remove_from_initialize(pm);
+      multi_method_base::remove_from_initialize(pm);
     }
   }
 
@@ -248,12 +248,12 @@ namespace multimethods {
     return result;
   }
 
-  void mm_class::add_multimethod(multimethod_base* pm, int arg) {
+  void mm_class::add_multi_method(multi_method_base* pm, int arg) {
     rooted_here.push_back(mmref { pm, arg });
     add_to_initialize(this);
   }
 
-  void mm_class::remove_multimethod(multimethod_base* pm) {
+  void mm_class::remove_multi_method(multi_method_base* pm) {
     rooted_here.erase(
       remove_if(rooted_here.begin(), rooted_here.end(), [=](mmref& ref) { return ref.method == pm;  }),
       rooted_here.end());
@@ -275,50 +275,50 @@ namespace multimethods {
     return os << ")";
   }
   
-  multimethod_base::multimethod_base(const vector<mm_class*>& v) : vargs(v) {
+  multi_method_base::multi_method_base(const vector<mm_class*>& v) : vargs(v) {
     int i = 0;
     for_each(vargs.begin(), vargs.end(),
              [&](mm_class* pc) {
                MM_TRACE(cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
-               pc->add_multimethod(this, i++);
+               pc->add_multi_method(this, i++);
              });
     slots.resize(v.size());
   }
   
-  multimethod_base::~multimethod_base() {
+  multi_method_base::~multi_method_base() {
     for (method_base* method : reverse(methods)) {
       delete method;
       method = 0;
     }
 
     for (mm_class* arg : vargs) {
-      arg->remove_multimethod(this);
+      arg->remove_multi_method(this);
     }
 
     remove_from_initialize(this);
   }
   
-  void multimethod_base::assign_slot(int arg, int slot) {
+  void multi_method_base::assign_slot(int arg, int slot) {
     slots[arg] = slot;
     invalidate();
   }
 
-  void multimethod_base::invalidate() {
+  void multi_method_base::invalidate() {
     MM_TRACE(cout << "add " << this << " to init list" << endl);
     add_to_initialize(this);
   }
   
-  unique_ptr<unordered_set<multimethod_base*>> multimethod_base::to_initialize;
+  unique_ptr<unordered_set<multi_method_base*>> multi_method_base::to_initialize;
   
-  void multimethod_base::add_to_initialize(multimethod_base* pm) {
+  void multi_method_base::add_to_initialize(multi_method_base* pm) {
     if (!to_initialize) {
-      to_initialize.reset(new unordered_set<multimethod_base*>);
+      to_initialize.reset(new unordered_set<multi_method_base*>);
     }
 
     to_initialize->insert(pm);
   }
   
-  void multimethod_base::remove_from_initialize(multimethod_base* pm) {
+  void multi_method_base::remove_from_initialize(multi_method_base* pm) {
     if (to_initialize) {
       to_initialize->erase(pm);
 
@@ -328,7 +328,7 @@ namespace multimethods {
     }
   }
 
-  grouping_resolver::grouping_resolver(multimethod_base& mm) : mm(mm), dims(mm.vargs.size()) {
+  grouping_resolver::grouping_resolver(multi_method_base& mm) : mm(mm), dims(mm.vargs.size()) {
   }
   
   void grouping_resolver::resolve() {
@@ -552,7 +552,7 @@ namespace multimethods {
     return os;
   }
 
-  ostream& operator <<(ostream& os, const multimethod_base* mm) {
+  ostream& operator <<(ostream& os, const multi_method_base* mm) {
     return os << "mm" << mm->vargs;
   }
 

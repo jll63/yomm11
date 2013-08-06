@@ -6,7 +6,7 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include "multimethods.hpp"
+#include "multi_methods.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -15,7 +15,7 @@
 #include "util/join.hpp"
 
 using namespace std;
-using namespace multimethods;
+using namespace multi_methods;
 using boost::dynamic_bitset;
 
 #define test(exp, res) _test(__FILE__, __LINE__, #exp, exp, #res, res)
@@ -194,7 +194,7 @@ namespace init_tests {
   } END_SPECIALIZATION;
 
   DO {
-    multimethods::initialize();
+    multi_methods::initialize();
     test(encounter(Cow(), Wolf()), "ignore");
     test(encounter(Wolf(), Cow()), "ignore");
   }
@@ -204,7 +204,7 @@ namespace init_tests {
   } END_SPECIALIZATION;
 
   DO {
-    multimethods::initialize();
+    multi_methods::initialize();
     test(encounter(Cow(), Wolf()), "run");
     test(encounter(Wolf(), Cow()), "ignore");
   }
@@ -214,7 +214,7 @@ namespace init_tests {
   } END_SPECIALIZATION;
 
   DO {
-    multimethods::initialize();
+    multi_methods::initialize();
     test(encounter(Cow(), Wolf()), "run");
     test(encounter(Wolf(), Cow()), "hunt");
   }
@@ -227,7 +227,7 @@ namespace init_tests {
   };
 
   DO {
-    multimethods::initialize();
+    multi_methods::initialize();
     test(encounter(Horse(), Wolf()), "run");
     test(encounter(Wolf(), Horse()), "hunt");
   }
@@ -302,7 +302,7 @@ namespace single_inheritance {
   struct Donkey : Herbivore { };
   
   template<>
-  struct encounter_method<string(Cow&, Cow&)> : ::multimethods::specializer<decltype(encounter), string(Cow&, Cow&)> {
+  struct encounter_method<string(Cow&, Cow&)> : ::multi_methods::specializer<decltype(encounter), string(Cow&, Cow&)> {
     static string body(Cow&, Cow&) {
       return "moo!";
     }
@@ -474,7 +474,7 @@ int main() {
 
     using namespace slot_allocation_tests;
 
-    // Init multimethod implementations; this is normally done when the
+    // Init multi_method implementations; this is normally done when the
     // first method is added.
     m_x.the();
     m_a.the();
@@ -700,7 +700,7 @@ int main() {
     Interface interf;
     Herbivore herb;
 
-    multimethods::initialize();
+    multi_methods::initialize();
     
     test(encounter.impl != nullptr, true);
     test(encounter.impl->dispatch_table != nullptr, true);
@@ -729,7 +729,7 @@ int main() {
 
     static_assert(is_virtual_base_of<Animal, Stallion>::value, "problem with virtual base detection");
 
-    multimethods::initialize();
+    multi_methods::initialize();
 
     testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
            (void*) encounter.impl->dispatch_table );
@@ -781,19 +781,19 @@ int main() {
   }
 
   {
-    cout << "\n--- Unloading multimethods." << endl;
+    cout << "\n--- Unloading multi_methods." << endl;
     using namespace single_inheritance;
 
     encounter.the().add_spec<encounter_method<string(Cow&, Cow&)>>();
     
     test( mm_class_of<Animal>::the().rooted_here.size(), 3 );
     test( mm_class_of<Interface>::the().rooted_here.size(), 1 );
-    test( multimethod_base::to_initialize != nullptr, true );
-    test( multimethod_base::to_initialize->size(), 1 );
+    test( multi_method_base::to_initialize != nullptr, true );
+    test( multi_method_base::to_initialize->size(), 1 );
 
     encounter.impl.reset();
     test( mm_class_of<Animal>::the().rooted_here.size(), 1 );
-    test( !multimethod_base::to_initialize, true );
+    test( !multi_method_base::to_initialize, true );
 
     cout << "\n--- Unloading classes." << endl;
     {
@@ -802,13 +802,13 @@ int main() {
       donkey_class.initialize(mm_class_vector_of<Herbivore>::get());
       test( mm_class::to_initialize != nullptr, true );
       test( mm_class::to_initialize->size(), 1 );
-      multimethods::initialize();
+      multi_methods::initialize();
       test( !mm_class::to_initialize, true );
     }
 
     test( mm_class::to_initialize != nullptr, true );
     test( mm_class::to_initialize->size(), 1 );
-    multimethods::initialize();
+    multi_methods::initialize();
     test( !mm_class::to_initialize, true );
   }
 

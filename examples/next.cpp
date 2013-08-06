@@ -9,11 +9,11 @@
 // Example taken Dylan's documentation, see http://opendylan.org/documentation/intro-dylan/multiple-dispatch.html
 
 #include <iostream>
-#include <multimethods.hpp>
+#include <multi_methods.hpp>
 
 using namespace std;
-using multimethods::selector;
-using multimethods::virtual_;
+using multi_methods::selector;
+using multi_methods::virtual_;
 
 // Vehicle is the root of a class hierarchy that includes support for fast dispatch.
 // That means:
@@ -38,7 +38,7 @@ struct Truck : Vehicle {
   }
 };
 
-struct Inspector : multimethods::selector {
+struct Inspector : multi_methods::selector {
   MM_CLASS(Inspector);
   Inspector() {
     MM_INIT();
@@ -73,7 +73,7 @@ BEGIN_SPECIALIZATION(inspect, void, Car& v, StateInspector& i) {
 } END_SPECIALIZATION;
 
 int main() {
-  multimethods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
+  multi_methods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
   Car car;
   StateInspector inspector;
   // call method:

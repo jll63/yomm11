@@ -11,7 +11,7 @@
 
 using namespace std;
 
-using multimethods::virtual_;
+using multi_methods::virtual_;
 
 struct ceo : role {
   MM_CLASS(ceo, role);

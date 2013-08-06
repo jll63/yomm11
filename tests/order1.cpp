@@ -11,7 +11,7 @@
 
 using namespace std;
 
-using multimethods::virtual_;
+using multi_methods::virtual_;
 
 struct business : reason {
   MM_CLASS(business, reason);
@@ -46,7 +46,7 @@ BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&)
 
 int main() {
   cout << boolalpha;
-  multimethods::initialize();
+  multi_methods::initialize();
   unique_ptr<role> ceo = make_ceo();
   // ceo does as he pleases
   demo( approve(plane(), *ceo, comfort()) );

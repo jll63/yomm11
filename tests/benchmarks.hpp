@@ -4,11 +4,11 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <multimethods.hpp>
+#include <multi_methods.hpp>
 
 namespace intrusive {
 
-  struct object : multimethods::selector {
+  struct object : multi_methods::selector {
 
     MM_CLASS(object);
 
@@ -28,7 +28,7 @@ namespace intrusive {
 
 namespace vbase {
 
-  struct object : multimethods::selector {
+  struct object : multi_methods::selector {
 
     MM_CLASS(object);
 
