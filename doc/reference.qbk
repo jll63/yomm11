@@ -15,162 +15,7 @@
 
 [import reference_examples.cpp]
 
-[section initialize]
-
-[h3 Synopsis]
-
-multimethods::initialize();
-
-[h3 Description]
-
-Computes or re-computes the data structures underlying multi-method
-dispatch.
-
-`initialize()` should be called after all the classes and
-multi-methods have been declared and before calling any multi-method,
-typically at the beginning of `main()`. If classes or multi-methods
-are added or removed (e.g. because of dynamic loading or un-loading of
-shared libraries), `intitialize()` must be called again.
-
-Initialization is a fairly expansive process, which involves among
-other things topologically sorting class hierarchies, assigning slots
-to multi-methods and computing dispatch tables. `initialize()`
-attempts to be conservative and re-compute only what needs be;
-however, adding or removing a single class or multi-method
-entails the re-examination of the entire class graph.
-
-[h3 Examples]
-
-``
-
-int main() {
-  multimethods::initialize();
-  // ...
-  dlopen(...); // dynamically load a shared object
-  multimethods::initialize(); // if classes or methods were added
-  // ...
-}
-
-``
-
-[endsect]
-
-[section MULTI_METHOD]
-
-[h3 Synopsis]
-MULTI_METHOD(__name__, __return_type__, __args__...)
-
-[h3 Description]
-
-Declares a multi-method that takes __args__ as an argument list and
-returns a __return_type__.
-
-__args__ is an argument list, just like what is provided to an ordinary
-function declaration. However, arguments marked with the `virtual_`
-modifier are considered in the selection of the actual code to be
-executed given the dynamic value passed in these positons.
-
-Virtual arguments must have their type registered with the
-MM_*CLASS family of macros. Virtual arguments, either of the intrusive
-or foreign kinds, and ordinary function arguments can be freely
-intermixed.
-
-Multi-method declarations can appear in header files - __name__ is
-defined as a `constexpr` function object.
-
-__name__ must be unique in its scope. Overloading is not supported.
-
-[endsect]
-
-[h3 Examples]
-
-A multimethod named `approve` that takes three virtual arguments and
-returns a boolean:
-
-``
-MULTI_METHOD(approve, bool, const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&);
-``
-
-A `collide` multi-method that takes two virtual and one ordinary
-argument and returns nothing:
-``
-MULTI_METHOD(collide, void, virtual_<object>&, virtual_<object>&, bool swapped);
-``
-[section virtual_]
-
-[h3 Synopsis]
-virtual_<__class__>
-
-[h3 Description]
-
-`virtual_` denotes virtual arguments in a multi-method declaration.
-
-__class__ must be a class type registered via one of the `MM_*CLASS`
-macros. It can appear only in multi-method argument lists to declare a
-reference to an object, constant or not. In other words, `virtual_`
-may be used only in the following manner:
-
-    virtual_<SomeType>&
-    const virtual_<SomeType>&
-
-[endsect]
-
-[section BEGIN_SPECIALIZATION]
-
-[h3 Synopsis]
-
-BEGIN_SPECIALIZATION(__name__, __return_type__, __args__...) {
-   /body/
-} END_SPECIALIZATION;
-
-[h3 Description]
-
-Specializes multi-method __name__. The code between braces is the
-specialization's implementation.
-
-__name__ must be the name of a previously declared
-multi-method. __return_type__ must be conbertible to the multi-method's
-return type. __args__ must have the same length as the multi-method's
-argument list. Each argument must be either the same as the
-multi-method's argument in the same position, or if the multi-method
-has marked the argument with `virtual_`, a reference to an object of a
-compliant type.
-
-[h3 Examples]
-
-Three specializations for `MULTI_METHOD(approve, bool, const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&)`:
-
-``
-BEGIN_SPECIALIZATION(approve, bool, const expense&, const role&, const reason&) {
-  return false;
-} END_SPECIALIZATION;
-
-BEGIN_SPECIALIZATION(approve, bool, const expense&, const ceo&, const reason&) {
-  return true;
-} END_SPECIALIZATION;
-
-BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&) {
-  return true;
-} END_SPECIALIZATION;
-``
-
-Two specializations for `MULTI_METHOD(collide, void, virtual_<object>&, virtual_<object>&, bool swapped)`:
-
-``
-BEGIN_SPECIALIZATION(collide, void, object& a, object& b, bool swapped) {
-  if (swapped) {
-     // kaboom
-  } else {
-    return collide(b, a, true);
-  }
-} END_SPECIALIZATION;
-
-BEGIN_SPECIALIZATION(collide, void, asteroid& a, asteroid& b, bool swapped) {
-  // do nothing
-} END_SPECIALIZATION;
-``
-
-[endsect]
+[section Registering classes]
 
 [section selector]
 
@@ -301,6 +146,70 @@ MM_FOREIGN_CLASS(mare, horse, female);
 ``
 [endsect]
 
+[endsect]
+
+[section Declaring multi-methods]
+
+[section MULTI_METHOD]
+
+[h3 Synopsis]
+MULTI_METHOD(__name__, __return_type__, __args__...)
+
+[h3 Description]
+
+Declares a multi-method that takes __args__ as an argument list and
+returns a __return_type__.
+
+__args__ is an argument list, just like what is provided to an ordinary
+function declaration. However, arguments marked with the `virtual_`
+modifier are considered in the selection of the actual code to be
+executed given the dynamic value passed in these positons.
+
+Virtual arguments must have their type registered with the
+MM_*CLASS family of macros. Virtual arguments, either of the intrusive
+or foreign kinds, and ordinary function arguments can be freely
+intermixed.
+
+Multi-method declarations can appear in header files - __name__ is
+defined as a `constexpr` function object.
+
+__name__ must be unique in its scope. Overloading is not supported.
+
+[endsect]
+
+[h3 Examples]
+
+A multimethod named `approve` that takes three virtual arguments and
+returns a boolean:
+
+``
+MULTI_METHOD(approve, bool, const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&);
+``
+
+A `collide` multi-method that takes two virtual and one ordinary
+argument and returns nothing:
+``
+MULTI_METHOD(collide, void, virtual_<object>&, virtual_<object>&, bool swapped);
+``
+[section virtual_]
+
+[h3 Synopsis]
+virtual_<__class__>
+
+[h3 Description]
+
+`virtual_` denotes virtual arguments in a multi-method declaration.
+
+__class__ must be a class type registered via one of the `MM_*CLASS`
+macros. It can appear only in multi-method argument lists to declare a
+reference to an object, constant or not. In other words, `virtual_`
+may be used only in the following manner:
+
+    virtual_<SomeType>&
+    const virtual_<SomeType>&
+
+[endsect]
+
 [section multi_method]
 
 [h3 Synopsis]
@@ -340,20 +249,65 @@ consists in a `constexpr` declaration of a specialization of
 
 [ref_multi_method]
 
-[section multi_method::operator ()]
+[endsect]
+
+[endsect]
+
+[section Specializing]
+
+[section BEGIN_SPECIALIZATION / END_SPECIALIZATION ]
 
 [h3 Synopsis]
 
-__mm__(__args__...);
+BEGIN_SPECIALIZATION(__name__, __return_type__, __args__...) {
+   /body/
+} END_SPECIALIZATION;
 
 [h3 Description]
 
-Calls a multi-method.
+Specializes multi-method __name__. The code between braces is the
+specialization's implementation.
 
-[h3 Example]
+__name__ must be the name of a previously declared
+multi-method. __return_type__ must be conbertible to the multi-method's
+return type. __args__ must have the same length as the multi-method's
+argument list. Each argument must be either the same as the
+multi-method's argument in the same position, or if the multi-method
+has marked the argument with `virtual_`, a reference to an object of a
+compliant type.
+
+[h3 Examples]
+
+Three specializations for `MULTI_METHOD(approve, bool, const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&)`:
 
 ``
-approve(plane(), ceo(), comfort());
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const role&, const reason&) {
+  return false;
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const ceo&, const reason&) {
+  return true;
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&) {
+  return true;
+} END_SPECIALIZATION;
+``
+
+Two specializations for `MULTI_METHOD(collide, void, virtual_<object>&, virtual_<object>&, bool swapped)`:
+
+``
+BEGIN_SPECIALIZATION(collide, void, object& a, object& b, bool swapped) {
+  if (swapped) {
+     // kaboom
+  } else {
+    return collide(b, a, true);
+  }
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(collide, void, asteroid& a, asteroid& b, bool swapped) {
+  // do nothing
+} END_SPECIALIZATION;
 ``
 
 [endsect]
@@ -378,10 +332,72 @@ Typically, __specialization__ is a specialization of __class_template__.
 
 [h3 Example]
 
-After example at [link multi_methods.reference.multi_method]:
+After example from [link multi_methods.reference.multi_method]:
 [ref_spec]
 // in main() or in a static constructor:
 [ref_spec_call]
+
+[endsect]
+
+[endsect]
+
+[section Calling]
+
+[section initialize]
+
+[h3 Synopsis]
+
+multimethods::initialize();
+
+[h3 Description]
+
+Computes or re-computes the data structures underlying multi-method
+dispatch.
+
+`initialize()` should be called after all the classes and
+multi-methods have been declared and before calling any multi-method,
+typically at the beginning of `main()`. If classes or multi-methods
+are added or removed (e.g. because of dynamic loading or un-loading of
+shared libraries), `intitialize()` must be called again.
+
+Initialization is a fairly expensive process, which involves among
+other things topologically sorting class hierarchies, assigning slots
+to multi-methods and computing dispatch tables. `initialize()`
+attempts to be conservative and re-compute only what needs be;
+however, adding or removing a single class or multi-method
+entails the re-examination of the entire class graph.
+
+[h3 Examples]
+
+``
+
+int main() {
+  multimethods::initialize();
+  // ...
+  dlopen(...); // dynamically load a shared object
+  multimethods::initialize(); // if classes or methods were added
+  // ...
+}
+
+``
+
+[endsect]
+
+[section multi_method::operator ()]
+
+[h3 Synopsis]
+
+__mm__(__args__...);
+
+[h3 Description]
+
+Calls a multi-method.
+
+[h3 Example]
+
+``
+approve(plane(), ceo(), comfort());
+``
 
 [endsect]
 

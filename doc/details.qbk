@@ -1,0 +1,17 @@
+[/ -*- compile-command: "bjam" -*-; auto-fill-mode: t /]
+
+[section Details]
+
+[section Multiple inheritance]
+[endsect]
+
+[section No macros, please]
+[endsect]
+
+[section Performance]
+[endsect]
+
+[section Dynamic loading]
+[endsect]
+
+[endsect]
