@@ -260,60 +260,53 @@ namespace multi_methods {
   struct wrapper;
 
   using boost::is_virtual_base_of;
-  
-  template<class D, class B>
-  inline typename std::enable_if<
-    !std::is_same<D, B>::value &&
-    is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, D&>::type
-  cast(B& b) {
-    MM_TRACE(std::cout << "using dynamic_cast\n");
-    return dynamic_cast<D&>(b);
-  }
 
-  template<class D, class B>
-  inline typename std::enable_if<
-    !std::is_same<B, D>::value &&
-    is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, const D&>::type
-  cast(const B& b) {
-    MM_TRACE(std::cout << "using dynamic_cast\n");
-    return dynamic_cast<const D&>(b);
-  }
+  template<class B, class D>
+  struct cast_using_static_cast {
+    static D& value(B& obj) { return static_cast<D&>(obj); }
+    static const D& value(const B& obj) { return static_cast<const D&>(obj); }
+  };
 
-  template<class D, class B>
-  inline typename std::enable_if<
-    !std::is_same<D, B>::value &&
-  !is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, D&>::type
-  cast(B& b) {
-    MM_TRACE(std::cout << "using static_cast\n");
-    return static_cast<D&>(b);
-  }
+  template<class B, class D>
+  struct cast_using_dynamic_cast {
+    static D& value(B& obj) { return dynamic_cast<D&>(obj); }
+    static const D& value(const B& obj) { return dynamic_cast<const D&>(obj); }
+  };
 
-  template<class D, class B>
-  inline typename std::enable_if<
-    !std::is_same<D, B>::value &&
-  !is_virtual_base_of<typename std::remove_const<B>::type, typename std::remove_const<D>::type>::value, const D&>::type
-  cast(const B& b) {
-    MM_TRACE(std::cout << "using static_cast\n");
-    return static_cast<const D&>(b);
-  }
+  template<class B, class D, bool is_virtual>
+  struct cast_best;
 
-  template<class D, class B>
-  inline typename std::enable_if<std::is_same<D, B>::value, D&>::type
-  cast(B& b) {
-    return b;
-  }
+  template<class B, class D>
+  struct cast_best<B, D, false> : cast_using_static_cast<B, D> {
+  };
 
-  template<class D, class B>
-  inline typename std::enable_if<std::is_same<D, B>::value, const D&>::type
-  cast(const B& b) {
-    return b;
-  }
+  template<class B, class D>
+  struct cast_best<B, D, true> : cast_using_dynamic_cast<B, D> {
+  };
+
+  template<class B, class D>
+  struct cast : cast_best<B, D, boost::is_virtual_base_of<B, D>::value> {
+  };
+
+  template<class B>
+  struct cast<B, B> {
+    static B& value(B& obj) { return obj; }
+    static const B& value(const B& obj) { return obj; }
+  };
   
   template<class M, typename... A, typename OR, typename... P, typename BR>
   struct wrapper<M, OR(A...), BR(P...)> {
     using type = wrapper;
     static BR body(P... args) {
-      return M::body(cast<typename std::remove_reference<A>::type>(args)...);
+      return M::body(
+        cast<
+          typename std::remove_const<
+            typename std::remove_reference<P>::type
+          >::type,
+          typename std::remove_const<
+            typename std::remove_reference<A>::type
+          >::type
+        >::value(args)...);
     }
   };
 

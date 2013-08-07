@@ -431,6 +431,90 @@ namespace multi_roots_foreign {
 
 }
 
+namespace repeated {
+
+  struct X : selector {
+    MM_CLASS(X);
+
+    int x;
+
+    X() {
+      MM_INIT();
+    }
+  };
+
+  struct A : X {
+    MM_CLASS(A, X);
+
+    int a;
+
+    A() {
+      MM_INIT();
+    }
+  };
+
+  struct B : X {
+    MM_CLASS(B, X);
+
+    int b;
+
+    B() {
+      MM_INIT();
+    }
+  };
+
+  struct AB : A, B {
+    MM_CLASS_MULTI_ROOTS(AB, A, B);
+    
+    AB() {
+      MM_INIT_MULTI_ROOTS(A);
+      MM_INIT_MULTI_ROOTS(B);
+    }
+  };
+}
+
+namespace multi_methods {
+  template<>
+  struct cast<repeated::X, repeated::AB> :
+    cast_using_dynamic_cast<repeated::X, repeated::AB> { };
+}
+
+namespace repeated {
+
+  MULTI_METHOD(mx, int, const virtual_<X>&);
+
+  BEGIN_SPECIALIZATION(mx, int, const X& x) {
+    return x.x;
+  } END_SPECIALIZATION;
+
+  BEGIN_SPECIALIZATION(mx, int, const A& a) {
+    return a.x + a.a;
+  } END_SPECIALIZATION;
+
+  BEGIN_SPECIALIZATION(mx, int, const AB& ab) {
+    return ab.A::x + ab.B::x + ab.a + ab.b;
+  } END_SPECIALIZATION;
+
+  MULTI_METHOD(ma, int, const virtual_<A>&);
+
+  BEGIN_SPECIALIZATION(ma, int, const A& a) {
+    return a.x + a.a;
+  } END_SPECIALIZATION;
+
+  MULTI_METHOD(mb, int, const virtual_<B>&);
+
+  BEGIN_SPECIALIZATION(mb, int, const B& b) {
+    return b.x + b.b;
+  } END_SPECIALIZATION;
+
+  MULTI_METHOD(mab, int, const virtual_<AB>&);
+
+  BEGIN_SPECIALIZATION(mab, int, const AB& ab) {
+    return ab.A::x + ab.B::x + ab.a + ab.b;
+  } END_SPECIALIZATION;
+
+}
+
 int main() {
 
   {
@@ -755,6 +839,12 @@ int main() {
     a.val = 2;
     B b;
     b.val = 5;
+    X& xa = a;
+    X& xb = b;
+
+    test( (&cast<A, A>::value(a)), &a);
+    test( (&cast<X, B>::value(xb)), &b);
+    test( (&cast<X, B>::value(xb)), &b);
 
     test( (void*) &b != (void*) (X*) &a, true );
   
@@ -869,6 +959,25 @@ int main() {
     test( mx(xy), 1 );
     test( my(xy), 2 );
     test( mxy(xy), 3 );
+  }
+
+  {
+    cout << "\n--- Repeated." << endl;
+    using namespace repeated;
+
+    AB ab;
+    ab.A::x = 2;
+    ab.B::x = 3;
+    ab.a = 5;
+    ab.b = 7;
+    A& a = ab;
+    B& b = ab;
+
+    test( ma(ab), 7 );
+    test( mb(ab), 10 );
+    test( mab(ab), 17 );
+    test( mx(a), 17 );
+    test( mx(b), 17 );
   }
   
   cout << "\n" << success << " tests succeeded, " << failure << " failed.\n";
