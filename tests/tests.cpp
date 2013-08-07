@@ -362,11 +362,11 @@ namespace multi_roots {
   };
 
   struct XY : X, Y {
-    MM_CLASS_MULTI_ROOTS(XY, X, Y);
+    MM_CLASS_MULTI(XY, X, Y);
     
     XY() {
-      MM_INIT_MULTI_ROOTS(X);
-      MM_INIT_MULTI_ROOTS(Y);
+      MM_INIT_MULTI(X);
+      MM_INIT_MULTI(Y);
     }
   };
 
@@ -464,11 +464,11 @@ namespace repeated {
   };
 
   struct AB : A, B {
-    MM_CLASS_MULTI_ROOTS(AB, A, B);
+    MM_CLASS_MULTI(AB, A, B);
     
     AB() {
-      MM_INIT_MULTI_ROOTS(A);
-      MM_INIT_MULTI_ROOTS(B);
+      MM_INIT_MULTI(A);
+      MM_INIT_MULTI(B);
     }
   };
 }

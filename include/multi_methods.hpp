@@ -776,22 +776,6 @@ namespace multi_methods {
   using mm_base_list_type = ::multi_methods::type_list<BASES>;           \
   using mm_this_type = CLASS;                                           \
   virtual void _mm_init_class_() { &::multi_methods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
-
-/**
-  \def MM_CLASS(CLASS, BASES...)
-  \brief Register class for efficient multi-method dispatch.
-
-  This macro must be called inside the definition of \a CLASS. The subsequent arguments \a BASES consist in the
-  (possibly empty) list of base classes that the dispatcher must take into account.
-
-  MM_CLASS introduces three items: in the class scope, all of which are implementation details:
-  mm_base_list type, mm_this_type and _mm_init_class.
-*/
-
-/**  
-  \example MM_CLASS.ex.cpp
-*/  
-
   
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
   static_assert(::multi_methods::check_bases<CLASS, ::multi_methods::type_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
@@ -802,11 +786,11 @@ namespace multi_methods {
   static_assert(::multi_methods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
   this->_init_mmptr(this)
 
-#define MM_CLASS_MULTI_ROOTS(CLASS, BASE, BASES...)                     \
+#define MM_CLASS_MULTI(CLASS, BASE, BASES...)                     \
   MM_CLASS(CLASS, BASE, BASES)                                          \
   std::vector<detail::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
 
-#define MM_INIT_MULTI_ROOTS(BASE)                                       \
+#define MM_INIT_MULTI(BASE)                                       \
   static_assert(::multi_methods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
   this->BASE::_init_mmptr(this)
   

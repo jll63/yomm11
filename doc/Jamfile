@@ -9,7 +9,7 @@ path-constant images_location : html ;
 
 boostbook quickbook
     :
-        multi-methods.qbk
+        multi_methods.qbk
     :
         <xsl:param>chunk.first.sections=1
         <xsl:param>toc.section.depth=3

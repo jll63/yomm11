@@ -33,7 +33,7 @@ is an implementation detail.
 
 [endsect]
 
-[section MM_CLASS]
+[section:mm_class MM_CLASS]
 
 [h3 Synopsis]
 
@@ -73,7 +73,7 @@ struct mare : horse, female {
 
 [endsect]
 
-[section MM_CLASS_MULTI_ROOTS]
+[section MM_CLASS_MULTI]
 
 [h3 Synopsis]
 
@@ -81,7 +81,7 @@ MM_CLASS_MULTI(__class__, __bases__...)
 
 [h3 Description]
 
-Same as [link multi_methods.reference.mm_class MM_CLASS], to be used
+Same as [link multi_methods.reference.registering_classes.mm_class MM_CLASS], to be used
 in presence of *repeated* inheritance of class `selector`.
 
 `MM_CLASS_MULTI` should not be used if __class__ inherits (virtually)
@@ -144,6 +144,59 @@ MM_FOREIGN_CLASS(female, animal);
 MM_FOREIGN_CLASS(horse, animal);
 MM_FOREIGN_CLASS(mare, horse, female);
 ``
+[endsect]
+
+[section MM_CLASS_INIT]
+
+[h3 Synopsis]
+
+``
+// in constructor
+MM_CLASS_INIT();
+``
+
+[h3 Description]
+
+Initialize the pointer to the multi-method offset table.
+
+`MM_INIT()` must be called in each constructor of each class registered for fast dispatch. Even if a class does not otherwise need constructors (e.g. the generated default and copy constructors could suffice), they must be provided for the benefit of calling `MM_INIT()`.
+
+[h3 Example]
+
+``
+
+matrix::matrix() {
+  MM_INIT();
+  // ...
+}
+
+matrix::matrix(const matrix& other) {
+  MM_INIT();
+  // ...
+}
+
+matrix::matrix(int rows, int cols) {
+  MM_INIT();
+  // ...
+}
+
+``
+
+[endsect]
+
+[section MM_CLASS_INIT_MULTI]
+
+[h3 Synopsis]
+
+``
+// in constructor
+MM_CLASS_INIT_MULTI();
+``
+
+[h3 Description]
+
+Same as [link multi_methods.reference.registering_classes.mm_class_multi MM_CLASS_MULTI], to be used in presence of *repeated* inheritance of class `selector`.
+
 [endsect]
 
 [endsect]
@@ -332,7 +385,7 @@ Typically, __specialization__ is a specialization of __class_template__.
 
 [h3 Example]
 
-After example from [link multi_methods.reference.multi_method]:
+After example from [link multi_methods.reference.registering_classes.multi_method]:
 [ref_spec]
 // in main() or in a static constructor:
 [ref_spec_call]
