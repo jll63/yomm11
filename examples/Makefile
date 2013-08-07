@@ -33,6 +33,15 @@ next : next.o multi_methods.o
 foreign : foreign.o multi_methods.o
 	$(CXX) $^ -o $@
 
+dl_main		: dl_main.o multi_methods.o
+	$(CXX) $^ -o $@ -ldl -rdynamic
+
+dl_shared.o	: dl_shared.cpp dl.hpp ../include/multi_methods.hpp
+	$(CXX) $(CXXFLAGS) -fPIC -c -o $@ dl_shared.cpp
+
+dl_shared.so	: dl_shared.o
+	$(CXX) -shared -Wl,-soname,dl_shared.so -o $@ dl_shared.o
+
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $<
 

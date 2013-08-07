@@ -18,3 +18,5 @@ a.out
 /doc/images
 /doc/examples
 /doc/reference.xml
+/examples/dl_main
+/examples/dl_shared.so
