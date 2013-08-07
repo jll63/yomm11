@@ -1,0 +1,37 @@
+[section MM_CLASS_INIT]
+
+[h3 Synopsis]
+
+``
+// in constructor
+MM_CLASS_INIT();
+``
+
+[h3 Description]
+
+Initialize the pointer to the multi-method offset table.
+
+`MM_INIT()` must be called in each constructor of each class registered for fast dispatch. Even if a class does not otherwise need constructors (e.g. the generated default and copy constructors could suffice), they must be provided for the benefit of calling `MM_INIT()`.
+
+[h3 Example]
+
+``
+
+matrix::matrix() {
+  MM_INIT();
+  // ...
+}
+
+matrix::matrix(const matrix& other) {
+  MM_INIT();
+  // ...
+}
+
+matrix::matrix(int rows, int cols) {
+  MM_INIT();
+  // ...
+}
+
+``
+
+[endsect]

@@ -1,0 +1,41 @@
+[section MULTI_METHOD]
+
+[h3 Synopsis]
+MULTI_METHOD(__name__, __return_type__, __args__...)
+
+[h3 Description]
+
+Declares a multi-method that takes __args__ as an argument list and
+returns a __return_type__.
+
+__args__ is an argument list, just like what is provided to an ordinary
+function declaration. However, arguments marked with the `virtual_`
+modifier are considered in the selection of the actual code to be
+executed given the dynamic value passed in these positons.
+
+Virtual arguments must have their type registered with the
+MM_*CLASS family of macros. Virtual arguments, either of the intrusive
+or foreign kinds, and ordinary function arguments can be freely
+intermixed.
+
+Multi-method declarations can appear in header files - __name__ is
+defined as a `constexpr` function object.
+
+__name__ must be unique in its scope. Overloading is not supported.
+
+[h3 Examples]
+
+A multimethod named `approve` that takes three virtual arguments and
+returns a boolean:
+
+``
+MULTI_METHOD(approve, bool, const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&);
+``
+
+A `collide` multi-method that takes two virtual and one ordinary
+argument and returns nothing:
+``
+MULTI_METHOD(collide, void, virtual_<object>&, virtual_<object>&, bool swapped);
+``
+
+[endsect]

@@ -1,0 +1,39 @@
+[section:mm_class MM_CLASS]
+
+[h3 Synopsis]
+
+MM_CLASS(__class__, __bases__...)
+
+[h3 Description]
+
+Registers a class for efficient multi-method dispatch.
+
+Macro `MM_CLASS` must be called inside the definition of __class__. The
+subsequent arguments __bases__ consist in the (possibly empty) list 
+of base classes that the dispatcher must take into account. __class__
+must derive (directly or indirectly) from `multimethods::selector`.
+
+Three items are introduced in the class' scope, all of which
+are implementation details: `mm_base_list`, `mm_this_type` and
+`_mm_init_class`.
+
+[h3 Example]
+``
+struct animal : multimethods::selector {
+  MM_CLASS(animal);
+};
+
+struct female : virtual animal {
+  MM_CLASS(female, animal);
+};
+
+struct horse : virtual animal {
+  MM_CLASS(horse, animal);
+};
+
+struct mare : horse, female {
+  MM_CLASS(mare, horse, female);
+};
+``
+
+[endsect]

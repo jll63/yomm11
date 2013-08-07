@@ -1,0 +1,17 @@
+[section multi_method::operator ()]
+
+[h3 Synopsis]
+
+__mm__(__args__...);
+
+[h3 Description]
+
+Calls a multi-method.
+
+[h3 Example]
+
+``
+approve(plane(), ceo(), comfort());
+``
+
+[endsect]

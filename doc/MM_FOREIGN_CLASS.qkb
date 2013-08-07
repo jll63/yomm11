@@ -1,0 +1,38 @@
+[section MM_FOREIGN_CLASS]
+
+[h3 Synopsis]
+
+MM_FOREIGN_CLASS(__class__, __bases__...)
+
+[h3 Description]
+
+Registers a class for multi-method dispatch, non-intrusively.
+
+Macro `MM_FOREIGN_CLASS` must be called outside the definition of
+__class__, in an implementation file. __class__ must be polymorphic,
+i.e. have at least one virtual function. The subsequent arguments __bases__
+consist in the (possibly empty) list of base classes that the
+dispatcher must take into account.
+
+[h3 Examples]
+``
+struct animal {
+  virtual ~animal();
+};
+
+struct female : virtual animal {
+};
+
+struct horse : virtual animal {
+};
+
+struct mare : horse, female {
+};
+
+// in .cpp file(s)
+MM_FOREIGN_CLASS(animal);
+MM_FOREIGN_CLASS(female, animal);
+MM_FOREIGN_CLASS(horse, animal);
+MM_FOREIGN_CLASS(mare, horse, female);
+``
+[endsect]

@@ -1,0 +1,58 @@
+[/ -*- compile-command: "bjam" -*-; auto-fill-mode: t /]
+
+[section BEGIN_SPECIALIZATION / END_SPECIALIZATION ]
+
+[h3 Synopsis]
+
+BEGIN_SPECIALIZATION(__name__, __return_type__, __args__...) {
+   [~body]
+} END_SPECIALIZATION;
+
+[h3 Description]
+
+Specializes multi-method __name__. The code between braces is the
+specialization's implementation.
+
+__name__ must be the name of a previously declared
+multi-method. __return_type__ must be conbertible to the multi-method's
+return type. __args__ must have the same length as the multi-method's
+argument list. Each argument must be either the same as the
+multi-method's argument in the same position, or if the multi-method
+has marked the argument with `virtual_`, a reference to an object of a
+compliant type.
+
+[h3 Examples]
+
+Three specializations for `MULTI_METHOD(approve, bool, const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&)`:
+
+``
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const role&, const reason&) {
+  return false;
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(approve, bool, const expense&, const ceo&, const reason&) {
+  return true;
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&) {
+  return true;
+} END_SPECIALIZATION;
+``
+
+Two specializations for `MULTI_METHOD(collide, void, virtual_<object>&, virtual_<object>&, bool swapped)`:
+
+``
+BEGIN_SPECIALIZATION(collide, void, object& a, object& b, bool swapped) {
+  if (swapped) {
+     // kaboom
+  } else {
+    return collide(b, a, true);
+  }
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(collide, void, asteroid& a, asteroid& b, bool swapped) {
+  // do nothing
+} END_SPECIALIZATION;
+``
+
+[endsect]

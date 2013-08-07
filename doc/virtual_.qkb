@@ -1,0 +1,18 @@
+[section virtual_]
+
+[h3 Synopsis]
+virtual_<__class__>
+
+[h3 Description]
+
+`virtual_` denotes virtual arguments in a multi-method declaration.
+
+__class__ must be a class type registered via one of the `MM_*CLASS`
+macros. It can appear only in multi-method argument lists to declare a
+reference to an object, constant or not. In other words, `virtual_`
+may be used only in the following manner:
+
+    virtual_<SomeType>&
+    const virtual_<SomeType>&
+
+[endsect]

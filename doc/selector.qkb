@@ -1,0 +1,15 @@
+[section selector]
+
+[h3 Synopsis]
+
+class [~MyClass] : public selector { ... };
+
+[h3 Description]
+
+Achieve optimal performance by lending space for a pointer to the dispatcher.
+
+Inherit from class `selector` to achieve best performance in
+multi-method dispatch. It contains one name - `_mm_init_class` - which
+is an implementation detail.
+
+[endsect]

@@ -1,0 +1,39 @@
+[section initialize]
+
+[h3 Synopsis]
+
+multimethods::initialize();
+
+[h3 Description]
+
+Computes or re-computes the data structures underlying multi-method
+dispatch.
+
+`initialize()` should be called after all the classes and
+multi-methods have been declared and before calling any multi-method,
+typically at the beginning of `main()`. If classes or multi-methods
+are added or removed (e.g. because of dynamic loading or un-loading of
+shared libraries), `intitialize()` must be called again.
+
+Initialization is a fairly expensive process, which involves among
+other things topologically sorting class hierarchies, assigning slots
+to multi-methods and computing dispatch tables. `initialize()`
+attempts to be conservative and re-compute only what needs be;
+however, adding or removing a single class or multi-method
+entails the re-examination of the entire class graph.
+
+[h3 Examples]
+
+``
+
+int main() {
+  multimethods::initialize();
+  // ...
+  dlopen(...); // dynamically load a shared object
+  multimethods::initialize(); // if classes or methods were added
+  // ...
+}
+
+``
+
+[endsect]

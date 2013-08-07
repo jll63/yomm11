@@ -1,0 +1,40 @@
+[section multi_method]
+
+[h3 Synopsis]
+``
+template<template<typename Signature> Spec, typename __return_type__, typename __args__...>
+struct multimethod; // declared but not defined
+
+template<template<typename Signature> __class_template__, typename __return_type__, typename __args__...>
+struct multimethod<__specialization__, __return_type__(__args__)> {
+  __return_type__ operator ()(__args__...);
+  static void specialize<__specialization__>();
+};
+``
+[h3 Description]
+
+Defines a multi-method.
+
+Actual multi-methods are specializations of this template, defined
+only for argument lists matching the second synopsis.
+
+__class_template__ is a user-provided class template that allows for the
+creations of different multi-methods with the same signature. The
+template is then typically used to define specializations while
+averting namespace pollution.
+
+__args__ must contain at least one argument that includes the
+`virtual_` marker. The markers are removed from the signature of
+`operator ()`.
+
+Multi-methods are stateless function objects. The data structures
+implementing specialization registration and method dispatch reside in
+static data members. Typically, a multi-method declaration/definition 
+consists in a `constexpr` declaration of a specialization of
+`multi_method`.
+
+[h3 Example]
+
+[ref_multi_method]
+
+[endsect]
