@@ -203,6 +203,9 @@ namespace multi_methods {
   template<class Class, class... Bases>
   struct mm_class_initializer<Class, type_list<Bases...>> {
     mm_class_initializer() {
+      static_assert(
+        check_bases<Class, type_list<Bases...>>::value,
+        "Error in MM_CLASS(): not a base in base list");
       mm_class& pc = mm_class_of<Class>::the();
       pc.abstract = std::is_abstract<Class>::value;
       pc.initialize(mm_class_vector_of<Bases...>::get());
@@ -631,12 +634,12 @@ namespace multi_methods {
   };
 
   template<typename Multimethod, typename Sig>
-  struct specializer {
+  struct specialization {
     static typename Multimethod::mptr next;
   };
 
   template<typename Multimethod, typename Sig>
-  typename Multimethod::mptr specializer<Multimethod, Sig>::next;
+  typename Multimethod::mptr specialization<Multimethod, Sig>::next;
 
   template<class Method, class Spec>
   struct register_spec {
@@ -772,44 +775,10 @@ namespace multi_methods {
 
 #endif
 
-#define MM_CLASS(CLASS, BASES...)                  \
-  using mm_base_list_type = ::multi_methods::type_list<BASES>;           \
-  using mm_this_type = CLASS;                                           \
-  virtual void _mm_init_class_() { &::multi_methods::mm_class_initializer<mm_this_type, mm_base_list_type>::the; }
-  
-#define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
-  static_assert(::multi_methods::check_bases<CLASS, ::multi_methods::type_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
-  static_assert(std::is_polymorphic<CLASS>::value, "error: class must be polymorphic"); \
-  namespace { ::multi_methods::mm_class_initializer<CLASS, ::multi_methods::type_list<BASES>> BOOST_PP_CAT(_mm_add_class, CLASS); }
-
-#define MM_INIT() \
-  static_assert(::multi_methods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-  this->_init_mmptr(this)
-
-#define MM_CLASS_MULTI(CLASS, BASE, BASES...)                     \
-  MM_CLASS(CLASS, BASE, BASES)                                          \
-  std::vector<detail::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
-
-#define MM_INIT_MULTI(BASE)                                       \
-  static_assert(::multi_methods::check_bases<mm_this_type, mm_base_list_type>::value, "Error in MM_CLASS(): not a base in base list"); \
-  this->BASE::_init_mmptr(this)
-  
-// normally part of MM_INIT(), disabled because g++ doesn't like it in class templates
-//  static_assert(std::is_same<mm_this_type, std::remove_reference<decltype(*this)>::type>::value, "Error in MM_CLASS(): declared class is not correct"); \
-
-#define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                           \
-  template<typename Sig> struct ID ## _method;                          \
-  constexpr ::multi_methods::multi_method<ID ## _method, RETURN_TYPE(ARGS)> ID{};
-
-#define BEGIN_SPECIALIZATION(ID, RESULT, ARGS...)                               \
-  template<>                                                            \
-  struct ID ## _method<RESULT(ARGS)> : ::multi_methods::specializer<decltype(ID), RESULT(ARGS)> { \
-  static RESULT body(ARGS) {                                            \
-  &::multi_methods::register_spec<decltype(ID), ID ## _method>::the;
-
-#define END_SPECIALIZATION } };
-
 #define STATIC_CALL_METHOD(ID, SIG) ID ## _method<SIG>::body
     
 }
+
+#include <multi_methods/macros.hpp>
+
 #endif

@@ -1,16 +1,20 @@
 // -*- compile-command: "make dl_main dl_shared.so && ./dl_main" -*-
 
+// dl.hpp
+// Copyright (c) 2013 Jean-Louis Leroy
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
 #ifndef DL_DEFINED
 #define DL_DEFINED
 
 #include <string>
 
+#include <multi_methods.hpp>
+
 #ifdef SHARED
-#define IF_SHARED(x) x
-#define IF_NOT_SHARED(x)
-#else
-#define IF_SHARED(x)
-#define IF_NOT_SHARED(x) x
+#include <multi_methods/extern_macros.hpp>
 #endif
 
 struct Animal : multi_methods::selector {
@@ -20,12 +24,16 @@ struct Animal : multi_methods::selector {
   }
 };
 
+MM_EXTERN_CLASS(Animal);
+
 struct Herbivore : Animal {
   MM_CLASS(Herbivore, Animal);
   Herbivore() {
     MM_INIT();
   }
 };
+
+MM_EXTERN_CLASS(Herbivore);
 
 struct Carnivore : Animal {
   MM_CLASS(Carnivore, Animal);
@@ -34,6 +42,8 @@ struct Carnivore : Animal {
   }
 };
 
+MM_EXTERN_CLASS(Carnivore);
+
 struct Cow : Herbivore {
   MM_CLASS(Cow, Herbivore);
   Cow() {
@@ -41,12 +51,16 @@ struct Cow : Herbivore {
   }
 };
 
+MM_EXTERN_CLASS(Cow);
+
 struct Wolf : Carnivore {
   MM_CLASS(Wolf, Carnivore);
   Wolf() {
     MM_INIT();
   }
 };
+
+MM_EXTERN_CLASS(Wolf);
 
 MULTI_METHOD(encounter, std::string, const multi_methods::virtual_<Animal>&, const multi_methods::virtual_<Animal>&);
 

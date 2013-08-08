@@ -302,7 +302,7 @@ namespace single_inheritance {
   struct Donkey : Herbivore { };
   
   template<>
-  struct encounter_method<string(Cow&, Cow&)> : ::multi_methods::specializer<decltype(encounter), string(Cow&, Cow&)> {
+  struct encounter_method<string(Cow&, Cow&)> : ::multi_methods::specialization<decltype(encounter), string(Cow&, Cow&)> {
     static string body(Cow&, Cow&) {
       return "moo!";
     }

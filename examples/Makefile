@@ -20,6 +20,7 @@ run : asteroids three next foreign
 	./three
 	./next
 	./foreign
+	./dl_main
 
 asteroids : asteroids.o multi_methods.o
 	$(CXX) $^ -o $@
