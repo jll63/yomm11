@@ -39,3 +39,5 @@
   &::multi_methods::register_spec<decltype(ID), ID ## _method>::the;
 
 #define END_SPECIALIZATION } };
+
+#define STATIC_CALL_METHOD(ID, SIG) ID ## _method<SIG>::body
