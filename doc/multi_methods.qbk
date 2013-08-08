@@ -21,7 +21,7 @@ Use, modification, and distribution are subject to the Boost Software License, V
 
 [/ [xinclude reference.xml] ]
 
-[include details.qbk]
+[include advanced_topics.qbk]
 
 [include reference.qbk]
 
