@@ -30,4 +30,20 @@ struct DisplayableSatellite {
 
 ``
 
+[h3 Implementation notes]
+
+`MM_CLASS_MULTI` expands to:
+
+``
+  MM_CLASS(CLASS, BASE, BASES);                                         \
+  std::vector<detail::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
+``
+
+`_get_mm_ptbl` returns a pointer to a vector of offsets into
+multi-method dispatch tables, contained in inherited class
+`selector`. This is exactly what the same function in `selector` does,
+and returning the table from one of the `selector` sub-objects or the
+other does not matter. Re-implementing it in the class merely lifts
+the ambiguity that would otherwise be reported during compilation.
+
 [endsect]

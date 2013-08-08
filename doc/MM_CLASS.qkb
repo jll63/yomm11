@@ -36,4 +36,16 @@ struct mare : horse, female {
 };
 ``
 
+[h3 Implementation notes]
+
+`MM_CLASS` expands to:
+
+``
+  virtual void _mm_init_class_() {
+    &::multi_methods::mm_class_initializer<CLASS, ::multi_methods::type_list<BASES>>::the;
+  }
+``
+
+This forces the instantiation of a class template and one static object that fills an internal data structure with inheritance information.
+
 [endsect]

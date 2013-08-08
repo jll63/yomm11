@@ -13,6 +13,8 @@
 [def __specialization__ [~specialization]]
 [def __mm__ [~multi_method]]
 
+[def __MM_INIT__ [`MM_INIT()`]]
+
 [import reference_examples.cpp]
 
 [section Registering classes]
@@ -20,8 +22,8 @@
 [include MM_CLASS.qkb]
 [include MM_CLASS_MULTI.qkb]
 [include MM_FOREIGN_CLASS.qkb]
-[include MM_CLASS_INIT.qkb]
-[include MM_CLASS_INIT_MULTI.qkb]
+[include MM_INIT.qkb]
+[include MM_INIT_MULTI.qkb]
 [endsect]
 
 [section Declaring multi-methods]

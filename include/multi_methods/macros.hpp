@@ -21,7 +21,7 @@
 
 #undef MM_CLASS_MULTI
 #define MM_CLASS_MULTI(CLASS, BASE, BASES...)                     \
-  MM_CLASS(CLASS, BASE, BASES)                                          \
+  MM_CLASS(CLASS, BASE, BASES);                                         \
   std::vector<detail::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
 
 #define MM_INIT_MULTI(BASE)                                       \

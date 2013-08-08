@@ -157,6 +157,15 @@ since templates were introduced in C++.
 
 [section No macros please]
 
+It is quite feasible to use the library without using the macros. They
+are convenient, but by no means necessary. See the reference, each
+macro contains a section showing the code it expands to and its
+rationale.
+
+Header `multi_methods/no_macros.hpp` contains only one macro definition,
+used for debugging purpose. All the documented macros are defined in
+`multi_methods/macros.hpp`.
+
 [endsect]
 
 [section Shared objects and dynamic loading]
