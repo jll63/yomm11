@@ -74,11 +74,3 @@ describe in their paper, done entirely using the existing C++11
 features.
 
 [endsect]
-
-[section Requirements]
-
-A C++11 compiler. The library has been tested with g++ 4.7.2 and clang++ 3.4.
-
-Three Boost libraries: TypeTraits, Preprocessor and Dynamic Bitset.
-
-[endsect]

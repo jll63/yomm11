@@ -166,12 +166,14 @@ memory leaks I admit). Multi-method dispatch happens at run time.
 
 [heading Where to go next]
 
-That is pretty much all there is to it.
-
 You may want to check the other examples in the `examples`
 directory. They feature: non-virtual arguments; a multi-method with
 three virtual arguments; and foreign classes.
 
-[@../examples/three.cpp three.cpp]
+[@examples/asteroids.cpp asteroids.cpp]
+
+[@examples/three.cpp three.cpp]
+
+[@examples/foreign.cpp foreign.cpp]
 
 [endsect]

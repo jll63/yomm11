@@ -1,6 +1,6 @@
 [/ -*- compile-command: "bjam" -*-; auto-fill-mode: t /]
 
-[section Advanced topics]
+[section:advanced_topics Advanced topics]
 
 [section Virtual and multiple inheritance]
 
@@ -168,7 +168,7 @@ used for debugging purpose. All the documented macros are defined in
 
 [endsect]
 
-[section Shared objects and dynamic loading]
+[section:dynamic_linking Shared objects and dynamic loading]
 
 Class hierarchies and multi-method and their specializations can span
 executable and shared objects. Dynamic loading is supported but [*do
@@ -196,11 +196,8 @@ they are declared in implementation files.
 
 An example of dynamic loading that uses `extern_macros.hpp` is provided in
 the `examples` directory. See [@../../examples/dl.hpp dl.hpp],
-[@../../examples/dl_main.cpp dl_main.cpp] and [@../../examples/dl_shared.cpp dl_shared.cpp].
+[@examples/dl_main.cpp dl_main.cpp] and [@examples/dl_shared.cpp dl_shared.cpp].
 
-[endsect]
-
-[section Performance]
 [endsect]
 
 [endsect]

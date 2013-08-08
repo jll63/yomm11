@@ -19,6 +19,8 @@ Use, modification, and distribution are subject to the Boost Software License, V
 
 [include tutorial.qbk]
 
+[include compiling_and_linking.qbk]
+
 [include advanced_topics.qbk]
 
 [include reference.qbk]
