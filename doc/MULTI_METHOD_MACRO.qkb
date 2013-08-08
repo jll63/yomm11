@@ -9,12 +9,12 @@ Declares a multi-method that takes __args__ as an argument list and
 returns a __return_type__.
 
 __args__ is an argument list, just like what is provided to an ordinary
-function declaration. However, arguments marked with the `virtual_`
+function declaration. However, arguments marked with the __virtual___
 modifier are considered in the selection of the actual code to be
 executed given the dynamic value passed in these positons.
 
 Virtual arguments must have their type registered with the
-MM_*CLASS family of macros. Virtual arguments, either of the intrusive
+MM_CLASS family of macros. Virtual arguments, either of the intrusive
 or foreign kinds, and ordinary function arguments can be freely
 intermixed.
 

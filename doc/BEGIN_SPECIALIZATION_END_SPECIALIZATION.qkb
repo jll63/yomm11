@@ -18,7 +18,7 @@ multi-method. __return_type__ must be conbertible to the multi-method's
 return type. __args__ must have the same length as the multi-method's
 argument list. Each argument must be either the same as the
 multi-method's argument in the same position, or if the multi-method
-has marked the argument with `virtual_`, a reference to an object of a
+has marked the argument with __virtual___, a reference to an object of a
 compliant type.
 
 [h3 Examples]

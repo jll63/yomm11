@@ -45,6 +45,6 @@ matrix::matrix(int rows, int cols) {
 `_init_mmptr` is a templatized member function that infers the current
 class, finds the internal data structure that describes it and
 contains a vector of offsets into multi-method dispatch tables. It
-sets the pointer contained in inherited class `selector` to that table.
+sets the pointer contained in inherited class __selector__ to that table.
 
 [endsect]

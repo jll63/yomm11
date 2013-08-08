@@ -9,7 +9,7 @@ MM_INIT_MULTI();
 
 [h3 Description]
 
-Same as [link multi_methods.reference.registering_classes.mm_class_multi MM_INIT], to be used in presence of *repeated* inheritance of class `selector`.
+Same as [link multi_methods.reference.registering_classes.mm_class_multi MM_INIT], to be used in presence of *repeated* inheritance of class __selector__.
 
 [h3 Implementation notes]
 

@@ -13,7 +13,21 @@
 [def __specialization__ [~specialization]]
 [def __mm__ [~multi_method]]
 
-[def __MM_INIT__ [`MM_INIT()`]]
+[def __selector__ [link multi_methods.reference.registering_classes.selector `selector`]]
+[def __MM_CLASS_MULTI__ [link multi_methods.reference.registering_classes.mm_class_multi `MM_CLASS_MULTI`]]
+[def __MM_CLASS__ [link multi_methods.reference.registering_classes.mm_class `MM_CLASS`]]
+[def __MM_FOREIGN_CLASS__ [link multi_methods.reference.registering_classes.mm_foreign_class `MM_FOREIGN_CLASS`]]
+[def __MM_INIT_MULTI__ [link multi_methods.reference.registering_classes.mm_init_multi `MM_INIT_MULTI`]]
+[def __MM_INIT__ [link multi_methods.reference.registering_classes.mm_init `MM_INIT`]]
+
+[def __virtual___ [link multi_methods.reference.declaring_multi_methods.virtual_ `virtual_`]]
+[def __MULTI_METHOD_MACRO__ [link multi_methods.reference.declaring_multi_methods.multi_method_macro `MULTI_METHOD_MACRO`]]
+[def __multi_method__ [link multi_methods.reference.declaring_multi_methods.multi_method `multi_method`]]
+[def __multi_method_specialize__ [link multi_methods.reference.specializing.multi_method_specialize `multi_method::specialize`]]
+
+
+[def __initialize__ [link multi_methods.reference.calling.initialize `initialize`]]
+[def __multi_method_operator_call__ [link multi_methods.reference.calling.multi_method_operator_call `multi_method::operator ()`]]
 
 [import reference_examples.cpp]
 

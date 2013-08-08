@@ -195,7 +195,8 @@ Note that foreign classes do not incur the duplication problem because
 they are declared in implementation files.
 
 An example of dynamic loading that uses `extern_macros.hpp` is provided in
-the `examples` directory.
+the `examples` directory. See [@../../examples/dl.hpp dl.hpp],
+[@../../examples/dl_main.cpp dl_main.cpp] and [@../../examples/dl_shared.cpp dl_shared.cpp].
 
 [endsect]
 

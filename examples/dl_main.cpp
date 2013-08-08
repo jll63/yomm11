@@ -6,6 +6,13 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+// compile with the following commands:
+// g++ -I$BOOST_ROOT -std=c++11 -I../include -g -c dl_main.cpp
+// g++ -I$BOOST_ROOT -std=c++11 -I../include -g -c ../src/multi_methods.cpp
+// g++ dl_main.o multi_methods.o -o dl_main -ldl -rdynamic
+// g++ -I$BOOST_ROOT -std=c++11 -I../include -g -fPIC -c -o dl_shared.o dl_shared.cpp
+// g++ -shared -Wl,-soname,dl_shared.so -o dl_shared.so dl_shared.o
+
 #include <multi_methods.hpp>
 #include "dl.hpp"
 

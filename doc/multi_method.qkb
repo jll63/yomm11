@@ -24,8 +24,8 @@ template is then typically used to define specializations while
 averting namespace pollution.
 
 __args__ must contain at least one argument that includes the
-`virtual_` marker. The markers are removed from the signature of
-`operator ()`.
+__virtual___ marker. The markers are removed from the signature of
+__operator ()__.
 
 Multi-methods are stateless function objects. The data structures
 implementing specialization registration and method dispatch reside in

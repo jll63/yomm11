@@ -7,10 +7,10 @@ MM_CLASS_MULTI(__class__, __bases__...)
 [h3 Description]
 
 Same as [link multi_methods.reference.registering_classes.mm_class MM_CLASS], to be used
-in presence of *repeated* inheritance of class `selector`.
+in presence of *repeated* inheritance of class __selector__.
 
 `MM_CLASS_MULTI` should not be used if __class__ inherits (virtually)
-the same `selector` sub-object via different inheritance paths.
+the same __selector__ sub-object via different inheritance paths.
 
 [h3 Examples]
 
@@ -41,8 +41,8 @@ struct DisplayableSatellite {
 
 `_get_mm_ptbl` returns a pointer to a vector of offsets into
 multi-method dispatch tables, contained in inherited class
-`selector`. This is exactly what the same function in `selector` does,
-and returning the table from one of the `selector` sub-objects or the
+__selector__. This is exactly what the same function in __selector__ does,
+and returning the table from one of the __selector__ sub-objects or the
 other does not matter. Re-implementing it in the class merely lifts
 the ambiguity that would otherwise be reported during compilation.
 

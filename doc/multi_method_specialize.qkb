@@ -1,4 +1,4 @@
-[section multi_method::specialize]
+[section:multi_method_specialize multi_method::specialize]
 
 [h3 Synopsis]
 
@@ -12,7 +12,7 @@ __specialization__ must be a class with the following pubic members:
 
 * `static __return_type__ body(__args__...);`
 
-* `static __return_type__ (*next)(__args...);`
+* `static __return_type__ (*next)(__args__...);`
 
 Typically, __specialization__ is a specialization of __class_template__.
 

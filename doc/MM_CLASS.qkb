@@ -1,4 +1,4 @@
-[section:mm_class MM_CLASS]
+[section MM_CLASS]
 
 [h3 Synopsis]
 
@@ -11,11 +11,7 @@ Registers a class for efficient multi-method dispatch.
 Macro `MM_CLASS` must be called inside the definition of __class__. The
 subsequent arguments __bases__ consist in the (possibly empty) list 
 of base classes that the dispatcher must take into account. __class__
-must derive (directly or indirectly) from `multimethods::selector`.
-
-Three items are introduced in the class' scope, all of which
-are implementation details: `mm_base_list`, `mm_this_type` and
-`_mm_init_class`.
+must derive (directly or indirectly) from __selector__.
 
 [h3 Example]
 ``
