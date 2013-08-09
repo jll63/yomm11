@@ -6,7 +6,7 @@
 
 
 All forms of virtual and multiple inheritance are supported, sometimes
-at the cost of a performance cost or some extra work on your part.
+at a performance cost or some extra work on your part.
 
 [h3 Virtual inheritance]
 
@@ -34,7 +34,7 @@ foo(X(), X()); // 1
 foo(A(), B()); // 2
 ``
 
-Here the first call to `foo()` does not necessitate a cast: both
+Here the first call to `foo()` does not necessitate any casts: both
 arguments are `X` objects.
 
 As for the second call, the first argument needs to be converted to a
@@ -68,7 +68,7 @@ The second call is more difficult: `bar` takes a `XY` object that
 contains /two/ `selector` sub-object. Truth is, it does not matter
 which `selector` it uses: they contain the same
 information. Nonetheless, you must tell C++ which `selector` to
-chose.
+use.
 
 Moreover, in the cooperating model, it is the responsibility of the
 classes to initialize the `selector` objects.
@@ -195,7 +195,7 @@ Note that foreign classes do not incur the duplication problem because
 they are declared in implementation files.
 
 An example of dynamic loading that uses `extern_macros.hpp` is provided in
-the `examples` directory. See [@../../examples/dl.hpp dl.hpp],
+the `examples` directory. See [@examples/dl.hpp dl.hpp],
 [@examples/dl_main.cpp dl_main.cpp] and [@examples/dl_shared.cpp dl_shared.cpp].
 
 [endsect]

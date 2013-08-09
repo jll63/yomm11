@@ -14,7 +14,7 @@ boostbook quickbook
         <xsl:param>chunk.first.sections=1
         <xsl:param>chunk.section.depth=4
         <xsl:param>toc.section.depth=3
-        <xsl:param>toc.max.depth=2
+        <xsl:param>toc.max.depth=3
         #<xsl:param>nav.layout=none
         <xsl:param>boost.defaults=none
         <dependency>reference

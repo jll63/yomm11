@@ -1,0 +1,36 @@
+[section next]
+
+[h3 Synopsis]
+
+next(__args__...)
+
+[h3 Description]
+
+Inside a specialization, calls the next most specific
+specialization, if it exists.
+
+`next` is a pointer to a function that takes the same argument list as
+the specialized multi-method, and returns the same type.
+
+If no such method exists, either because no less specific
+specialization exists, or because several less specific
+specializations exists but none of them is more specific than all the
+others, then `next` contains `nullptr`.
+
+[h3 Example]
+
+``
+MULTI_METHOD(inspect, bool, virtual_<Vehicle>&, virtual_<Inspector>&);
+
+BEGIN_SPECIALIZATION(inspect, bool, Car& v, Inspector& i) {
+  ...
+  bool ok = true;
+  
+  if (next) {
+    ok = next(v, i);
+  }
+  ...
+} END_SPECIALIZATION;
+``
+
+[endsect]

@@ -1,4 +1,4 @@
-[section multi_method::operator ()]
+[section:multi_method_operator_call multi_method::operator ()]
 
 [h3 Synopsis]
 
@@ -6,7 +6,12 @@ __mm__(__args__...);
 
 [h3 Description]
 
-Calls a multi-method.
+Calls a multi-method. The most specific specializatoin is used.
+
+If no specialization accepting __args__ exists, an exception of type
+__undefined__ is thrown. If one or more acceptable specializations
+exists, but none of them is more specific than all the others, an
+exception of type __ambiguous__ is thrown.
 
 [h3 Example]
 

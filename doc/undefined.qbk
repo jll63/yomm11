@@ -1,0 +1,20 @@
+[section undefined]
+
+[h3 Synopsis]
+
+try {
+  __mm__(__args__...);
+} catch (undefined&) {
+  ...
+}
+
+[h3 Description]
+
+Thrown by __multi_method_operator_call__ when no specialization exists
+for an actual argument list.
+
+[h3 Example]
+
+See synopsis.
+
+[endsect]

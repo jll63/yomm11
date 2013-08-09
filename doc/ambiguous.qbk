@@ -1,0 +1,21 @@
+[section ambiguous]
+
+[h3 Synopsis]
+
+try {
+  __mm__(__args__...);
+} catch (ambiguous&) {
+  ...
+}
+
+[h3 Description]
+
+Thrown by __multi_method_operator_call__ when several specialization
+exist that take __args__ as arguments, but none of them is more
+specific than all the others.
+
+[h3 Example]
+
+See synopsis.
+
+[endsect]

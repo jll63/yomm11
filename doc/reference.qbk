@@ -25,9 +25,10 @@
 [def __multi_method__ [link multi_methods.reference.declaring_multi_methods.multi_method `multi_method`]]
 [def __multi_method_specialize__ [link multi_methods.reference.specializing.multi_method_specialize `multi_method::specialize`]]
 
-
 [def __initialize__ [link multi_methods.reference.calling.initialize `initialize`]]
 [def __multi_method_operator_call__ [link multi_methods.reference.calling.multi_method_operator_call `multi_method::operator ()`]]
+[def __undefined__ [link multi_methods.reference.calling.undefined  `undefined`]]
+[def __ambiguous__ [link multi_methods.reference.calling.ambiguous  `ambiguous`]]
 
 [import reference_examples.cpp]
 
@@ -54,6 +55,9 @@
 [section Calling]
 [include initialize.qkb]
 [include multi_method_operator_call.qkb]
+[include next.qbk]
+[include undefined.qbk]
+[include ambiguous.qbk]
 [endsect]
 
 [endsect]
