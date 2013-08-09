@@ -3,7 +3,7 @@
 Copyright Jean-Louis Leroy 2013.
 Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
 ===============================================================================/]
-[library Multi-methods
+[article Multi-methods
     [quickbook 1.5]
     [id multi_methods]
     [version 1.0]
