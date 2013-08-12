@@ -83,10 +83,10 @@ BEGIN_SPECIALIZATION(inspect, void, Car& v, StateInspector& i) {
 int main() {
   multi_methods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
 
-  Vehicle& vehicle1 = *new Car;
-  Inspector& inspector1 = *new StateInspector;
-  Vehicle& vehicle2 = *new Truck;
-  Inspector& inspector2 = *new Inspector;
+  Vehicle&& vehicle1 = Car();
+  Inspector&& inspector1 = StateInspector();
+  Vehicle&& vehicle2 = Truck();
+  Inspector&& inspector2 = Inspector();
 
   cout << "First inspection:\n";
   inspect(vehicle1, inspector1);

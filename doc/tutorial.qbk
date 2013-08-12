@@ -161,8 +161,8 @@ Inspect vehicle.
 ``
 
 Note that what is happening here has nothing to do with function
-overloading: the real type of the objects are hidden (at the cost of
-memory leaks I admit). Multi-method dispatch happens at run time.
+overloading: the real type of the objects are hidden. Multi-method
+dispatch happens at run time.
 
 [heading Where to go next]
 
