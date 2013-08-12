@@ -11,14 +11,14 @@ Salient features are:
   involved in the virtual arguments collaborate with the
   library. Calling a method that does nothing, with a single virtual
   argument in a single inheritance hierarchy is 33% slower than the
-  equivalent virtual function call. The difference becomes unnoticeable
-  if the functions perform a few simple maths operations. See
-  tests/benchmarks.cpp.
+  equivalent virtual function call. The difference becomes
+  unnoticeable if the functions perform a few simple maths
+  operations. See tests/benchmarks.cpp.
 
-* size: the dispatch table is constructed in terms of class
-  groups. This results, most of the time, in a table devoid of
-  redundancies. The size is bounded by the product of the number of
-  specializers - not classes - in each dimension.
+* size: dispatch tables are constructed in terms of class groups. This
+  results, most of the time, in a table devoid of redundancies. The
+  size is bounded by the product of the number of specializers - not
+  classes - in each dimension.
 
 * support for "foreign" class hierarchies: the library can be used
   without modifications to existing classes, at the cost of lower
@@ -29,6 +29,6 @@ Salient features are:
   inside method specializations - see examples/next.cpp.
   Alternatively, it is possible to call a specialization directly.
 
-The documentatoin can be viewed here: http://www.yorel.be/mm/
+The documentation can be viewed here: http://www.yorel.be/mm/
   
-This is a work in progress - although it is nearing completion.
+This is a work in progress, but nearing completion.
