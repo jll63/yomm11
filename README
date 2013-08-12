@@ -1,15 +1,34 @@
+This library implements open multi-methods for C++11.
+
+Salient features are:
+
+* syntax: is relatively uncluttered. There are no limitations on the
+  number of virtual arguments. Virtual and non-virtual arguments can
+  be arbitrarily mixed. Multiple inheritance is supported, with some
+  limitations - see below.
+
+* speed: close to a virtual function call when the hierarchies
+  involved in the virtual arguments collaborate with the
+  library. Calling a method that does nothing, with a single virtual
+  argument in a single inheritance hierarchy is 33% slower than the
+  equivalent virtual function call. The difference becomes unnoticeable
+  if the functions perform a few simple maths operations. See
+  tests/benchmarks.cpp.
+
+* size: the dispatch table is constructed in terms of class
+  groups. This results, most of the time, in a table devoid of
+  redundancies. The size is bounded by the product of the number of
+  specializers - not classes - in each dimension.
+
+* support for "foreign" class hierarchies: the library can be used
+  without modifications to existing classes, at the cost of lower
+  performance. Collaborating and foreign arguments can be freely
+  mixed. Performance is still quite good, see the benchmarks.
+
+* next: a pointer to the next most specialized method is available
+  inside method specializations - see examples/next.cpp.
+  Alternatively, it is possible to call a specialization directly.
+
+The documentatoin can be viewed here: http://www.yorel.be/mm/
+  
 This is a work in progress - although it is nearing completion.
-
-There is no documentation yet but take a look at the examples. Using
-the library is pretty straighforward.
-
-No proper Makefile either. If the Boost community wants to bring this
-stuff in, it may be bjam soon. Or something else. For the time being,
-just compile and link multimethods.cpp in your program. You will need
-a few Boost libraries (type traits, dynamic bitset and iterator
-adapters). If you want to use the minimal makefiles in the tests and
-examples directories, make sure that your CXXFLAGS adds the Boost
-include directory.
-
-This code is very C++11-ish. You will need a compiler that is up to
-the task. I use g++ 4.7.2 and clang++ 3.4.
