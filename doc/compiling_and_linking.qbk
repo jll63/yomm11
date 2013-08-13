@@ -4,13 +4,25 @@ You will need:
 
 * a C++11 compiler. The library has been tested with g++ 4.7.2 and clang++ 3.4.
 
-* three Boost libraries: TypeTraits, Preprocessor and Dynamic Bitset.
+* three Boost libraries: TypeTraits, Preprocessor and Dynamic
+  Bitset. Make sure that environment variable `BOOST_ROOT` points to
+  the root of your installation.
 
-Currently there is no Makefile or other build procedure. The library
-consists in a few header files and one cpp file. Add the library's
-`include` directory to the include path and `#include
-<multi_methods.hpp>`. Make sure that the Boost headers are accessible
-as well. Compile and link `src/multi_methods.cpp` in your
+* cmake
+
+Run the following commands:
+
+   cmake
+   make
+   make test
+   make install
+
+This will compile, test and install the library and the header files
+in the default locations. You can override this by passing
+`-DCMAKE_INSTALL_PREFIX=<dir>` to cmake.
+
+Alternatively, you can add the library's `include` directory to the
+include path and compile and link `src/multi_methods.cpp` in your
 application.
 
 Read [link multi_methods.advanced_topics.dynamic_linking this section]

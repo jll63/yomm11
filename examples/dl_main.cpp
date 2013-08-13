@@ -1,4 +1,4 @@
-// -*- compile-command: "make -B dl_main dl_shared.so && ./dl_main" -*-
+// -*- compile-command: "make dl_main libdl_shared.so && ./dl_main" -*-
 
 // dl_main.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -37,7 +37,7 @@ int main() {
   cout << "encounter(Cow(), Wolf()) -> " << encounter(Cow(), Wolf()) << endl;
   cout << "encounter(Wolf(), Cow()) -> " << encounter(Wolf(), Cow()) << endl;
 
-  void* handle = dlopen("./dl_shared.so", RTLD_NOW);
+  void* handle = dlopen("./libdl_shared.so", RTLD_NOW);
 
   if (!handle) {
     cout << "dlopen() failed: " << dlerror() << "\n";

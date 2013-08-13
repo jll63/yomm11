@@ -1,4 +1,4 @@
-// -*- compile-command: "make runtests" -*-
+// -*- compile-command: "make tests && ./tests" -*-
 
 // tests.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -983,5 +983,5 @@ int main() {
   cout << "\n" << success << " tests succeeded, " << failure << " failed.\n";
   
   return 0;
-  }
+}
 

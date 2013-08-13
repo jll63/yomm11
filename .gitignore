@@ -2,6 +2,7 @@ a.out
 *.s
 *.o
 *.d
+*.a
 /tests/experiments
 /tests/tests
 /examples/three
@@ -21,3 +22,10 @@ a.out
 /examples/dl_main
 /examples/dl_shared.so
 /examples/examples
+CMakeCache.txt
+CMakeFiles/
+Testing/
+*.cmake
+Makefile
+/examples/libdl_shared.so
+/install_manifest.txt
