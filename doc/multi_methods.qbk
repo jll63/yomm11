@@ -6,7 +6,7 @@ Use, modification, and distribution are subject to the Boost Software License, V
 [article Multi-methods
     [quickbook 1.5]
     [id multi_methods]
-    [version 1.0]
+    [version 0.0]
     [authors [Leroy, Jean-Louis]]
     [copyright 2013 Jean-Louis Leroy]
     [purpose Open multi-methods for C++]
@@ -14,6 +14,8 @@ Use, modification, and distribution are subject to the Boost Software License, V
         Distributed under the Boost Software License, Version 1.0.
         (See accompanying file LICENSE_1_0.txt or copy at
         [@http://www.boost.org/LICENSE_1_0.txt])]]
+
+Support: [@https://groups.google.com/forum/#!forum/ommcpp11 OMMC++11 on Google Groups]
 
 [include intro.qbk]
 
@@ -36,3 +38,4 @@ generation"] by Amiel, Dujardin and Simon was influential in the design
 of the algorithm for dispatch table generation.
 
 [endsect]
+
