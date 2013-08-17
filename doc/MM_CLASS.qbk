@@ -15,7 +15,7 @@ must derive (directly or indirectly) from __selector__.
 
 [h3 Example]
 ``
-struct animal : yorel::multimethods::selector {
+struct animal : yorel::multi_methods::selector {
   MM_CLASS(animal);
 };
 
