@@ -12,9 +12,10 @@
 
 using namespace std;
 
-using multi_methods::virtual_;
+using yorel::multi_methods::virtual_;
+using yorel::multi_methods::selector;
 
-struct role : multi_methods::selector {
+struct role : selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
@@ -35,7 +36,7 @@ struct ceo : role {
   }
 };
 
-struct expense : multi_methods::selector {
+struct expense : selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -56,7 +57,7 @@ struct cab : expense {
   }
 };
 
-struct reason : multi_methods::selector {
+struct reason : selector {
   MM_CLASS(reason);
   reason() {
     MM_INIT();
@@ -94,7 +95,7 @@ BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&)
 #define demo(exp) cout << #exp << " -> " << exp << endl
 
 int main() {
-  multi_methods::initialize(); // IMPORTANT!
+  yorel::multi_methods::initialize(); // IMPORTANT!
   cout << boolalpha;
 
   // ceo does as he pleases

@@ -7,14 +7,14 @@
 #include <multi_methods.hpp>
 #include <memory>
 
-struct role : multi_methods::selector {
+struct role : yorel::multi_methods::selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
   }
 };
 
-struct expense : multi_methods::selector {
+struct expense : yorel::multi_methods::selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -28,7 +28,7 @@ struct plane : expense {
   }
 };
 
-struct reason : multi_methods::selector {
+struct reason : yorel::multi_methods::selector {
   MM_CLASS(reason);
   reason() {
     MM_INIT();
@@ -42,6 +42,6 @@ struct comfort : reason {
   }
 };
 
-MULTI_METHOD(approve, bool, const multi_methods::virtual_<expense>&, const multi_methods::virtual_<role>&, const multi_methods::virtual_<reason>&);
+MULTI_METHOD(approve, bool, const yorel::multi_methods::virtual_<expense>&, const yorel::multi_methods::virtual_<role>&, const yorel::multi_methods::virtual_<reason>&);
 
 extern std::unique_ptr<role> make_ceo();

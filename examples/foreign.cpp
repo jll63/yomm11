@@ -12,7 +12,8 @@
 
 using namespace std;
 
-using multi_methods::virtual_;
+using yorel::multi_methods::virtual_;
+using yorel::multi_methods::selector;
 
 // following hierarchy does not collaborate with multi-methods
 
@@ -34,7 +35,7 @@ MM_FOREIGN_CLASS(ceo, role);
 
 // this one does
 
-struct expense : multi_methods::selector {
+struct expense : selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -92,7 +93,7 @@ BEGIN_SPECIALIZATION(approve, bool, const cab&, const manager&, const business&)
 #define demo(exp) cout << #exp << " -> " << exp << endl
 
 int main() {
-  multi_methods::initialize(); // IMPORTANT!
+  yorel::multi_methods::initialize(); // IMPORTANT!
   cout << boolalpha;
 
   // ceo does as he pleases

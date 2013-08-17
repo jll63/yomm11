@@ -11,7 +11,7 @@
 
 using namespace std;
 
-using multi_methods::virtual_;
+using yorel::multi_methods::virtual_;
 
 struct ceo : role {
   MM_CLASS(ceo, role);

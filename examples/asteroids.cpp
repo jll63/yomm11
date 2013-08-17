@@ -11,9 +11,9 @@
 #include <iostream>
 
 using namespace std;
-using multi_methods::virtual_;
+using yorel::multi_methods::virtual_;
 
-struct object : multi_methods::selector {
+struct object : yorel::multi_methods::selector {
   MM_CLASS(object);
   object() {
     MM_INIT();
@@ -63,7 +63,7 @@ BEGIN_SPECIALIZATION(collide, string, asteroid& a, asteroid& b, bool swapped) {
 } END_SPECIALIZATION;
 
 int main() {
-  multi_methods::initialize(); // IMPORTANT!
+  yorel::multi_methods::initialize(); // IMPORTANT!
   
   ship player;
   asteroid as;

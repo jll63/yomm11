@@ -15,12 +15,13 @@ using namespace std;
 //[ prologue
 #include <multi_methods.hpp>
 
-using multi_methods::virtual_;
+using yorel::multi_methods::virtual_;
+using yorel::multi_methods::selector;
 //]
 
 
 //[ vehicle
-struct Vehicle : multi_methods::selector {
+struct Vehicle : selector {
   MM_CLASS(Vehicle);
   Vehicle() {
     MM_INIT();
@@ -43,7 +44,7 @@ struct Truck : Vehicle {
   }
 };
 
-struct Inspector : multi_methods::selector {
+struct Inspector : selector {
   MM_CLASS(Inspector);
   Inspector() {
     MM_INIT();
@@ -81,7 +82,7 @@ BEGIN_SPECIALIZATION(inspect, void, Car& v, StateInspector& i) {
 
 //[ call
 int main() {
-  multi_methods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
+  yorel::multi_methods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
 
   Vehicle&& vehicle1 = Car();
   Inspector&& inspector1 = StateInspector();

@@ -30,7 +30,7 @@ determine the selection of the specialization to be called. It is used
 quite frequently, so it makes sense to import it in the current
 namespace. You may also want to import the class `selector` (see
 below). Other than that, if you stick to the macros, it does not make
-much sense to import the `multimethods` namepace as a whole.
+much sense to import the `yorel::multimethods` namespace as a whole.
 
 [heading Declaring classes]
 
@@ -45,7 +45,7 @@ multi-method table and initializing it in the constructors. In that
 case, multi-method calls will be nearly as fast as virtual function
 calls if there is a single virtual argument - and much faster than
 solutions based on multiple dispatch otherwise. Under this scheme, the
-roots of the class hierarchies derive from `multimethods::selector`.
+roots of the class hierarchies derive from `yorel::multimethods::selector`.
 
 The definition of class `Vehicle` thus looks like this:
 
@@ -136,7 +136,7 @@ executed - if it exists and is unique.
 [heading Calling multi-methods]
 
 Before actually calling any multi-method, the
-`multimethods::initialize()` function must be called. It must also be
+`yorel::multimethods::initialize()` function must be called. It must also be
 called whenever classes or methods are added or removed, for example
 when loading or un-loading dynamic libraries. `initialize()` builds the
 dispatch tables for all the classes and all the multi-methods that

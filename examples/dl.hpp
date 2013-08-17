@@ -17,7 +17,7 @@
 #include <multi_methods/extern_macros.hpp>
 #endif
 
-struct Animal : multi_methods::selector {
+struct Animal : yorel::multi_methods::selector {
   MM_CLASS(Animal);
   Animal() {
     MM_INIT();
@@ -62,6 +62,6 @@ struct Wolf : Carnivore {
 
 MM_EXTERN_CLASS(Wolf);
 
-MULTI_METHOD(encounter, std::string, const multi_methods::virtual_<Animal>&, const multi_methods::virtual_<Animal>&);
+MULTI_METHOD(encounter, std::string, const yorel::multi_methods::virtual_<Animal>&, const yorel::multi_methods::virtual_<Animal>&);
 
 #endif

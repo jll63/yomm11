@@ -1,4 +1,4 @@
-// -*- compile-command: "make dl_main dl_shared.so && ./dl_main" -*-
+// -*- compile-command: "make dl_main libdl_shared.so && ./dl_main" -*-
 
 // dl_shared.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -14,7 +14,7 @@
 #include <iostream>
 
 using namespace std;
-using multi_methods::virtual_;
+using yorel::multi_methods::virtual_;
 
 struct Tiger : Carnivore {
   MM_CLASS(Tiger, Carnivore);

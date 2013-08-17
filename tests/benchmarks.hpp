@@ -8,7 +8,7 @@
 
 namespace intrusive {
 
-  struct object : multi_methods::selector {
+  struct object : yorel::multi_methods::selector {
 
     MM_CLASS(object);
 
@@ -28,7 +28,7 @@ namespace intrusive {
 
 namespace vbase {
 
-  struct object : multi_methods::selector {
+  struct object : yorel::multi_methods::selector {
 
     MM_CLASS(object);
 

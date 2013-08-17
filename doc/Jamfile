@@ -17,18 +17,4 @@ boostbook quickbook
         <xsl:param>toc.max.depth=3
         #<xsl:param>nav.layout=none
         <xsl:param>boost.defaults=none
-        <dependency>reference
     ;
-    
-doxygen reference
-  :
-    [ glob ../include/*.hpp ]
-  :
-    <doxygen:param>HIDE_UNDOC_MEMBERS=YES
-    <doxygen:param>QUIET=YES
-    <doxygen:param>WARN_IF_UNDOCUMENTED=NO
-    <doxygen:param>PREDEFINED=DOXYGEN_SHOULD_SKIP_THIS
-    <doxygen:param>FULL_PATH_NAMES=NO
-#    <doxygen:param>STRIP_FROM_PATH=
-    <doxygen:param>EXAMPLE_PATH=../doc
-  ;

@@ -20,7 +20,7 @@
 #include <dlfcn.h>
 
 using namespace std;
-using multi_methods::virtual_;
+using yorel::multi_methods::virtual_;
 
 BEGIN_SPECIALIZATION(encounter, string, const Animal&, const Animal&) {
   return "ignore";
@@ -31,7 +31,7 @@ BEGIN_SPECIALIZATION(encounter, string, const Herbivore&, const Carnivore&) {
 } END_SPECIALIZATION;
 
 int main() {
-  multi_methods::initialize(); // IMPORTANT!
+  yorel::multi_methods::initialize(); // IMPORTANT!
 
   cout << "Before loading library\n";
   cout << "encounter(Cow(), Wolf()) -> " << encounter(Cow(), Wolf()) << endl;
@@ -45,7 +45,7 @@ int main() {
   }
 
   cout << "After loading library\n";
-  multi_methods::initialize(); // IMPORTANT!
+  yorel::multi_methods::initialize(); // IMPORTANT!
 
   using make_tyget_type = Animal* (*)();
   make_tyget_type make_tiger = reinterpret_cast<make_tyget_type>(dlsym(handle, "make_tiger"));

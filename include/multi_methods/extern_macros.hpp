@@ -12,11 +12,11 @@
 #undef MM_EXTERN_CLASS
 
 #define MM_EXTERN_CLASS(CLASS)                                  \
-  extern template class ::multi_methods::mm_class_of<CLASS>
+  extern template class ::yorel::multi_methods::mm_class_of<CLASS>
 
 #undef MULTI_METHOD
 
 #define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                          \
   template<typename Sig> struct ID ## _method;                          \
-  constexpr ::multi_methods::multi_method<ID ## _method, RETURN_TYPE(ARGS)> ID{}; \
-  extern template class ::multi_methods::detail::multi_method_implementation<RETURN_TYPE, ARGS>
+  constexpr ::yorel::multi_methods::multi_method<ID ## _method, RETURN_TYPE(ARGS)> ID{}; \
+  extern template class ::yorel::multi_methods::detail::multi_method_implementation<RETURN_TYPE, ARGS>

@@ -12,8 +12,8 @@
 #include <multi_methods.hpp>
 
 using namespace std;
-using multi_methods::selector;
-using multi_methods::virtual_;
+using yorel::multi_methods::selector;
+using yorel::multi_methods::virtual_;
 
 // Vehicle is the root of a class hierarchy that includes support for fast dispatch.
 // That means:
@@ -38,7 +38,7 @@ struct Truck : Vehicle {
   }
 };
 
-struct Inspector : multi_methods::selector {
+struct Inspector : selector {
   MM_CLASS(Inspector);
   Inspector() {
     MM_INIT();
@@ -73,7 +73,7 @@ BEGIN_SPECIALIZATION(inspect, void, Car& v, StateInspector& i) {
 } END_SPECIALIZATION;
 
 int main() {
-  multi_methods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
+  yorel::multi_methods::initialize(); // IMPORTANT! - allocates slots and compute dispatch tables
   Car car;
   StateInspector inspector;
   // call method:
