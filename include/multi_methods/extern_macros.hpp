@@ -1,3 +1,5 @@
+// -*- compile-command: "cd ../.. && make && make test" -*-
+
 // extern_macros.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -12,7 +14,7 @@
 #undef MM_EXTERN_CLASS
 
 #define MM_EXTERN_CLASS(CLASS)                                  \
-  extern template class ::yorel::multi_methods::mm_class_of<CLASS>
+  extern template class ::yorel::multi_methods::mm_class::of<CLASS>
 
 #undef MULTI_METHOD
 

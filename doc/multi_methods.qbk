@@ -6,10 +6,9 @@ Use, modification, and distribution are subject to the Boost Software License, V
 [article Multi-methods
     [quickbook 1.5]
     [id multi_methods]
-    [version 0.0]
+    [version 1.0]
     [authors [Leroy, Jean-Louis]]
     [copyright 2013 Jean-Louis Leroy]
-    [purpose Open multi-methods for C++]
     [license
         Distributed under the Boost Software License, Version 1.0.
         (See accompanying file LICENSE_1_0.txt or copy at

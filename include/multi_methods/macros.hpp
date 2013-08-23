@@ -1,3 +1,5 @@
+// -*- compile-command: "cd ../.. && make && make test" -*-
+
 // macros.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -6,15 +8,15 @@
 
 #undef MM_CLASS
 #define MM_CLASS(CLASS, BASES...)                                       \
-  virtual void _mm_init_class_() { &::yorel::multi_methods::mm_class_initializer<CLASS, ::yorel::multi_methods::type_list<BASES>>::the; }
+  virtual void _mm_init_class_() { &::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>>::the; }
 
 #undef MM_EXTERN_CLASS
 #define MM_EXTERN_CLASS(CLASS)
   
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
-  static_assert(::yorel::multi_methods::check_bases<CLASS, ::yorel::multi_methods::type_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
+  static_assert(::yorel::multi_methods::detail::check_bases<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
   static_assert(std::is_polymorphic<CLASS>::value, "error: class must be polymorphic"); \
-  namespace { ::yorel::multi_methods::mm_class_initializer<CLASS, ::yorel::multi_methods::type_list<BASES>> BOOST_PP_CAT(_mm_add_class, CLASS); }
+  namespace { ::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>> BOOST_PP_CAT(_mm_add_class, CLASS); }
 
 #define MM_INIT() \
   this->_init_mmptr(this)
@@ -22,7 +24,7 @@
 #undef MM_CLASS_MULTI
 #define MM_CLASS_MULTI(CLASS, BASE, BASES...)                     \
   MM_CLASS(CLASS, BASE, BASES);                                         \
-  std::vector<detail::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
+  std::vector<mm_class::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
 
 #define MM_INIT_MULTI(BASE)                                       \
   this->BASE::_init_mmptr(this)
@@ -32,11 +34,11 @@
   template<typename Sig> struct ID ## _method;                          \
   constexpr ::yorel::multi_methods::multi_method<ID ## _method, RETURN_TYPE(ARGS)> ID{};
   
-#define BEGIN_SPECIALIZATION(ID, RESULT, ARGS...)                               \
+#define BEGIN_SPECIALIZATION(ID, RESULT, ARGS...)                       \
   template<>                                                            \
-  struct ID ## _method<RESULT(ARGS)> : ::yorel::multi_methods::specialization<decltype(ID), RESULT(ARGS)> { \
-  static RESULT body(ARGS) {                                            \
-  &::yorel::multi_methods::register_spec<decltype(ID), ID ## _method>::the;
+  struct ID ## _method<RESULT(ARGS)> : decltype(ID)::specialization<ID ## _method<RESULT(ARGS)>> { \
+  virtual void* _mm_install() { return &decltype(ID)::register_spec<ID ## _method>::the; } \
+  static RESULT body(ARGS) {
 
 #define END_SPECIALIZATION } };
 

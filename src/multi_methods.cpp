@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../tests && make" -*-
+// -*- compile-command: "cd .. && make && make test" -*-
 
 // multi_method.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -7,6 +7,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <multi_methods.hpp>
+#include <multi_methods/runtime.hpp>
 #include <unordered_set>
 #include <functional>
 #include <boost/range/adaptor/reversed.hpp>
@@ -16,6 +17,21 @@ using boost::dynamic_bitset;
 using boost::adaptors::reverse;
 
 namespace yorel { namespace multi_methods {
+
+    using namespace detail;
+
+    undefined::undefined() :
+      runtime_error("multi-method call is undefined for these arguments") {
+    }
+
+    undefined::undefined(const std::string& message) : runtime_error(message) {
+    }
+
+    ambiguous::ambiguous() :
+      undefined("multi-method call is ambiguous for these arguments") {
+    }
+    
+    using class_set = std::unordered_set<const mm_class*>;
 
     mm_class::mm_class(const type_info& t) : ti(t), abstract(false), index(-1), root(nullptr) {
       //cout << "mm_class() for " << ti.name() << " at " << this << endl;
@@ -63,7 +79,7 @@ namespace yorel { namespace multi_methods {
     }
   
     void mm_class::initialize(const vector<mm_class*>& b) {
-      MM_TRACE(cout << "initialize class_of<" << ti.name() << ">\n");
+      YOREL_MM_TRACE(cout << "initialize class_of<" << ti.name() << ">\n");
 
       if (root) {
         throw runtime_error("multi_methods: class redefinition");
@@ -126,7 +142,7 @@ namespace yorel { namespace multi_methods {
       init.execute();
     }
 
-    void hierarchy_initializer::topological_sort_visit(class_set& once, mm_class* pc) {
+    void hierarchy_initializer::topological_sort_visit(std::unordered_set<const mm_class*>& once, mm_class* pc) {
       if (once.find(pc) == once.end()) {
         once.insert(pc);
 
@@ -139,14 +155,14 @@ namespace yorel { namespace multi_methods {
     }
   
     void hierarchy_initializer::execute() {
-      MM_TRACE(cout << "assigning slots for hierarchy rooted in " << &root << endl);
+      YOREL_MM_TRACE(cout << "assigning slots for hierarchy rooted in " << &root << endl);
       collect_classes();
       make_masks();
       assign_slots();
     }
 
     void hierarchy_initializer::collect_classes() {
-      class_set once;
+      std::unordered_set<const mm_class*> once;
       root.for_each_conforming([&](mm_class* pc) {
           topological_sort_visit(once, pc);
         });
@@ -160,7 +176,7 @@ namespace yorel { namespace multi_methods {
         pc->mask.resize(nb);
         pc->index = mark++;
         pc->mask[pc->index] = true;
-        MM_TRACE(cout << pc->ti.name() << " = " << pc << endl);
+        YOREL_MM_TRACE(cout << pc->ti.name() << " = " << pc << endl);
       }
     
       for (auto pc : reverse(nodes)) {
@@ -195,7 +211,7 @@ namespace yorel { namespace multi_methods {
           int slot = available_slot - slots.begin();
           max_slots = max(max_slots, slot + 1);
 
-          MM_TRACE(cout << "slot " << slot << " -> " << mm.method->vargs << "(" << mm.arg << ")" << endl);
+          YOREL_MM_TRACE(cout << "slot " << slot << " -> " << mm.method->vargs << "(" << mm.arg << ")" << endl);
           mm.method->assign_slot(mm.arg, slot);
         }
 
@@ -204,7 +220,7 @@ namespace yorel { namespace multi_methods {
                pc->bases.begin(), pc->bases.end(),
                [](const mm_class* b1, const mm_class* b2) { return b1->mmt.size() < b2->mmt.size(); }))->mmt.size();
       
-        MM_TRACE(cout << pc << ":max inherited slots: " << max_inherited_slots << ", max direct slots: " << max_slots << endl);
+        YOREL_MM_TRACE(cout << pc << ":max inherited slots: " << max_inherited_slots << ", max direct slots: " << max_slots << endl);
 
         pc->mmt.resize(max(max_inherited_slots, max_slots));
       }
@@ -279,7 +295,7 @@ namespace yorel { namespace multi_methods {
       int i = 0;
       for_each(vargs.begin(), vargs.end(),
                [&](mm_class* pc) {
-                 MM_TRACE(cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
+                 YOREL_MM_TRACE(cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
                  pc->add_multi_method(this, i++);
                });
       slots.resize(v.size());
@@ -304,7 +320,7 @@ namespace yorel { namespace multi_methods {
     }
 
     void multi_method_base::invalidate() {
-      MM_TRACE(cout << "add " << this << " to init list" << endl);
+      YOREL_MM_TRACE(cout << "add " << this << " to init list" << endl);
       add_to_initialize(this);
     }
   
@@ -328,6 +344,11 @@ namespace yorel { namespace multi_methods {
       }
     }
 
+    void multi_method_base::resolve() {
+      grouping_resolver r(*this);
+      r.resolve();
+    }
+
     grouping_resolver::grouping_resolver(multi_method_base& mm) : mm(mm), dims(mm.vargs.size()) {
     }
   
@@ -345,7 +366,7 @@ namespace yorel { namespace multi_methods {
       int step = 1;
     
       for (auto& dim_groups : groups) {
-        MM_TRACE(cout << "make_groups dim = " << dim << endl);
+        YOREL_MM_TRACE(cout << "make_groups dim = " << dim << endl);
 
         unordered_set<const mm_class*> once;
         mm.steps[dim] = step;
@@ -355,29 +376,29 @@ namespace yorel { namespace multi_methods {
             find_applicable(dim, pc, g.methods);
             g.classes.push_back(pc);
             make_mask(g.methods, g.mask);
-            MM_TRACE(cout << pc << " has " << g.methods << endl);
+            YOREL_MM_TRACE(cout << pc << " has " << g.methods << endl);
             auto lower = lower_bound(
               dim_groups.begin(), dim_groups.end(), g,
               []( const group& g1, const group& g2) { return g1.mask < g2.mask; });
           
             if (lower == dim_groups.end() || g.mask < lower->mask) {
-              MM_TRACE(cout << "create new group" << endl);
+              YOREL_MM_TRACE(cout << "create new group" << endl);
               dim_groups.insert(lower, g);
             } else {
-              MM_TRACE(cout << "add " << pc << " to existing group " << lower->methods << endl);
+              YOREL_MM_TRACE(cout << "add " << pc << " to existing group " << lower->methods << endl);
               lower->classes.push_back(pc);
             }
           });
       
         step *= dim_groups.size();
 
-        MM_TRACE(cout << "assign slots" << endl);
+        YOREL_MM_TRACE(cout << "assign slots" << endl);
       
         int offset = 0;
       
         for (auto& group : dim_groups) {
           for (auto pc : group.classes) {
-            MM_TRACE(cout << pc << ": " << offset << endl);
+            YOREL_MM_TRACE(cout << pc << ": " << offset << endl);
             pc->mmt[mm.slots[dim]].index = offset;
           }
           ++offset;
@@ -390,14 +411,14 @@ namespace yorel { namespace multi_methods {
     }
 
     void grouping_resolver::make_table() {
-      MM_TRACE(cout << "make_table" << endl);
+      YOREL_MM_TRACE(cout << "make_table" << endl);
 
       emit_at = 0;
       resolve(dims - 1, ~dynamic_bitset<>(mm.methods.size()));
 
       const int first_slot = mm.slots[0];
 
-      MM_TRACE(cout << "resolve 1st dimension" << endl);
+      YOREL_MM_TRACE(cout << "resolve 1st dimension" << endl);
       dynamic_bitset<> once;
     
       for (auto& group : groups[0]) {
@@ -408,7 +429,7 @@ namespace yorel { namespace multi_methods {
         
           if (!once[pc->index]) {
             once.set(pc->index);
-            MM_TRACE(cout << pc << ": " << pc->mmt[first_slot].index << " -> " << dispatch_table + pc->mmt[first_slot].index << endl);
+            YOREL_MM_TRACE(cout << pc << ": " << pc->mmt[first_slot].index << " -> " << dispatch_table + pc->mmt[first_slot].index << endl);
             pc->mmt[first_slot].ptr = dispatch_table + pc->mmt[first_slot].index;
           }
         }
@@ -417,19 +438,19 @@ namespace yorel { namespace multi_methods {
   
     void grouping_resolver::resolve(int dim, const dynamic_bitset<>& candidates) {
       using namespace std;
-      MM_TRACE(cout << "\nresolve dim = " << dim << endl);
+      YOREL_MM_TRACE(cout << "\nresolve dim = " << dim << endl);
            
       for (auto& group : groups[dim]) {
         if (dim == 0) {
           method_base* best = find_best(candidates & group.mask);
-          MM_TRACE(cout << "install " << best << " at offset " << emit_at << endl); 
+          YOREL_MM_TRACE(cout << "install " << best << " at offset " << emit_at << endl); 
           mm.emit(best, emit_at++);
         } else {
           resolve(dim - 1, candidates & group.mask);
         }
       }
     
-      MM_TRACE(cout << "exiting dim " << dim << endl);
+      YOREL_MM_TRACE(cout << "exiting dim " << dim << endl);
     }
 
     method_base* grouping_resolver::find_best(const vector<method_base*>& candidates) {
@@ -442,10 +463,10 @@ namespace yorel { namespace multi_methods {
 
         while (best_iter != best.end()) {
           if (method->specializes(*best_iter)) {
-            MM_TRACE(cout << method << " specializes " << *best_iter << ", removed\n");
+            YOREL_MM_TRACE(cout << method << " specializes " << *best_iter << ", removed\n");
             best.erase(best_iter);
           } else if ((*best_iter)->specializes(method)) {
-            MM_TRACE(cout << *best_iter << " specializes " << method << ", removed\n");
+            YOREL_MM_TRACE(cout << *best_iter << " specializes " << method << ", removed\n");
             best_iter = best.end();
             method = 0;
           } else {
@@ -454,7 +475,7 @@ namespace yorel { namespace multi_methods {
         }
 
         if (method) {
-          MM_TRACE(cout << method << " kept\n");
+          YOREL_MM_TRACE(cout << method << " kept\n");
           best.push_back(method);
         }
       }
@@ -486,10 +507,10 @@ namespace yorel { namespace multi_methods {
           [&](method_base* other) {
             return pm != other && pm->specializes(other);
           });
-        MM_TRACE(cout << "calculating next for " << pm << ", candidates:\n");
-        MM_TRACE(copy(candidates.begin(), candidates.end(), ostream_iterator<method_base*>(cout, "\n")));
+        YOREL_MM_TRACE(cout << "calculating next for " << pm << ", candidates:\n");
+        YOREL_MM_TRACE(copy(candidates.begin(), candidates.end(), ostream_iterator<method_base*>(cout, "\n")));
         auto best = find_best(candidates);
-        MM_TRACE(cout << "next is: " << best << endl);
+        YOREL_MM_TRACE(cout << "next is: " << best << endl);
         mm.emit_next(pm, best);
       }
     }

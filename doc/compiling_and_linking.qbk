@@ -1,6 +1,8 @@
-[section Compiling and linking]
+[section Installation, compiling and linking]
 
-You will need:
+The library is available from [@https://github.com/jll63/multimethods GitHub].
+
+In addition, you will need:
 
 * a C++11 compiler. The library has been tested with g++ 4.7.2 and clang++ 3.4.
 
@@ -10,6 +12,8 @@ You will need:
 
 * cmake
 
+The library consists in a static archive - libyomm11.a - and a set of header files.
+
 Run the following commands:
 
    cmake
@@ -17,13 +21,14 @@ Run the following commands:
    make test
    make install
 
-This will compile, test and install the library and the header files
-in the default locations. You can override this by passing
-`-DCMAKE_INSTALL_PREFIX=<dir>` to cmake.
+These will build, test and install libyomm11.a and the header files in
+the default locations. You can override this by passing
+`-DCMAKE_INSTALL_PREFIX=<dir>` to cmake. The default compiler is
+g++. Pass `-DCMAKE_CXX_COMPILER=clang++` if you want to use Clang.
 
 Alternatively, you can add the library's `include` directory to the
-include path and compile and link `src/multi_methods.cpp` in your
-application.
+include path and compile and link `src/multi_methods.cpp` directly
+into your application.
 
 Read [link multi_methods.advanced_topics.dynamic_linking this section]
 if you intend to use shared libraries or dynamic linking.

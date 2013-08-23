@@ -29,8 +29,6 @@ Salient features are:
   inside method specializations - see examples/next.cpp.
   Alternatively, it is possible to call a specialization directly.
 
-The documentation can be viewed here: http://www.yorel.be/mm/
-  
-This is a work in progress, but nearing completion.
-
+Documentation: http://www.yorel.be/mm/
 Support: https://groups.google.com/forum/#!forum/ommcpp11
+Author: Jean-Louis Leroy - jl@yorel.be

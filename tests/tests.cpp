@@ -6,7 +6,8 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include "multi_methods.hpp"
+#include <multi_methods.hpp>
+#include <multi_methods/runtime.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -16,7 +17,10 @@
 
 using namespace std;
 using namespace yorel::multi_methods;
+using namespace yorel::multi_methods::detail;
+
 using boost::dynamic_bitset;
+using boost::is_virtual_base_of;
 
 #define test(exp, res) _test(__FILE__, __LINE__, #exp, exp, #res, res)
 #define testx(exp, res) _test(__FILE__, __LINE__, #exp, exp, 0, res)
@@ -302,7 +306,7 @@ namespace single_inheritance {
   struct Donkey : Herbivore { };
   
   template<>
-  struct encounter_method<string(Cow&, Cow&)> : ::yorel::multi_methods::specialization<decltype(encounter), string(Cow&, Cow&)> {
+  struct encounter_method<string(Cow&, Cow&)> : decltype(encounter)::specialization<encounter_method<string(Cow&, Cow&)>> {
     static string body(Cow&, Cow&) {
       return "moo!";
     }
@@ -542,17 +546,17 @@ int main() {
       virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
     
     cout << "\nClass registration" << endl;
-    test(mm_class_of<Cow>::the().bases.size(), 1);
-    test(mm_class_of<Cow>::the().bases[0] == &mm_class_of<Herbivore>::the(), true);
-    test(mm_class_of<Animal>::the().specs.size(), 2);
-    test(mm_class_of<Animal>::the().specs[0] == &mm_class_of<Herbivore>::the(), true);
-    test(mm_class_of<Animal>::the().specs[1] == &mm_class_of<Carnivore>::the(), true);
+    test(mm_class::of<Cow>::the().bases.size(), 1);
+    test(mm_class::of<Cow>::the().bases[0] == &mm_class::of<Herbivore>::the(), true);
+    test(mm_class::of<Animal>::the().specs.size(), 2);
+    test(mm_class::of<Animal>::the().specs[0] == &mm_class::of<Herbivore>::the(), true);
+    test(mm_class::of<Animal>::the().specs[1] == &mm_class::of<Carnivore>::the(), true);
 
-    test(mm_class_of<Animal>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Herbivore>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Carnivore>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Cow>::the().root, mm_class_of<Animal>::the().root);
-    test(mm_class_of<Wolf>::the().root, mm_class_of<Animal>::the().root);
+    test(mm_class::of<Animal>::the().root, mm_class::of<Animal>::the().root);
+    test(mm_class::of<Herbivore>::the().root, mm_class::of<Animal>::the().root);
+    test(mm_class::of<Carnivore>::the().root, mm_class::of<Animal>::the().root);
+    test(mm_class::of<Cow>::the().root, mm_class::of<Animal>::the().root);
+    test(mm_class::of<Wolf>::the().root, mm_class::of<Animal>::the().root);
   }
   
   {
@@ -571,19 +575,19 @@ int main() {
     m_cd.the();
     m_y.the();
 
-    hierarchy_initializer init(mm_class_of<X>::the());
+    hierarchy_initializer init(mm_class::of<X>::the());
 
     init.collect_classes();
     test( init.nodes.size(), 8);
     test( init.nodes.size(), 8);
-    test( init.nodes[0], &mm_class_of<X>::the() );
-    test( init.nodes[1], &mm_class_of<A>::the() );
-    test( init.nodes[2], &mm_class_of<B>::the() );
-    test( init.nodes[3], &mm_class_of<C>::the() );
-    test( init.nodes[4], &mm_class_of<BC>::the() );
-    test( init.nodes[5], &mm_class_of<D>::the() );
-    test( init.nodes[6], &mm_class_of<CD>::the() );
-    test( init.nodes[7], &mm_class_of<Y>::the() );
+    test( init.nodes[0], &mm_class::of<X>::the() );
+    test( init.nodes[1], &mm_class::of<A>::the() );
+    test( init.nodes[2], &mm_class::of<B>::the() );
+    test( init.nodes[3], &mm_class::of<C>::the() );
+    test( init.nodes[4], &mm_class::of<BC>::the() );
+    test( init.nodes[5], &mm_class::of<D>::the() );
+    test( init.nodes[6], &mm_class::of<CD>::the() );
+    test( init.nodes[7], &mm_class::of<Y>::the() );
 
     init.make_masks();
     testx( init.nodes[0]->mask, dynamic_bitset<>(8, 0b11111111) ); // X
@@ -605,14 +609,14 @@ int main() {
     test(m_cd.the().slots[0], 4);
     test(m_y.the().slots[0], 1);
 
-    test(mm_class_of<X>::the().mmt.size(), 1);
-    test(mm_class_of<A>::the().mmt.size(), 2);
-    test(mm_class_of<B>::the().mmt.size(), 3);
-    test(mm_class_of<C>::the().mmt.size(), 4);
-    test(mm_class_of<BC>::the().mmt.size(), 5);
-    test(mm_class_of<D>::the().mmt.size(), 3);
-    test(mm_class_of<CD>::the().mmt.size(), 5);
-    test(mm_class_of<Y>::the().mmt.size(), 2);
+    test(mm_class::of<X>::the().mmt.size(), 1);
+    test(mm_class::of<A>::the().mmt.size(), 2);
+    test(mm_class::of<B>::the().mmt.size(), 3);
+    test(mm_class::of<C>::the().mmt.size(), 4);
+    test(mm_class::of<BC>::the().mmt.size(), 5);
+    test(mm_class::of<D>::the().mmt.size(), 3);
+    test(mm_class::of<CD>::the().mmt.size(), 5);
+    test(mm_class::of<Y>::the().mmt.size(), 2);
   }
 
   cout << "\n--- Grouping resolver tests\n";
@@ -626,45 +630,45 @@ int main() {
     // Herbivore+   0           p_herb     d_herb  mob
     // Carnivore+   0           p_carn     d_carn  mob
 
-    hierarchy_initializer::initialize(mm_class_of<Animal>::the());
-    hierarchy_initializer::initialize(mm_class_of<Interface>::the());
+    hierarchy_initializer::initialize(mm_class::of<Animal>::the());
+    hierarchy_initializer::initialize(mm_class::of<Interface>::the());
 
     grouping_resolver rdisp(display.the());
     
     methods animal_applicable;
-    rdisp.find_applicable(0, &mm_class_of<Animal>::the(), animal_applicable);
+    rdisp.find_applicable(0, &mm_class::of<Animal>::the(), animal_applicable);
     test( animal_applicable, methods { display.the().methods[4] } );
 
     methods herbivore_applicable;
-    rdisp.find_applicable(0, &mm_class_of<Herbivore>::the(), herbivore_applicable);
+    rdisp.find_applicable(0, &mm_class::of<Herbivore>::the(), herbivore_applicable);
     test( herbivore_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
 
     methods cow_applicable;
-    rdisp.find_applicable(0, &mm_class_of<Cow>::the(), cow_applicable);
+    rdisp.find_applicable(0, &mm_class::of<Cow>::the(), cow_applicable);
     test( cow_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
 
     methods carnivore_applicable;
-    rdisp.find_applicable(0, &mm_class_of<Carnivore>::the(), carnivore_applicable);
+    rdisp.find_applicable(0, &mm_class::of<Carnivore>::the(), carnivore_applicable);
     test( carnivore_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
 
     methods wolf_applicable;
-    rdisp.find_applicable(0, &mm_class_of<Wolf>::the(), wolf_applicable);
+    rdisp.find_applicable(0, &mm_class::of<Wolf>::the(), wolf_applicable);
     test( wolf_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
 
     methods interface_applicable;
-    rdisp.find_applicable(1, &mm_class_of<Interface>::the(), interface_applicable);
+    rdisp.find_applicable(1, &mm_class::of<Interface>::the(), interface_applicable);
     test( interface_applicable, methods { } );
 
     methods terminal_applicable;
-    rdisp.find_applicable(1, &mm_class_of<Terminal>::the(), terminal_applicable);
+    rdisp.find_applicable(1, &mm_class::of<Terminal>::the(), terminal_applicable);
     test( terminal_applicable, (methods { display.the().methods[0], display.the().methods[2] }) );
 
     methods window_applicable;
-    rdisp.find_applicable(1, &mm_class_of<Window>::the(), window_applicable);
+    rdisp.find_applicable(1, &mm_class::of<Window>::the(), window_applicable);
     test( window_applicable, (methods { display.the().methods[1], display.the().methods[3] }) );
 
     methods mobile_applicable;
-    rdisp.find_applicable(1, &mm_class_of<Mobile>::the(), mobile_applicable);
+    rdisp.find_applicable(1, &mm_class::of<Mobile>::the(), mobile_applicable);
     test( mobile_applicable, (methods { display.the().methods[4] }) );
 
 // Animal = class_0
@@ -744,10 +748,10 @@ int main() {
     rdisp.assign_next();
     test( (display_method<action(const Carnivore&, const Window&)>::next) == nullptr, true );
 
-    testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
+    testx( (void*) mm_class::of<Animal>::the().mmt[0].ptr,
            (void*) display.impl->dispatch_table );
 
-    testx( (void*) mm_class_of<Herbivore>::the().mmt[0].ptr,
+    testx( (void*) mm_class::of<Herbivore>::the().mmt[0].ptr,
            (void*) (display.impl->dispatch_table + 1) );
 
     test( display(Herbivore(), Terminal()), print_herbivore );
@@ -817,13 +821,13 @@ int main() {
 
     yorel::multi_methods::initialize();
 
-    testx( (void*) mm_class_of<Animal>::the().mmt[0].ptr,
+    testx( (void*) mm_class::of<Animal>::the().mmt[0].ptr,
            (void*) encounter.impl->dispatch_table );
 
-    testx( (void*) mm_class_of<Herbivore>::the().mmt[0].ptr,
+    testx( (void*) mm_class::of<Herbivore>::the().mmt[0].ptr,
            (void*) (encounter.impl->dispatch_table) );
 
-    testx( (void*) mm_class_of<Stallion>::the().mmt[0].ptr,
+    testx( (void*) mm_class::of<Stallion>::the().mmt[0].ptr,
            (void*) (encounter.impl->dispatch_table + 1) );
     
     test( encounter(animal, animal), "ignore" );
@@ -878,13 +882,13 @@ int main() {
 
     encounter.the().add_spec<encounter_method<string(Cow&, Cow&)>>();
     
-    test( mm_class_of<Animal>::the().rooted_here.size(), 3 );
-    test( mm_class_of<Interface>::the().rooted_here.size(), 1 );
+    test( mm_class::of<Animal>::the().rooted_here.size(), 3 );
+    test( mm_class::of<Interface>::the().rooted_here.size(), 1 );
     test( multi_method_base::to_initialize != nullptr, true );
     test( multi_method_base::to_initialize->size(), 1 );
 
     encounter.impl.reset();
-    test( mm_class_of<Animal>::the().rooted_here.size(), 1 );
+    test( mm_class::of<Animal>::the().rooted_here.size(), 1 );
     test( !multi_method_base::to_initialize, true );
 
     cout << "\n--- Unloading classes." << endl;
