@@ -18,9 +18,9 @@ Support: [@https://groups.google.com/forum/#!forum/ommcpp11 OMMC++11 on Google G
 
 [include intro.qbk]
 
-[include tutorial.qbk]
+[include installation.qbk]
 
-[include compiling_and_linking.qbk]
+[include tutorial.qbk]
 
 [include advanced_topics.qbk]
 
