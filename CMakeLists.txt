@@ -37,3 +37,4 @@ add_test (order12 tests/order12)
 add_test (order21 tests/order21)
 
 INSTALL (FILES include/multi_methods.hpp DESTINATION include)
+INSTALL (DIRECTORY include/multi_methods DESTINATION include)
