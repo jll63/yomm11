@@ -42,4 +42,4 @@
 
 #define END_SPECIALIZATION } };
 
-#define SPECIALIZATION(ID, SIG) ID ## _specialization<SIG>::body
+#define SPECIALIZATION(ID, RESULT, ARGS...) ID ## _specialization<RESULT(ARGS)>::body
