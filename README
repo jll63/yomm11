@@ -4,8 +4,8 @@ Salient features are:
 
 * syntax: is relatively uncluttered. There are no limitations on the
   number of virtual arguments. Virtual and non-virtual arguments can
-  be arbitrarily mixed. Multiple inheritance is supported, with some
-  limitations - see below.
+  be arbitrarily mixed. Virtual and multiple inheritance are
+  supported.
 
 * speed: close to a virtual function call when the hierarchies
   involved in the virtual arguments collaborate with the
@@ -29,6 +29,10 @@ Salient features are:
   inside method specializations - see examples/next.cpp.
   Alternatively, it is possible to call a specialization directly.
 
-Documentation: http://www.yorel.be/mm/
-Support: https://groups.google.com/forum/#!forum/ommcpp11
+Documentation: http://www.yorel.be/mm/ - see also the articles on Code
+Project http://tinyurl.com/m8kg2y3
+
+Support and discussions: yomm11 on Google Groups
+(https://groups.google.com/forum/#!forum/yomm11)
+
 Author: Jean-Louis Leroy - jl@yorel.be
