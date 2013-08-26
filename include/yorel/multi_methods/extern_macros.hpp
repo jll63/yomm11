@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../.. && make && make test" -*-
+// -*- compile-command: "cd ../../.. && make && make test" -*-
 
 // extern_macros.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -19,6 +19,6 @@
 #undef MULTI_METHOD
 
 #define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                          \
-  template<typename Sig> struct ID ## _method;                          \
-  constexpr ::yorel::multi_methods::multi_method<ID ## _method, RETURN_TYPE(ARGS)> ID{}; \
+  template<typename Sig> struct ID ## _specialization;                          \
+  constexpr ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(ARGS)> ID{}; \
   extern template class ::yorel::multi_methods::detail::multi_method_implementation<RETURN_TYPE, ARGS>

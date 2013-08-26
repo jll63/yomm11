@@ -306,7 +306,7 @@ namespace single_inheritance {
   struct Donkey : Herbivore { };
   
   template<>
-  struct encounter_method<string(Cow&, Cow&)> : decltype(encounter)::specialization<encounter_method<string(Cow&, Cow&)>> {
+  struct encounter_specialization<string(Cow&, Cow&)> : decltype(encounter)::specialization<encounter_specialization<string(Cow&, Cow&)>> {
     static string body(Cow&, Cow&) {
       return "moo!";
     }
@@ -746,7 +746,7 @@ int main() {
     test( table[11], static_cast<method*>(methods[4])->pm );
     
     rdisp.assign_next();
-    test( (display_method<action(const Carnivore&, const Window&)>::next) == nullptr, true );
+    test( (display_specialization<action(const Carnivore&, const Window&)>::next) == nullptr, true );
 
     testx( (void*) mm_class::of<Animal>::the().mmt[0].ptr,
            (void*) display.impl->dispatch_table );
@@ -798,12 +798,12 @@ int main() {
     test(encounter(c, c), "ignore");
 
     // static call
-    test(STATIC_CALL_METHOD(encounter, string(Animal&, Animal&))(c, w), "ignore");
+    test(SPECIALIZATION(encounter, string(Animal&, Animal&))(c, w), "ignore");
       
     // next
-    test(encounter_method<string(Wolf&, Wolf&)>::next(w, w), "fight");
-    test(encounter_method<string(Carnivore&, Carnivore&)>::next(w, w), "hunt");
-    test(encounter_method<string(Carnivore&, Animal&)>::next(w, w), "ignore");
+    test(encounter_specialization<string(Wolf&, Wolf&)>::next(w, w), "fight");
+    test(encounter_specialization<string(Carnivore&, Carnivore&)>::next(w, w), "hunt");
+    test(encounter_specialization<string(Carnivore&, Animal&)>::next(w, w), "ignore");
   }
 
   cout << "\n--- multiple inheritance" << endl;
@@ -880,7 +880,7 @@ int main() {
     cout << "\n--- Unloading multi_methods." << endl;
     using namespace single_inheritance;
 
-    encounter.the().add_spec<encounter_method<string(Cow&, Cow&)>>();
+    encounter.the().add_spec<encounter_specialization<string(Cow&, Cow&)>>();
     
     test( mm_class::of<Animal>::the().rooted_here.size(), 3 );
     test( mm_class::of<Interface>::the().rooted_here.size(), 1 );

@@ -47,7 +47,6 @@ namespace yorel {
     struct method_base;
     struct multi_method_base;
     template<template<typename Sig> class Method, typename Sig> struct multi_method;
-    template<typename Multimethod, typename Sig> struct specialization;
     class undefined;
     class ambiguous;
 

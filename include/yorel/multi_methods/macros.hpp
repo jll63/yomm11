@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../.. && make && make test" -*-
+// -*- compile-command: "cd ../../.. && make && make test" -*-
 
 // macros.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -31,15 +31,15 @@
 
 #undef MULTI_METHOD
 #define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                           \
-  template<typename Sig> struct ID ## _method;                          \
-  constexpr ::yorel::multi_methods::multi_method<ID ## _method, RETURN_TYPE(ARGS)> ID{};
+  template<typename Sig> struct ID ## _specialization;                          \
+  constexpr ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(ARGS)> ID{};
   
 #define BEGIN_SPECIALIZATION(ID, RESULT, ARGS...)                       \
   template<>                                                            \
-  struct ID ## _method<RESULT(ARGS)> : decltype(ID)::specialization<ID ## _method<RESULT(ARGS)>> { \
-  virtual void* _mm_install() { return &decltype(ID)::register_spec<ID ## _method>::the; } \
+  struct ID ## _specialization<RESULT(ARGS)> : decltype(ID)::specialization<ID ## _specialization<RESULT(ARGS)>> { \
+  virtual void* _mm_install() { return &decltype(ID)::register_spec<ID ## _specialization>::the; } \
   static RESULT body(ARGS) {
 
 #define END_SPECIALIZATION } };
 
-#define STATIC_CALL_METHOD(ID, SIG) ID ## _method<SIG>::body
+#define SPECIALIZATION(ID, SIG) ID ## _specialization<SIG>::body
