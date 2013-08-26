@@ -9,7 +9,7 @@
 #define SHARED
 #include "dl.hpp"
 
-#include <multi_methods/macros.hpp>
+#include <yorel/multi_methods/macros.hpp>
 
 #include <iostream>
 

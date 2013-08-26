@@ -13,7 +13,7 @@
 using namespace std;
 
 //[ prologue
-#include <multi_methods.hpp>
+#include <yorel/multi_methods.hpp>
 
 using yorel::multi_methods::virtual_;
 using yorel::multi_methods::selector;

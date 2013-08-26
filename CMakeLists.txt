@@ -12,8 +12,8 @@ cmake_minimum_required (VERSION 2.6)
 
 project (YOMM11)
 
-set (YOMM11_VERSION_MAJOR 0)
-set (YOMM11_VERSION_MINOR 1)
+set (YOMM11_VERSION_MAJOR 1)
+set (YOMM11_VERSION_MINOR 0)
 
 include_directories ("${YOMM11_SOURCE_DIR}/include")
 link_directories ("${YOMM11_BINARY_DIR}/src")
@@ -36,5 +36,4 @@ add_test (tests tests/tests)
 add_test (order12 tests/order12)
 add_test (order21 tests/order21)
 
-INSTALL (FILES include/multi_methods.hpp DESTINATION include)
-INSTALL (DIRECTORY include/multi_methods DESTINATION include)
+INSTALL (DIRECTORY include/yorel DESTINATION include)

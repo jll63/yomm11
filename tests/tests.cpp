@@ -6,8 +6,8 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <multi_methods.hpp>
-#include <multi_methods/runtime.hpp>
+#include <yorel/multi_methods.hpp>
+#include <yorel/multi_methods/runtime.hpp>
 
 #include <iostream>
 #include <iomanip>

@@ -11,10 +11,10 @@
 
 #include <string>
 
-#include <multi_methods.hpp>
+#include <yorel/multi_methods.hpp>
 
 #ifdef SHARED
-#include <multi_methods/extern_macros.hpp>
+#include <yorel/multi_methods/extern_macros.hpp>
 #endif
 
 struct Animal : yorel::multi_methods::selector {

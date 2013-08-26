@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../tests && make" -*-
+// -*- compile-command: "cd ../.. && make && make test" -*-
 
 #ifndef MULTI_METHODS_INCLUDED
 #define MULTI_METHODS_INCLUDED
@@ -9,7 +9,7 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <multi_methods/no_macros.hpp>
-#include <multi_methods/macros.hpp>
+#include <yorel/multi_methods/no_macros.hpp>
+#include <yorel/multi_methods/macros.hpp>
 
 #endif

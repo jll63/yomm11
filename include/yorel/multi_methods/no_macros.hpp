@@ -204,7 +204,7 @@ namespace yorel {
       static void remove_from_initialize(multi_method_base* pm);
     };
 
-#include <multi_methods/detail.hpp>
+#include <yorel/multi_methods/detail.hpp>
     
     template<class B, class D>
     struct cast : detail::cast_best<B, D, boost::is_virtual_base_of<B, D>::value> {

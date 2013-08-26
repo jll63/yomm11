@@ -13,7 +13,7 @@
 // g++ -I$BOOST_ROOT -std=c++11 -I../include -fPIC -c -o dl_shared.o dl_shared.cpp
 // g++ -shared -Wl,-soname,dl_shared.so -o dl_shared.so dl_shared.o
 
-#include <multi_methods.hpp>
+#include <yorel/multi_methods.hpp>
 #include "dl.hpp"
 
 #include <iostream>

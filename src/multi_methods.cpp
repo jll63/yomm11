@@ -6,8 +6,8 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <multi_methods.hpp>
-#include <multi_methods/runtime.hpp>
+#include <yorel/multi_methods.hpp>
+#include <yorel/multi_methods/runtime.hpp>
 #include <unordered_set>
 #include <functional>
 #include <boost/range/adaptor/reversed.hpp>

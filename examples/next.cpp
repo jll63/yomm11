@@ -9,7 +9,7 @@
 // Example taken Dylan's documentation, see http://opendylan.org/documentation/intro-dylan/multiple-dispatch.html
 
 #include <iostream>
-#include <multi_methods.hpp>
+#include <yorel/multi_methods.hpp>
 
 using namespace std;
 using yorel::multi_methods::selector;

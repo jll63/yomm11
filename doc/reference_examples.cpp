@@ -1,7 +1,7 @@
 // -*- compile-command: "g++ -std=c++11 -I../include -I$BOOST_ROOT reference_examples.cpp ../src/multi_methods.cpp -o examples && ./examples" -*-
 
 #include <iostream>
-#include <multi_methods.hpp>
+#include <yorel/multi_methods.hpp>
 
 using namespace std;
 
