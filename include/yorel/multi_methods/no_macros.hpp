@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../.. && make && make test" -*-
+// -*- compile-command: "cd ../../.. && make && make test" -*-
 
 #ifndef MULTI_METHODS_NO_MACROS_INCLUDED
 #define MULTI_METHODS_NO_MACROS_INCLUDED
@@ -59,6 +59,146 @@ namespace yorel {
     std::ostream& operator <<(std::ostream& os, const multi_method_base* pc);
 
     // End of forward declarations.
+
+    namespace detail {
+      //using bitvec = boost::dynamic_bitset<>;
+
+      class bitvec {
+        using word = unsigned long;
+      public:
+        class ref {
+          word* p;
+          int i;
+        public:
+          ref(word* p, int i) : p(p), i(i) {
+          }
+          operator bool() const {
+            return p[i / bpw] & (1 << (i % bpw));
+          }
+          ref& operator =(bool val) {
+            if (val) {
+              p[i / bpw] |= 1 << (i % bpw);
+            } else {
+              p[i / bpw] &= ~(1 << (i % bpw));
+            }
+            return *this;
+          }
+          ref& operator |=(bool val) {
+            if (val) {
+              p[i / bpw] |= 1 << (i % bpw);
+            }
+            return *this;
+          }
+        };
+        
+        bitvec() : p(nullptr), n(0) { }
+        
+        bitvec(int n) : n(n), p(nullptr) {
+          p = new word[wsize(n)];
+          std::fill(wbegin(), wend(), 0);
+        }
+        
+        bitvec(int n, word init) : bitvec(n) {
+          *p = init;
+        }
+        
+        bitvec(const bitvec& other) : bitvec(other.n) {
+          std::copy(other.p, other.p + wsize(other.n), p);
+        }
+        
+        ~bitvec() { delete [] p; }
+
+        bitvec& operator =(const bitvec& other) {
+          size_t ws = wsize(other.n);
+          word* np = new word[ws];
+          std::copy(other.wbegin(), other.wend(), np);
+          delete [] p;
+          p = np;
+          n = other.size();
+          return *this;
+        }
+
+        int size() const { return n; }
+        
+        void resize(int size) {
+          size_t new_ws = wsize(size);
+          word* new_p = new word[new_ws];
+          size_t old_ws = wsize(n);
+          auto end = std::copy(p, p + std::min(old_ws, new_ws), new_p);
+          std::fill(end, new_p + new_ws, 0);
+          if (size < n) {
+            if (size_t rem = size % bpw) {
+              end[-1] &= (1 << rem) - 1;
+            }
+          }
+          delete [] p;
+          p = new_p;
+          n = size;
+        }
+        
+        bool none() const {
+          return std::all_of(p, p + wsize(n), [](word w) { return w == 0; });
+        }
+        
+        bool operator [](int i) const {
+          return p[i / bpw] & (1 << (i % bpw));
+        }
+        
+        ref operator [](int i) { return ref(p, i); }
+        
+        friend bitvec operator &(const bitvec& v1, const bitvec& v2) {
+          bitvec res(v1.size());
+          std::transform(
+            v1.wbegin(), v1.wend(), v2.wbegin(), res.wbegin(),
+            [](word w1, word w2) { return w1 & w2; });
+          return res;
+        }
+        
+        friend bool operator ==(const bitvec& v1, const bitvec& v2) {
+          return std::equal(v1.wbegin(), v1.wend(), v2.wbegin());
+        }
+        
+        friend bool operator <(const bitvec& v1, const bitvec& v2) {
+          return std::lexicographical_compare(
+            v1.wbegin(), v1.wend(),
+            v2.wbegin(), v2.wend());
+        }
+        
+        bitvec& operator |=(const bitvec& other) {
+          std::transform(
+            other.wbegin(), other.wend(), wbegin(), wbegin(),
+            [](word w1, word w2) { return w1 | w2; });
+          return *this;
+        }
+        
+        bitvec operator ~() const {
+          bitvec res(size());
+          auto res_last = std::transform(
+            wbegin(), wend(), res.wbegin(),
+            [](word w) { return ~w; });
+          if (size_t rem = n % bpw) {
+            res_last[-1] &= (1 << rem) - 1;
+          }
+          return res;
+        }
+        
+        word* wbegin() { return p; }
+        
+        const word* wbegin() const { return p; }
+        
+        word* wend() { return p + wsize(n); }
+        
+        const word* wend() const { return p + wsize(n); }
+        
+      private:
+        static size_t wsize(int n) { return (n + bpw - 1) / bpw; }
+        static const int bpw = std::numeric_limits<word>::digits;
+        int n;
+        word* p;
+      };
+
+      std::ostream& operator <<(std::ostream& os, const bitvec& v);
+    }
     
     class undefined : public std::runtime_error {
     public:
@@ -100,7 +240,7 @@ namespace yorel {
       const std::type_info& ti;
       std::vector<mm_class*> bases;
       std::vector<mm_class*> specs;
-      boost::dynamic_bitset<> mask;
+      detail::bitvec mask;
       int index;
       mm_class* root;
       std::vector<mm_class::offset> mmt;

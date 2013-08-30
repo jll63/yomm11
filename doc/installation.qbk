@@ -1,18 +1,13 @@
 [section Installation]
 
-The library is available from [@https://github.com/jll63/yomm11 GitHub].
+The library is available from [@https://github.com/jll63/yomm11
+GitHub].
 
-In addition, you will need:
+The library is entirely self-contained; all you need is a C++11
+capable compiler and optionally cmake.
 
-* a C++11 compiler. The library has been tested with g++ 4.7.2 and clang++ 3.4.
-
-* three Boost libraries: TypeTraits, Preprocessor and Dynamic
-  Bitset. Make sure that environment variable `BOOST_ROOT` points to
-  the root of your installation.
-
-* cmake
-
-The library consists in a static archive - libyomm11.a - and a set of header files.
+The library consists in a static archive - libyomm11.a - and a set of
+header files.
 
 Run the following commands:
 

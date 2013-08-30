@@ -19,7 +19,6 @@ using namespace std;
 using namespace yorel::multi_methods;
 using namespace yorel::multi_methods::detail;
 
-using boost::dynamic_bitset;
 using boost::is_virtual_base_of;
 
 #define test(exp, res) _test(__FILE__, __LINE__, #exp, exp, #res, res)
@@ -522,7 +521,6 @@ namespace repeated {
 }
 
 int main() {
-
   {
     using namespace single_inheritance;
     static_assert(
@@ -560,6 +558,184 @@ int main() {
   }
   
   {
+    cout << "\n--- bitvec." << endl;
+
+    {
+      bitvec v;
+      test(v.size(), 0);
+      test(v.none(), true);
+    }
+
+    for (int n : { numeric_limits<unsigned long>::digits - 1,
+          numeric_limits<unsigned long>::digits,
+          numeric_limits<unsigned long>::digits + 1 }) {
+      cout << "n = " << n << endl;
+
+      {
+        bitvec v(n);
+        test(v.size(), n);
+        test(v.none(), true);
+        v[0] = 1;
+        test(v[0], true);
+        v[0] = 0;
+        test(v[0], false);
+        v[n - 1] = 1;
+        test(v[n - 1], true);
+        v[n - 1] = 0;
+        test(v[n - 1], false);
+      }
+
+      {
+        bitvec v(n, 0b101);
+        test(v[0], true);
+        test(v[1], false);
+        test(v[2], true);
+      }
+      
+      {
+        bitvec v(n);
+        v[0] = 1;
+        v[n - 1] = 1;
+        v.resize(n - 1);
+        test(v[0], true);
+        test(v[1], false);
+        v.resize(n);
+        test(v[n - 1], false);
+        v[0] = false;
+        test(v.none(), true);
+      }
+      
+      {
+        bitvec v(n);
+        v[0] = 1;
+        v[n - 1] = 1;
+        v.resize(n + 1);
+        test(v[0], true);
+        test(v[1], false);
+        test(v[n - 1], true);
+        test(v[n], false);
+      }
+
+      {
+        bitvec v(n);
+        bitvec v2(v);
+        v[0] = 1;
+        v[n - 1] = 1;
+        test(v2.none(), true);
+      }
+
+      {
+        bitvec v(n);
+        v[0] = 1;
+        v[n - 1] = 1;
+        bitvec v2;
+        v2 = v;
+        test(v2[0], true);
+        test(v2[n - 1], true);
+        v[0] = 0;
+        v[n - 1] = 0;
+        test(v2[0], true);
+        test(v2[n - 1], true);
+      }
+
+      {
+        bitvec v(n);
+        test(v.none(), true);
+        test((~~v).none(), true);
+        v[0] = 1;
+        v[n - 1] = 1;
+        test(v.none(), false);
+        v |= bitvec(n, 0b10);
+        test(v[0], true);
+        test(v[1], true);
+        test(v[n  - 1], true);
+      }
+
+      {
+        bitvec v1(n), v2(n);
+        v1[0] = 1;
+        v1[n - 1] = 1;
+        v2[0] = 1;
+        v2[n - 1] = 1;
+        test(v1 == v2, true);
+      }
+
+      {
+        bitvec v1(n), v2(n), v3(n);
+        v1[0] = 1;
+        v1[n - 1] = 1;
+        v2[0] = 1;
+        v2[n - 1] = 1;
+        v1[1] = 1;
+        v2[2] = 1;
+        v3[0] = 1;
+        v3[n - 1] = 1;
+        test((v1 & v2) == v3, true);
+      }
+
+      {
+        bitvec v(n);
+        v[0] = 1;
+        v[n - 1] = 1;
+        test((v & bitvec(n)) == bitvec(n), true);
+      }
+
+      {
+        bitvec v1(n), v2(n), v3(n);
+        v1[0] = 1;
+        v1[n - 1] = 1;
+        v2[1] = 1;
+        v2[n - 2] = 1;
+        v3[0] = 1;
+        v3[n - 1] = 1;
+        v3[1] = 1;
+        v3[n - 2] = 1;
+        v1 |= v2;
+        test(v1 == v3, true);
+      }
+
+      {
+        bitvec v(n);
+        v[0] = 1;
+        v[n - 1] = 1;
+        bitvec v2(~v);
+        test(v2[0], false);
+        test(v2[1], true);
+        test(v2[n - 2], true);
+        test(v2[n - 1], false);
+      }
+    }
+    {
+      bitvec v(2);
+      test(v.none(), true);
+      test(v[0], false);
+      v[0] = 1;
+      test(v.none(), false);
+      test(v[0], true);
+      test(v[1], false);
+      v = ~v;
+      test(v[0], false);
+      test(v[1], true);
+    }
+
+    {
+      bitvec v(3, 0b111);
+      test(v.size(), 3);
+      test(v[0], 1);
+      test(v[1], 1);
+      test(v[2], 1);
+      v.resize(2);
+      test(v.size(), 2);
+      test(v[0], 1);
+      test(v[1], 1);
+      v.resize(3);
+      test(v[0], 1);
+      test(v[1], 1);
+      test(v[2], 0);
+    }
+  }
+  
+  {
     cout << "\n--- Slot allocation." << endl;
 
     using namespace slot_allocation_tests;
@@ -590,14 +766,14 @@ int main() {
     test( init.nodes[7], &mm_class::of<Y>::the() );
 
     init.make_masks();
-    testx( init.nodes[0]->mask, dynamic_bitset<>(8, 0b11111111) ); // X
-    testx( init.nodes[1]->mask, dynamic_bitset<>(8, 0b01111110) ); // A
-    testx( init.nodes[2]->mask, dynamic_bitset<>(8, 0b00010100) ); // B
-    testx( init.nodes[3]->mask, dynamic_bitset<>(8, 0b01011000) ); // C
-    testx( init.nodes[4]->mask, dynamic_bitset<>(8, 0b00010000) ); // BC
-    testx( init.nodes[5]->mask, dynamic_bitset<>(8, 0b01100000) ); // D
-    testx( init.nodes[6]->mask, dynamic_bitset<>(8, 0b01000000) ); // CD
-    testx( init.nodes[7]->mask, dynamic_bitset<>(8, 0b10000000) ); // Y
+    testx( init.nodes[0]->mask, bitvec(8, 0b11111111) ); // X
+    testx( init.nodes[1]->mask, bitvec(8, 0b01111110) ); // A
+    testx( init.nodes[2]->mask, bitvec(8, 0b00010100) ); // B
+    testx( init.nodes[3]->mask, bitvec(8, 0b01011000) ); // C
+    testx( init.nodes[4]->mask, bitvec(8, 0b00010000) ); // BC
+    testx( init.nodes[5]->mask, bitvec(8, 0b01100000) ); // D
+    testx( init.nodes[6]->mask, bitvec(8, 0b01000000) ); // CD
+    testx( init.nodes[7]->mask, bitvec(8, 0b10000000) ); // Y
 
     init.assign_slots();
     test(m_x.the().slots[0], 0);

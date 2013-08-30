@@ -13,11 +13,20 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 using namespace std;
-using boost::dynamic_bitset;
 using boost::adaptors::reverse;
 
-namespace yorel { namespace multi_methods {
+namespace yorel {
+  namespace multi_methods {
 
+    namespace detail {
+      ostream& operator <<(ostream& os, const bitvec& v) {
+        for (int i = 0; i < v.size(); i++) {
+          os << (v[i] ? 1 : 0);
+        }
+        return os;
+      }
+    }
+    
     using namespace detail;
 
     undefined::undefined() :
@@ -189,7 +198,7 @@ namespace yorel { namespace multi_methods {
     }
 
     void hierarchy_initializer::assign_slots() {
-      vector<dynamic_bitset<>> slots;
+      vector<bitvec> slots;
 
       for (auto pc : nodes) {
         int max_slots = 0;
@@ -197,12 +206,12 @@ namespace yorel { namespace multi_methods {
         for (auto& mm : pc->rooted_here) {
           auto available_slot = find_if(
             slots.begin(), slots.end(),
-            [=](const dynamic_bitset<>& mask) {
+            [=](const bitvec& mask) {
               return (mask & pc->mask).none();
             });
 
           if (available_slot == slots.end()) {
-            slots.push_back(dynamic_bitset<>(nodes.size()));
+            slots.push_back(bitvec(nodes.size()));
             available_slot = slots.end() - 1;
           }
 
@@ -414,12 +423,12 @@ namespace yorel { namespace multi_methods {
       YOREL_MM_TRACE(cout << "make_table" << endl);
 
       emit_at = 0;
-      resolve(dims - 1, ~dynamic_bitset<>(mm.methods.size()));
+      resolve(dims - 1, ~bitvec(mm.methods.size()));
 
       const int first_slot = mm.slots[0];
 
       YOREL_MM_TRACE(cout << "resolve 1st dimension" << endl);
-      dynamic_bitset<> once;
+      bitvec once;
     
       for (auto& group : groups[0]) {
         for (auto pc : group.classes) {
@@ -428,7 +437,7 @@ namespace yorel { namespace multi_methods {
           }
         
           if (!once[pc->index]) {
-            once.set(pc->index);
+            once[pc->index] = true;
             YOREL_MM_TRACE(cout << pc << ": " << pc->mmt[first_slot].index << " -> " << dispatch_table + pc->mmt[first_slot].index << endl);
             pc->mmt[first_slot].ptr = dispatch_table + pc->mmt[first_slot].index;
           }
@@ -436,7 +445,7 @@ namespace yorel { namespace multi_methods {
       }
     }
   
-    void grouping_resolver::resolve(int dim, const dynamic_bitset<>& candidates) {
+    void grouping_resolver::resolve(int dim, const bitvec& candidates) {
       using namespace std;
       YOREL_MM_TRACE(cout << "\nresolve dim = " << dim << endl);
            
@@ -485,7 +494,7 @@ namespace yorel { namespace multi_methods {
         : &method_base::ambiguous;
     }
 
-    method_base* grouping_resolver::find_best(const dynamic_bitset<>& mask) {
+    method_base* grouping_resolver::find_best(const bitvec& mask) {
       vector<method_base*> candidates;
       copy_if(mm.methods.begin(), mm.methods.end(), back_inserter(candidates),
               [&](method_base* method) { return mask[method->index]; });
@@ -515,11 +524,11 @@ namespace yorel { namespace multi_methods {
       }
     }
 
-    void grouping_resolver::make_mask(const vector<method_base*>& methods, dynamic_bitset<>& mask) {
+    void grouping_resolver::make_mask(const vector<method_base*>& methods, bitvec& mask) {
       mask.resize(mm.methods.size());
 
       for (auto pm : methods) {
-        mask.set(pm->index);
+        mask[pm->index] = true;
       }
     }
 
@@ -577,4 +586,5 @@ namespace yorel { namespace multi_methods {
       return os << "mm" << mm->vargs;
     }
 
-  } }
+  }
+}
