@@ -16,7 +16,7 @@
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
   static_assert(::yorel::multi_methods::detail::check_bases<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
   static_assert(std::is_polymorphic<CLASS>::value, "error: class must be polymorphic"); \
-  namespace { ::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>> BOOST_PP_CAT(_mm_add_class, CLASS); }
+  namespace { ::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>> _mm_add_class_ ## CLASS; }
 
 #define MM_INIT() \
   this->_init_mmptr(this)

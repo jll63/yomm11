@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../.. && make && make test" -*-
+// -*- compile-command: "cd ../../.. && make && make test" -*-
 
 // multi_method/detail.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
@@ -7,6 +7,44 @@
 // http://www.boost.org/LICENSE_1_0.txt)
                                     
 namespace detail {
+
+  // Copied from Boost.
+  template<typename Base, typename Derived>
+  struct is_virtual_base_of
+  {
+#ifdef __BORLANDC__
+    struct internal_struct_X : public virtual Derived, public virtual Base 
+    {
+      internal_struct_X();
+      internal_struct_X(const internal_struct_X&);
+      internal_struct_X& operator=(const internal_struct_X&);
+      ~internal_struct_X()throw();
+    };
+    struct internal_struct_Y : public virtual Derived 
+    {
+      internal_struct_Y();
+      internal_struct_Y(const internal_struct_Y&);
+      internal_struct_Y& operator=(const internal_struct_Y&);
+      ~internal_struct_Y()throw();
+    };
+#else
+    struct internal_struct_X : public Derived, virtual Base 
+    {
+      internal_struct_X();
+      internal_struct_X(const internal_struct_X&);
+      internal_struct_X& operator=(const internal_struct_X&);
+      ~internal_struct_X()throw();
+    };
+    struct internal_struct_Y : public Derived 
+    {
+      internal_struct_Y();
+      internal_struct_Y(const internal_struct_Y&);
+      internal_struct_Y& operator=(const internal_struct_Y&);
+      ~internal_struct_Y()throw();
+    };
+#endif
+    static const int value = sizeof(internal_struct_X) == sizeof(internal_struct_Y);
+  };
   
   template<class B, class D, bool is_virtual>
   struct cast_best;

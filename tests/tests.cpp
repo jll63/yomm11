@@ -19,8 +19,6 @@ using namespace std;
 using namespace yorel::multi_methods;
 using namespace yorel::multi_methods::detail;
 
-using boost::is_virtual_base_of;
-
 #define test(exp, res) _test(__FILE__, __LINE__, #exp, exp, #res, res)
 #define testx(exp, res) _test(__FILE__, __LINE__, #exp, exp, 0, res)
 
@@ -51,7 +49,10 @@ bool _test(const char* file, int line, const char* test, const T1& got, const ch
   return ok;
 }
 
-#define DO void BOOST_PP_CAT(fun, __LINE__)(); int BOOST_PP_CAT(var, __LINE__) = (BOOST_PP_CAT(fun, __LINE__)(), 1); void BOOST_PP_CAT(fun, __LINE__)()
+#define PP_CAT(X, Y) PP_CAT1(X, Y)
+#define PP_CAT1(X, Y) X ## Y
+
+#define DO void PP_CAT(fun, __LINE__)(); int PP_CAT(var, __LINE__) = (PP_CAT(fun, __LINE__)(), 1); void PP_CAT(fun, __LINE__)()
 
 #define show(e) #e << " = " << (e)
 

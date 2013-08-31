@@ -21,15 +21,20 @@
 #include <algorithm>
 #include <stdexcept>
 #include <iostream>
-#include <boost/dynamic_bitset.hpp>
-#include <boost/type_traits/is_virtual_base_of.hpp>
-#include <boost/preprocessor/cat.hpp>
 
 #ifdef YOREL_MM_ENABLE_TRACE
 #define YOREL_MM_TRACE(e) e
 #include <iterator>
 #else
 #define YOREL_MM_TRACE(e)
+#endif
+
+// Copied from Boost.
+#ifdef _MSVC_VER
+#pragma warning( push )
+#pragma warning( disable : 4584 4250)
+#elif defined(__GNUC__) && (__GNUC__ >= 4)
+#pragma GCC system_header
 #endif
 
 namespace yorel {
@@ -346,7 +351,7 @@ namespace yorel {
 #include <yorel/multi_methods/detail.hpp>
     
     template<class B, class D>
-    struct cast : detail::cast_best<B, D, boost::is_virtual_base_of<B, D>::value> {
+    struct cast : detail::cast_best<B, D, detail::is_virtual_base_of<B, D>::value> {
     };
 
     template<class B>
