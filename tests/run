@@ -1,0 +1,1 @@
+cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=g++ && make && make test && cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=clang++ && make && make test
