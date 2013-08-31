@@ -295,17 +295,17 @@ namespace yorel {
     };
 
     struct selector {
-      selector() : _mm_ptbl(0) { }
-      std::vector<mm_class::offset>* _mm_ptbl;
+      selector() : _yomm11_ptbl(0) { }
+      std::vector<mm_class::offset>* _yomm11_ptbl;
       virtual ~selector() { }
       template<class THIS>
       void _init_mmptr(THIS*);
-      std::vector<mm_class::offset>* _get_mm_ptbl() const { return _mm_ptbl; }
+      std::vector<mm_class::offset>* _get_yomm11_ptbl() const { return _yomm11_ptbl; }
     };
 
     template<class THIS>
     inline void selector::_init_mmptr(THIS*) {
-      _mm_ptbl = &mm_class::of<THIS>::the().mmt;
+      _yomm11_ptbl = &mm_class::of<THIS>::the().mmt;
     }
 
     template<class Class>
@@ -420,7 +420,7 @@ namespace yorel {
       struct specialization {
         static method_pointer_type next;
         // this doesn't work on clang, must do it in BEGIN_SPECIALIZATION
-        // virtual void* _mm_install() { return &register_spec<Spec>::the; }
+        // virtual void* _yomm11_install() { return &register_spec<Spec>::the; }
       };
     };
 

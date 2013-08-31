@@ -880,21 +880,21 @@ int main() {
       test(display.the().steps[0], 1) &&
       test(display.the().steps[1], 3);
 
-    test( (*Animal()._mm_ptbl)[0].index, 0 );
-    test( (*Herbivore()._mm_ptbl)[0].index, 1 );
-    test( (*Cow()._mm_ptbl)[0].index, 1 );
-    test( (*Carnivore()._mm_ptbl)[0].index, 2 );
-    test( (*Wolf()._mm_ptbl)[0].index, 2 );
-    test( (*Tiger()._mm_ptbl)[0].index, 2 );
-    test( (*Interface()._mm_ptbl).size(), 1 );
-    test( (*Interface()._mm_ptbl)[0].index, 0 );
-    test( (*Terminal()._mm_ptbl)[0].index, 1 );
-    test( (*Window()._mm_ptbl)[0].index, 2 );
-    test( (*MSWindows()._mm_ptbl)[0].index, 2 );
-    test( (*X()._mm_ptbl)[0].index, 2 );
-    test( (*Mobile()._mm_ptbl)[0].index, 3 );
-    test( (*Nokia()._mm_ptbl)[0].index, 3 );
-    test( (*Samsung()._mm_ptbl)[0].index, 3 );
+    test( (*Animal()._yomm11_ptbl)[0].index, 0 );
+    test( (*Herbivore()._yomm11_ptbl)[0].index, 1 );
+    test( (*Cow()._yomm11_ptbl)[0].index, 1 );
+    test( (*Carnivore()._yomm11_ptbl)[0].index, 2 );
+    test( (*Wolf()._yomm11_ptbl)[0].index, 2 );
+    test( (*Tiger()._yomm11_ptbl)[0].index, 2 );
+    test( (*Interface()._yomm11_ptbl).size(), 1 );
+    test( (*Interface()._yomm11_ptbl)[0].index, 0 );
+    test( (*Terminal()._yomm11_ptbl)[0].index, 1 );
+    test( (*Window()._yomm11_ptbl)[0].index, 2 );
+    test( (*MSWindows()._yomm11_ptbl)[0].index, 2 );
+    test( (*X()._yomm11_ptbl)[0].index, 2 );
+    test( (*Mobile()._yomm11_ptbl)[0].index, 3 );
+    test( (*Nokia()._yomm11_ptbl)[0].index, 3 );
+    test( (*Samsung()._yomm11_ptbl)[0].index, 3 );
 
     rdisp.make_table();
     auto table = display.the().dispatch_table;

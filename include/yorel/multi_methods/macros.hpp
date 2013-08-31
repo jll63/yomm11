@@ -8,7 +8,7 @@
 
 #undef MM_CLASS
 #define MM_CLASS(CLASS, BASES...)                                       \
-  virtual void _mm_init_class_() { &::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>>::the; }
+  virtual void _yomm11_init_class_() { &::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>>::the; }
 
 #undef MM_EXTERN_CLASS
 #define MM_EXTERN_CLASS(CLASS)
@@ -16,7 +16,7 @@
 #define MM_FOREIGN_CLASS(CLASS, BASES...)                               \
   static_assert(::yorel::multi_methods::detail::check_bases<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
   static_assert(std::is_polymorphic<CLASS>::value, "error: class must be polymorphic"); \
-  namespace { ::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>> _mm_add_class_ ## CLASS; }
+  namespace { ::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>> _yomm11_add_class_ ## CLASS; }
 
 #define MM_INIT() \
   this->_init_mmptr(this)
@@ -24,7 +24,7 @@
 #undef MM_CLASS_MULTI
 #define MM_CLASS_MULTI(CLASS, BASE, BASES...)                     \
   MM_CLASS(CLASS, BASE, BASES);                                         \
-  std::vector<mm_class::offset>* _get_mm_ptbl() const { return BASE::_mm_ptbl; }
+  std::vector<mm_class::offset>* _get_yomm11_ptbl() const { return BASE::_yomm11_ptbl; }
 
 #define MM_INIT_MULTI(BASE)                                       \
   this->BASE::_init_mmptr(this)
@@ -37,7 +37,7 @@
 #define BEGIN_SPECIALIZATION(ID, RESULT, ARGS...)                       \
   template<>                                                            \
   struct ID ## _specialization<RESULT(ARGS)> : decltype(ID)::specialization<ID ## _specialization<RESULT(ARGS)>> { \
-  virtual void* _mm_install() { return &decltype(ID)::register_spec<ID ## _specialization>::the; } \
+  virtual void* _yomm11_install() { return &decltype(ID)::register_spec<ID ## _specialization>::the; } \
   static RESULT body(ARGS) {
 
 #define END_SPECIALIZATION } };

@@ -181,7 +181,7 @@ namespace detail {
   struct get_mm_table<true> {
     template<class C>
     static const std::vector<mm_class::offset>& value(const C* obj) {
-      return *obj->_get_mm_ptbl();
+      return *obj->_get_yomm11_ptbl();
     }
   };
 

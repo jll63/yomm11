@@ -9,7 +9,7 @@
 #undef MM_CLASS
 
 #define MM_CLASS(CLASS, BASES...)               \
-  virtual void _mm_init_class_()
+  virtual void _yomm11_init_class_()
 
 #undef MM_EXTERN_CLASS
 
