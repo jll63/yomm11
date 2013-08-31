@@ -10,10 +10,8 @@
 #include <yorel/multi_methods/runtime.hpp>
 #include <unordered_set>
 #include <functional>
-#include <boost/range/adaptor/reversed.hpp>
 
 using namespace std;
-using boost::adaptors::reverse;
 
 namespace yorel {
   namespace multi_methods {
@@ -188,10 +186,10 @@ namespace yorel {
         YOREL_MM_TRACE(cout << pc->ti.name() << " = " << pc << endl);
       }
     
-      for (auto pc : reverse(nodes)) {
-        for (mm_class* spec : pc->specs)  {
+      for (auto pc_iter = nodes.rbegin(); pc_iter != nodes.rend(); pc_iter++) {
+        for (mm_class* spec : (*pc_iter)->specs)  {
           for (int bit = spec->index; bit < nb; bit++) {
-            pc->mask[bit] |= nodes[spec->index]->mask[bit];
+            (*pc_iter)->mask[bit] |= nodes[spec->index]->mask[bit];
           }
         }
       }
@@ -311,9 +309,9 @@ namespace yorel {
     }
   
     multi_method_base::~multi_method_base() {
-      for (method_base* method : reverse(methods)) {
-        delete method;
-        method = 0;
+      for (auto method_iter = methods.rbegin(); method_iter != methods.rend(); method_iter++) {
+        delete *method_iter;
+        *method_iter = 0;
       }
 
       for (mm_class* arg : vargs) {

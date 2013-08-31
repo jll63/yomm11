@@ -1,4 +1,4 @@
-// -*- compile-command: "g++ -std=c++11 -I$BOOST_ROOT -I../include -o next next.cpp ../src/multi_methods.cpp && ./next" -*-
+// -*- compile-command: "g++ -std=c++11 -I../include -o next next.cpp ../src/multi_methods.cpp && ./next" -*-
 
 // next.cpp
 // Copyright (c) 2013 Jean-Louis Leroy

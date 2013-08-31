@@ -1,11 +1,11 @@
-// -*- compile-command: "g++ -std=c++11 -I../include -I$BOOST_ROOT reference_examples.cpp ../src/multi_methods.cpp -o examples && ./examples" -*-
+// -*- compile-command: "g++ -std=c++11 -I../include reference_examples.cpp ../src/multi_methods.cpp -o examples && ./examples" -*-
 
 #include <iostream>
 #include <yorel/multi_methods.hpp>
 
 using namespace std;
 
-struct role : multi_methods::selector {
+struct role : yorel::multi_methods::selector {
   MM_CLASS(role);
   role() {
     MM_INIT();
@@ -26,7 +26,7 @@ struct ceo : role {
   }
 };
 
-struct expense : multi_methods::selector {
+struct expense : yorel::multi_methods::selector {
   MM_CLASS(expense);
   expense() {
     MM_INIT();
@@ -47,7 +47,7 @@ struct cab : expense {
   }
 };
 
-struct reason : multi_methods::selector {
+struct reason : yorel::multi_methods::selector {
   MM_CLASS(reason);
   reason() {
     MM_INIT();
@@ -68,7 +68,7 @@ struct comfort : reason {
   }
 };
 
-using namespace multi_methods;
+using namespace yorel::multi_methods;
 
 //[ ref_multi_method
 
