@@ -795,6 +795,65 @@ int main() {
     test(mm_class::of<CD>::the().mmt.size(), 5);
     test(mm_class::of<Y>::the().mmt.size(), 2);
   }
+  
+  {
+    cout << "\n--- Slot allocation - multiple roots." << endl;
+    using namespace multi_roots;
+
+    test(mm_class::of<X>::the().root, &mm_class::of<X>::the());
+    test(mm_class::of<Y>::the().root, &mm_class::of<Y>::the());
+
+    {
+      hierarchy_initializer init(mm_class::of<X>::the());
+      init.collect_classes();
+      test(init.nodes.size(), 3);
+      test(init.nodes[0], &init.root);
+      test(init.nodes[0], &mm_class::of<X>::the());
+      test(init.nodes[1], &mm_class::of<Y>::the());
+      test(init.nodes[2], &mm_class::of<XY>::the());
+    }
+
+    {
+      hierarchy_initializer init(mm_class::of<Y>::the());
+      init.collect_classes();
+      test(init.nodes.size(), 3);
+      test(init.nodes[0], &mm_class::of<Y>::the());
+      test(init.nodes[1], &mm_class::of<X>::the());
+      test(init.nodes[2], &mm_class::of<XY>::the());
+    }
+
+    test(mm_class::of<X>::the().is_root(), true);
+    test(mm_class::of<Y>::the().is_root(), true);
+    test(mm_class::of<XY>::the().is_root(), false);
+
+    mm_class::add_to_initialize(&mm_class::of<X>::the());
+    mm_class::add_to_initialize(&mm_class::of<Y>::the());
+    hierarchy_initializer::initialize(mm_class::of<Y>::the());
+    test(mm_class::to_initialize->empty() ||
+         find(mm_class::to_initialize->begin(),
+              mm_class::to_initialize->end(),
+              &mm_class::of<X>::the()) == mm_class::to_initialize->end(),
+         true);
+    test(mm_class::to_initialize->empty() ||
+         find(mm_class::to_initialize->begin(),
+              mm_class::to_initialize->end(),
+              &mm_class::of<Y>::the()) == mm_class::to_initialize->end(),
+         true);
+
+    mm_class::add_to_initialize(&mm_class::of<X>::the());
+    mm_class::add_to_initialize(&mm_class::of<Y>::the());
+    hierarchy_initializer::initialize(mm_class::of<Y>::the());
+    test(mm_class::to_initialize->empty() ||
+         find(mm_class::to_initialize->begin(),
+              mm_class::to_initialize->end(),
+              &mm_class::of<X>::the()) == mm_class::to_initialize->end(),
+         true);
+    test(mm_class::to_initialize->empty() ||
+         find(mm_class::to_initialize->begin(),
+              mm_class::to_initialize->end(),
+              &mm_class::of<Y>::the()) == mm_class::to_initialize->end(),
+         true);
+  }
 
   cout << "\n--- Grouping resolver tests\n";
 

@@ -10,6 +10,7 @@
 #include <yorel/multi_methods/runtime.hpp>
 #include <unordered_set>
 #include <functional>
+#include <cassert>
 
 using namespace std;
 
@@ -121,6 +122,9 @@ namespace yorel {
     unique_ptr<unordered_set<mm_class*>> mm_class::to_initialize;
   
     void mm_class::add_to_initialize(mm_class* pc) {
+      YOREL_MM_TRACE(cout << "add to initialize: " << pc << endl);
+      assert(pc->is_root());
+
       if (!to_initialize) {
         to_initialize.reset(new unordered_set<mm_class*>);
       }
@@ -129,7 +133,9 @@ namespace yorel {
     }
   
     void mm_class::remove_from_initialize(mm_class* pc) {
-      if (to_initialize){
+      YOREL_MM_TRACE(cout << "remove from initialize: " << pc->ti.name() << endl);
+      
+      if (to_initialize) {
         to_initialize->erase(pc);
 
         if (to_initialize->empty()) {
@@ -157,7 +163,7 @@ namespace yorel {
           topological_sort_visit(once, base);
         }
 
-        nodes.push_back({ pc });
+        nodes.push_back(pc);
       }
     }
   
@@ -166,6 +172,12 @@ namespace yorel {
       collect_classes();
       make_masks();
       assign_slots();
+      
+      for (auto pc : nodes) {
+        if (pc->is_root()) {
+          mm_class::remove_from_initialize(pc);
+        }
+      }
     }
 
     void hierarchy_initializer::collect_classes() {
@@ -237,7 +249,6 @@ namespace yorel {
       while (mm_class::to_initialize) {
         auto pc = *mm_class::to_initialize->begin();
         hierarchy_initializer::initialize(*pc);
-        mm_class::remove_from_initialize(pc);
       }
     
       while (multi_method_base::to_initialize) {
@@ -273,14 +284,14 @@ namespace yorel {
 
     void mm_class::add_multi_method(multi_method_base* pm, int arg) {
       rooted_here.push_back(mmref { pm, arg });
-      add_to_initialize(this);
+      add_to_initialize(root);
     }
 
     void mm_class::remove_multi_method(multi_method_base* pm) {
       rooted_here.erase(
         remove_if(rooted_here.begin(), rooted_here.end(), [=](mmref& ref) { return ref.method == pm;  }),
         rooted_here.end());
-      add_to_initialize(this);
+      add_to_initialize(root);
     }
   
     get_mm_table<false>::class_of_type* get_mm_table<false>::class_of;

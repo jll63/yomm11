@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <iostream>
 
+//#define YOREL_MM_ENABLE_TRACE
 #ifdef YOREL_MM_ENABLE_TRACE
 #define YOREL_MM_TRACE(e) e
 #include <iterator>
@@ -241,6 +242,7 @@ namespace yorel {
       void for_each_conforming(std::unordered_set<const mm_class*>& visited, std::function<void(mm_class*)> pf);
       bool conforms_to(const mm_class& other) const;
       bool specializes(const mm_class& other) const;
+      bool is_root() const;
     
       const std::type_info& ti;
       std::vector<mm_class*> bases;
@@ -282,6 +284,10 @@ namespace yorel {
 
     inline const std::string mm_class::name() const {
       return ti.name();
+    }
+
+    inline bool mm_class::is_root() const {
+      return this == root;
     }
 
     struct method_base {
