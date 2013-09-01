@@ -9,6 +9,7 @@
 #undef MM_CLASS
 
 #define MM_CLASS(CLASS, BASES...)               \
+  using _yomm11_base_list = ::yorel::multi_methods::mm_class::base_list<BASES>; \
   virtual void _yomm11_init_class_()
 
 #undef MM_EXTERN_CLASS

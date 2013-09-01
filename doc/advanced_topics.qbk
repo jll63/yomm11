@@ -70,19 +70,14 @@ which `selector` it uses: they contain the same
 information. Nonetheless, you must tell C++ which `selector` to
 use.
 
-Moreover, in the cooperating model, it is the responsibility of the
-classes to initialize the `selector` objects.
-
-This is achieved by using special forms of the `MM_CLASS` and
-`MM_INIT` macros:
+This is achieved by using a special form of the `MM_CLASS` macro:
 
 ``
 struct XY : X, Y {
   MM_CLASS_MULTI(XY, X, Y);
 
   XY() {
-    MM_INIT_MULTI(X);
-    MM_INIT_MULTI(Y);
+    MM_INIT();
   }
 };
 ``

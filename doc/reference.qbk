@@ -17,7 +17,6 @@
 [def __MM_CLASS_MULTI__ [link multi_methods.reference.registering_classes.mm_class_multi `MM_CLASS_MULTI`]]
 [def __MM_CLASS__ [link multi_methods.reference.registering_classes.mm_class `MM_CLASS`]]
 [def __MM_FOREIGN_CLASS__ [link multi_methods.reference.registering_classes.mm_foreign_class `MM_FOREIGN_CLASS`]]
-[def __MM_INIT_MULTI__ [link multi_methods.reference.registering_classes.mm_init_multi `MM_INIT_MULTI`]]
 [def __MM_INIT__ [link multi_methods.reference.registering_classes.mm_init `MM_INIT`]]
 
 [def __virtual___ [link multi_methods.reference.declaring_multi_methods.virtual_ `virtual_`]]
@@ -38,7 +37,6 @@
 [include MM_CLASS_MULTI.qbk]
 [include MM_FOREIGN_CLASS.qbk]
 [include MM_INIT.qbk]
-[include MM_INIT_MULTI.qbk]
 [endsect]
 
 [section Declaring multi-methods]

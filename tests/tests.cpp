@@ -369,8 +369,7 @@ namespace multi_roots {
     MM_CLASS_MULTI(XY, X, Y);
     
     XY() {
-      MM_INIT_MULTI(X);
-      MM_INIT_MULTI(Y);
+      MM_INIT();
     }
   };
 
@@ -471,8 +470,7 @@ namespace repeated {
     MM_CLASS_MULTI(AB, A, B);
     
     AB() {
-      MM_INIT_MULTI(A);
-      MM_INIT_MULTI(B);
+      MM_INIT();
     }
   };
 }
@@ -1185,6 +1183,8 @@ int main() {
     xy.x = 1;
     xy.y = 2;
 
+    test( xy.X::_yomm11_ptbl == xy.Y::_yomm11_ptbl, true );
+
     test( mx(xy), 1 );
     test( my(xy), 2 );
     test( mxy(xy), 3 );
@@ -1214,6 +1214,8 @@ int main() {
     ab.b = 7;
     A& a = ab;
     B& b = ab;
+
+    test( ab.A::_yomm11_ptbl == ab.B::_yomm11_ptbl, true );
 
     test( ma(ab), 7 );
     test( mb(ab), 10 );

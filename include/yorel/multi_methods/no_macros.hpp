@@ -305,12 +305,12 @@ namespace yorel {
       std::vector<mm_class::offset>* _yomm11_ptbl;
       virtual ~selector() { }
       template<class THIS>
-      void _init_mmptr(THIS*);
+      void _init_yomm11_ptr(THIS*);
       std::vector<mm_class::offset>* _get_yomm11_ptbl() const { return _yomm11_ptbl; }
     };
 
     template<class THIS>
-    inline void selector::_init_mmptr(THIS*) {
+    inline void selector::_init_yomm11_ptr(THIS*) {
       _yomm11_ptbl = &mm_class::of<THIS>::the().mmt;
     }
 

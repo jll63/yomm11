@@ -8,6 +8,7 @@
 
 #undef MM_CLASS
 #define MM_CLASS(CLASS, BASES...)                                       \
+  using _yomm11_base_list = ::yorel::multi_methods::mm_class::base_list<BASES>; \
   virtual void _yomm11_init_class_() { &::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>>::the; }
 
 #undef MM_EXTERN_CLASS
@@ -19,7 +20,7 @@
   namespace { ::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<BASES>> _yomm11_add_class_ ## CLASS; }
 
 #define MM_INIT() \
-  this->_init_mmptr(this)
+  ::yorel::multi_methods::detail::init_ptr<_yomm11_base_list>::init(this)
 
 #undef MM_CLASS_MULTI
 #define MM_CLASS_MULTI(CLASS, BASE, BASES...)                     \
@@ -27,7 +28,7 @@
   std::vector<mm_class::offset>* _get_yomm11_ptbl() const { return BASE::_yomm11_ptbl; }
 
 #define MM_INIT_MULTI(BASE)                                       \
-  this->BASE::_init_mmptr(this)
+  this->BASE::_init_yomm11_ptr(this)
 
 #undef MULTI_METHOD
 #define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                           \
