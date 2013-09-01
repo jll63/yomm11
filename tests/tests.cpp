@@ -1032,7 +1032,7 @@ int main() {
     test(encounter(c, c), "ignore");
 
     // static call
-    test(SPECIALIZATION(encounter, string, Animal&, Animal&)(c, w), "ignore");
+    test(GET_SPECIALIZATION(encounter, string, Animal&, Animal&)(c, w), "ignore");
       
     // next
     test(encounter_specialization<string(Wolf&, Wolf&)>::next(w, w), "fight");
