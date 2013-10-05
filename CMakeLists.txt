@@ -19,11 +19,11 @@ include_directories ("${YOMM11_SOURCE_DIR}/include")
 link_directories ("${YOMM11_BINARY_DIR}/src")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "-std=c++11 -I$ENV{BOOST_ROOT}")
+    set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "-std=c++11 -I$ENV{BOOST_ROOT}")
+    set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
 add_subdirectory (src)
