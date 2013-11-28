@@ -390,6 +390,7 @@ namespace yorel {
     struct multi_method<Method, R(P...)> {
     
       R operator ()(typename detail::remove_virtual<P>::type... args) const;
+      static R method(typename detail::remove_virtual<P>::type... args);
 
       using return_type = R;
       using method_pointer_type = return_type (*)(typename detail::remove_virtual<P>::type...);
@@ -458,6 +459,12 @@ namespace yorel {
   
     template<template<typename Sig> class Method, typename R, typename... P>
     inline R multi_method<Method, R(P...)>::operator ()(typename detail::remove_virtual<P>::type... args) const {
+      YOREL_MM_TRACE((std::cout << "() mm table = " << impl->dispatch_table << std::flush));
+      return reinterpret_cast<method_pointer_type>(*detail::linear<0, P...>::value(impl->slots.begin(), impl->steps.begin(), &args...))(args...);
+    }
+  
+    template<template<typename Sig> class Method, typename R, typename... P>
+    inline R multi_method<Method, R(P...)>::method(typename detail::remove_virtual<P>::type... args) {
       YOREL_MM_TRACE((std::cout << "() mm table = " << impl->dispatch_table << std::flush));
       return reinterpret_cast<method_pointer_type>(*detail::linear<0, P...>::value(impl->slots.begin(), impl->steps.begin(), &args...))(args...);
     }

@@ -1,4 +1,4 @@
 #!/bin/sh
-scp -r index.html multi_methods/ yorel@yorel.be:www/mm
-scp -r examples/*.?pp yorel@yorel.be:www/mm/examples
+scp -r html/index.html html/multi_methods/ yorel@yorel.be:www/mm
+scp -r html/examples/*.?pp yorel@yorel.be:www/mm/examples
 

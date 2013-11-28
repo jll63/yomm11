@@ -1009,6 +1009,8 @@ int main() {
     
     test( display(Carnivore(), Samsung()), mobile );
     test( display(Wolf(), Nokia()), mobile );
+    
+    test( decltype(display)::method(Wolf(), Nokia()), mobile );
   }
 
   cout << "\n--- Single inheritance." << endl;

@@ -7,7 +7,8 @@ struct multimethod; // declared but not defined
 
 template<template<typename Signature> __class_template__, typename __return_type__, typename __args__...>
 struct multimethod<__specialization__, __return_type__(__args__)> {
-  __return_type__ operator ()(__args__...);
+  __return_type__ operator ()(__args__...) const;
+  static __return_type__ method(__args__...);
   static void specialize<__specialization__>();
 };
 ``
@@ -26,6 +27,12 @@ averting namespace pollution.
 __args__ must contain at least one argument that includes the
 __virtual___ marker. The markers are removed from the signature of
 __operator ()__.
+
+Both `operator ()` and `method` implement method dispatch. The
+former is convenient to call a multi-method, the latter to take a
+pointer to it. Other than that, the behavior and the performance are
+identical.
+
 
 Multi-methods are stateless function objects. The data structures
 implementing specialization registration and method dispatch reside in
