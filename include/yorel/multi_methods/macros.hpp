@@ -33,7 +33,7 @@
 #undef MULTI_METHOD
 #define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                           \
   template<typename Sig> struct ID ## _specialization;                          \
-  constexpr ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(ARGS)> ID{};
+  constexpr ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(ARGS)> ID{}
   
 #define BEGIN_SPECIALIZATION(ID, RESULT, ARGS...)                       \
   template<>                                                            \
