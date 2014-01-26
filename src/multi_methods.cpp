@@ -123,7 +123,6 @@ namespace yorel {
   
     void mm_class::add_to_initialize(mm_class* pc) {
       YOREL_MM_TRACE(cout << "add to initialize: " << pc << endl);
-      assert(pc->is_root());
 
       if (!to_initialize) {
         to_initialize.reset(new unordered_set<mm_class*>);
@@ -248,7 +247,11 @@ namespace yorel {
     void initialize() {
       while (mm_class::to_initialize) {
         auto pc = *mm_class::to_initialize->begin();
-        hierarchy_initializer::initialize(*pc);
+	if (pc->is_root()) {
+	  hierarchy_initializer::initialize(*pc);
+	} else {
+	  mm_class::remove_from_initialize(pc);
+	}
       }
     
       while (multi_method_base::to_initialize) {
@@ -284,7 +287,7 @@ namespace yorel {
 
     void mm_class::add_multi_method(multi_method_base* pm, int arg) {
       rooted_here.push_back(mmref { pm, arg });
-      add_to_initialize(root);
+      add_to_initialize(this);
     }
 
     void mm_class::remove_multi_method(multi_method_base* pm) {
@@ -311,11 +314,10 @@ namespace yorel {
   
     multi_method_base::multi_method_base(const vector<mm_class*>& v) : vargs(v) {
       int i = 0;
-      for_each(vargs.begin(), vargs.end(),
-               [&](mm_class* pc) {
-                 YOREL_MM_TRACE(cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
-                 pc->add_multi_method(this, i++);
-               });
+      for (auto pc : vargs) {
+	YOREL_MM_TRACE(cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
+	pc->add_multi_method(this, i++);
+      }
       slots.resize(v.size());
     }
   

@@ -1,5 +1,6 @@
 // -*- compile-command: "make foreign && ./foreign" -*-
 
+// clang++ -g -std=c++11 -I../include ../src/multi_methods.cpp foreign.cpp -o foreign && ./foreign
 // foreign.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
