@@ -47,67 +47,67 @@ using yorel::multi_methods::virtual_;
 
 namespace intrusive {
 
-  MULTI_METHOD(do_nothing, void, virtual_<object>&);
+MULTI_METHOD(do_nothing, void, virtual_<object>&);
 
-  BEGIN_SPECIALIZATION(do_nothing, void, object&) {
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(do_nothing, void, object&) {
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(do_something, double, virtual_<object>&, double x, double a, double b, double c);
+MULTI_METHOD(do_something, double, virtual_<object>&, double x, double a, double b, double c);
 
-  BEGIN_SPECIALIZATION(do_something, double, object&, double x, double a, double b, double c) {
-    return log(a * x * x + b * x + c);
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(do_something, double, object&, double x, double a, double b, double c) {
+  return log(a * x * x + b * x + c);
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
+MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
 
-  BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
+} END_SPECIALIZATION;
 
 }
 
 namespace vbase {
 
-  MULTI_METHOD(do_nothing, void, virtual_<object>&);
+MULTI_METHOD(do_nothing, void, virtual_<object>&);
 
-  BEGIN_SPECIALIZATION(do_nothing, void, object&) {
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(do_nothing, void, object&) {
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(do_something, double, virtual_<object>&, double x, double a, double b, double c);
+MULTI_METHOD(do_something, double, virtual_<object>&, double x, double a, double b, double c);
 
-  BEGIN_SPECIALIZATION(do_something, double, derived&, double x, double a, double b, double c) {
-    return log(a * x * x + b * x + c);
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(do_something, double, derived&, double x, double a, double b, double c) {
+  return log(a * x * x + b * x + c);
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
+MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
 
-  BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
+} END_SPECIALIZATION;
 
 }
 
 namespace foreign {
-  
-  struct object {
-    virtual ~object() { }
-  };
 
-  MM_FOREIGN_CLASS(object);
+struct object {
+  virtual ~object() { }
+};
 
-  MULTI_METHOD(do_nothing, void, virtual_<object>&);
+MM_FOREIGN_CLASS(object);
 
-  BEGIN_SPECIALIZATION(do_nothing, void, object&) {
-  } END_SPECIALIZATION;
+MULTI_METHOD(do_nothing, void, virtual_<object>&);
 
-  MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
+BEGIN_SPECIALIZATION(do_nothing, void, object&) {
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
-  } END_SPECIALIZATION;
+MULTI_METHOD(do_nothing_2, void, virtual_<object>&, virtual_<object>&);
 
-  MULTI_METHOD(do_something, double, virtual_<object>&, double x, double a, double b, double c);
+BEGIN_SPECIALIZATION(do_nothing_2, void, object&, object&) {
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(do_something, double, object&, double x, double a, double b, double c) {
-    return log(a * x * x + b * x + c);
-  } END_SPECIALIZATION;
+MULTI_METHOD(do_something, double, virtual_<object>&, double x, double a, double b, double c);
+
+BEGIN_SPECIALIZATION(do_something, double, object&, double x, double a, double b, double c) {
+  return log(a * x * x + b * x + c);
+} END_SPECIALIZATION;
 }
 
 using time_type = decltype(high_resolution_clock::now());
@@ -119,12 +119,12 @@ void post(const string& description, time_type start, time_type end) {
 struct benchmark {
   benchmark(const string& label) : label(label), start(high_resolution_clock::now()) {
   }
-  
+
   ~benchmark() {
-      auto end = high_resolution_clock::now();
-      cout << setw(50) << left << label << ": "
-           << setw(8) << fixed << right << setprecision(2)
-           << duration<double, milli>(end - start).count() << endl;
+    auto end = high_resolution_clock::now();
+    cout << setw(50) << left << label << ": "
+         << setw(8) << fixed << right << setprecision(2)
+         << duration<double, milli>(end - start).count() << endl;
   }
 
   const string label;
@@ -147,7 +147,7 @@ int main() {
       for (int i = 0; i < repeats; i++)
         pi->do_nothing();
     }
-  
+
     {
       benchmark b("open method, intrusive, do_nothing");
       for (int i = 0; i < repeats; i++)
@@ -198,17 +198,17 @@ int main() {
         foreign::do_nothing_2(*pf, *pf);
     }
   }
-  
+
   // virtual inheritance
   {
     auto pi = vbase::object::make();
-    
+
     {
       benchmark b("virtual function, vbase, do_nothing");
       for (int i = 0; i < repeats; i++)
         pi->do_nothing();
     }
-  
+
     {
       benchmark b("open method, vbase, do_nothing");
       for (int i = 0; i < repeats; i++)
@@ -241,6 +241,6 @@ int main() {
         vbase::do_nothing_2(*pi, *pi);
     }
   }
-  
+
   return 0;
 }

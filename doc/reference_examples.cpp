@@ -77,7 +77,7 @@ template<typename Signature> struct approve_specialization;
 constexpr multi_method<
   approve_specialization,
   bool(const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&)
-> approve;
+  > approve;
 //]
 
 //[ ref_spec
@@ -93,9 +93,9 @@ struct approve_ceo_all {
 bool (*approve_ceo_all::next)(const expense&, const role&, const reason&);
 
 int main() {
-//[ ref_spec_call
-approve.specialize<approve_ceo_all>();
-//]
+  //[ ref_spec_call
+  approve.specialize<approve_ceo_all>();
+  //]
   initialize();
   cout << approve(plane(), ceo(), comfort()) << endl;
 }

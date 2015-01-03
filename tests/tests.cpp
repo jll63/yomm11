@@ -23,7 +23,7 @@ using namespace yorel::multi_methods::detail;
 #define testx(exp, res) _test(__FILE__, __LINE__, #exp, exp, 0, res)
 
 namespace {
-  int success, failure;
+int success, failure;
 }
 
 using methods = vector<method_base*>;
@@ -79,65 +79,65 @@ namespace single_inheritance {
 
 namespace slot_allocation_tests {
 
-  struct X : selector {
-    MM_CLASS(X);
-    X() { MM_INIT(); }
-  };
+struct X : selector {
+  MM_CLASS(X);
+  X() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_x, int, const virtual_<X>&);
+MULTI_METHOD(m_x, int, const virtual_<X>&);
 
-  struct A : X {
-    MM_CLASS(A, X);
-    A() { MM_INIT(); }
-  };
+struct A : X {
+  MM_CLASS(A, X);
+  A() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_a, int, const virtual_<A>&);
+MULTI_METHOD(m_a, int, const virtual_<A>&);
 
-  struct B : virtual A {
-    MM_CLASS(B, A);
-    B() { MM_INIT(); }
-  };
+struct B : virtual A {
+  MM_CLASS(B, A);
+  B() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_b, int, const virtual_<B>&);
+MULTI_METHOD(m_b, int, const virtual_<B>&);
 
-  struct C : virtual A {
-    MM_CLASS(C, A);
-    C() { MM_INIT(); }
-  };
+struct C : virtual A {
+  MM_CLASS(C, A);
+  C() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_c, int, const virtual_<C>&);
+MULTI_METHOD(m_c, int, const virtual_<C>&);
 
-  struct D : virtual A {
-    MM_CLASS(D, A);
-    D() { MM_INIT(); }
-  };
+struct D : virtual A {
+  MM_CLASS(D, A);
+  D() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_d, int, const virtual_<D>&);
+MULTI_METHOD(m_d, int, const virtual_<D>&);
 
-  struct BC : B, C {
-    MM_CLASS(BC, B, C);
-    BC() { MM_INIT(); }
-  };
+struct BC : B, C {
+  MM_CLASS(BC, B, C);
+  BC() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_bc, int, const virtual_<BC>&);
+MULTI_METHOD(m_bc, int, const virtual_<BC>&);
 
-  struct CD : C, D {
-    MM_CLASS(CD, C, D);
-    CD() { MM_INIT(); }
-  };
+struct CD : C, D {
+  MM_CLASS(CD, C, D);
+  CD() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_cd, int, const virtual_<CD>&);
+MULTI_METHOD(m_cd, int, const virtual_<CD>&);
 
-  struct Y : virtual X {
-    MM_CLASS(Y, X);
-    Y() { MM_INIT(); }
-  };
+struct Y : virtual X {
+  MM_CLASS(Y, X);
+  Y() { MM_INIT(); }
+};
 
-  MULTI_METHOD(m_y, int, const virtual_<Y>&);
+MULTI_METHOD(m_y, int, const virtual_<Y>&);
 }
 
 namespace grouping_resolver_tests {
-  
+
 #include "animals.hpp"
 
 #define MAKE_CLASS(Class, Base)                 \
@@ -148,41 +148,41 @@ namespace grouping_resolver_tests {
     }                                           \
   }
 
-  MAKE_CLASS(Mobile, Interface);
-  MAKE_CLASS(MSWindows, Window);
-  MAKE_CLASS(X, Window);
-  MAKE_CLASS(Nokia, Mobile);
-  MAKE_CLASS(Samsung, Mobile);
+MAKE_CLASS(Mobile, Interface);
+MAKE_CLASS(MSWindows, Window);
+MAKE_CLASS(X, Window);
+MAKE_CLASS(Nokia, Mobile);
+MAKE_CLASS(Samsung, Mobile);
 
-  enum action { whatever, print_herbivore, draw_herbivore, print_carnivore, draw_carnivore, mobile };
+enum action { whatever, print_herbivore, draw_herbivore, print_carnivore, draw_carnivore, mobile };
 
-  MULTI_METHOD(display, action, const virtual_<Animal>&, const virtual_<Interface>&);
+MULTI_METHOD(display, action, const virtual_<Animal>&, const virtual_<Interface>&);
 
-  // 0
-  BEGIN_SPECIALIZATION(display, action, const Herbivore& a, const Terminal& b) {
-    return print_herbivore;
-  } END_SPECIALIZATION;
+// 0
+BEGIN_SPECIALIZATION(display, action, const Herbivore& a, const Terminal& b) {
+  return print_herbivore;
+} END_SPECIALIZATION;
 
-  // 1
-  BEGIN_SPECIALIZATION(display, action, const Herbivore& a, const Window& b) {
-    return draw_herbivore;
-  } END_SPECIALIZATION;
+// 1
+BEGIN_SPECIALIZATION(display, action, const Herbivore& a, const Window& b) {
+  return draw_herbivore;
+} END_SPECIALIZATION;
 
-  // 2
-  BEGIN_SPECIALIZATION(display, action, const Carnivore& a, const Terminal& b) {
-    return print_carnivore;
-  } END_SPECIALIZATION;
+// 2
+BEGIN_SPECIALIZATION(display, action, const Carnivore& a, const Terminal& b) {
+  return print_carnivore;
+} END_SPECIALIZATION;
 
-  // 3
-  BEGIN_SPECIALIZATION(display, action, const Carnivore& a, const Window& b) {
-    return draw_carnivore;
-  } END_SPECIALIZATION;
+// 3
+BEGIN_SPECIALIZATION(display, action, const Carnivore& a, const Window& b) {
+  return draw_carnivore;
+} END_SPECIALIZATION;
 
-  // 4
-  BEGIN_SPECIALIZATION(display, action, const Animal& a, const Mobile& b) {
-    return mobile;
-  } END_SPECIALIZATION;
-  
+// 4
+BEGIN_SPECIALIZATION(display, action, const Animal& a, const Mobile& b) {
+  return mobile;
+} END_SPECIALIZATION;
+
 }
 
 #ifndef __clang__
@@ -191,144 +191,144 @@ namespace init_tests {
 
 #include "animals.hpp"
 
-  MULTI_METHOD(encounter, string, const virtual_<Animal>&, const virtual_<Animal>&);
+MULTI_METHOD(encounter, string, const virtual_<Animal>&, const virtual_<Animal>&);
 
-  BEGIN_SPECIALIZATION(encounter, string, const Animal&, const Animal&) {
-    return "ignore";
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(encounter, string, const Animal&, const Animal&) {
+  return "ignore";
+} END_SPECIALIZATION;
 
-  DO {
-    yorel::multi_methods::initialize();
-    test(encounter(Cow(), Wolf()), "ignore");
-    test(encounter(Wolf(), Cow()), "ignore");
+DO {
+  yorel::multi_methods::initialize();
+  test(encounter(Cow(), Wolf()), "ignore");
+  test(encounter(Wolf(), Cow()), "ignore");
+}
+
+BEGIN_SPECIALIZATION(encounter, string, const Herbivore&, const Carnivore&) {
+  return "run";
+} END_SPECIALIZATION;
+
+DO {
+  yorel::multi_methods::initialize();
+  test(encounter(Cow(), Wolf()), "run");
+  test(encounter(Wolf(), Cow()), "ignore");
+}
+
+BEGIN_SPECIALIZATION(encounter, string, const Carnivore&, const Herbivore&) {
+  return "hunt";
+} END_SPECIALIZATION;
+
+DO {
+  yorel::multi_methods::initialize();
+  test(encounter(Cow(), Wolf()), "run");
+  test(encounter(Wolf(), Cow()), "hunt");
+}
+
+struct Horse : Herbivore {
+  MM_CLASS(Horse, Herbivore);
+  Horse() {
+    MM_INIT();
   }
+};
 
-  BEGIN_SPECIALIZATION(encounter, string, const Herbivore&, const Carnivore&) {
-    return "run";
-  } END_SPECIALIZATION;
-
-  DO {
-    yorel::multi_methods::initialize();
-    test(encounter(Cow(), Wolf()), "run");
-    test(encounter(Wolf(), Cow()), "ignore");
-  }
-
-  BEGIN_SPECIALIZATION(encounter, string, const Carnivore&, const Herbivore&) {
-    return "hunt";
-  } END_SPECIALIZATION;
-
-  DO {
-    yorel::multi_methods::initialize();
-    test(encounter(Cow(), Wolf()), "run");
-    test(encounter(Wolf(), Cow()), "hunt");
-  }
-
-  struct Horse : Herbivore {
-    MM_CLASS(Horse, Herbivore);
-    Horse() {
-      MM_INIT();
-    }
-  };
-
-  DO {
-    yorel::multi_methods::initialize();
-    test(encounter(Horse(), Wolf()), "run");
-    test(encounter(Wolf(), Horse()), "hunt");
-  }
+DO {
+  yorel::multi_methods::initialize();
+  test(encounter(Horse(), Wolf()), "run");
+  test(encounter(Wolf(), Horse()), "hunt");
+}
 }
 
 #endif
 
 namespace single_inheritance {
 
-  MULTI_METHOD(encounter, string, virtual_<Animal>&, virtual_<Animal>&);
-  
-  BEGIN_SPECIALIZATION(encounter, string, Animal&, Animal&) {
-    return "ignore";
-  } END_SPECIALIZATION;
+MULTI_METHOD(encounter, string, virtual_<Animal>&, virtual_<Animal>&);
 
-  BEGIN_SPECIALIZATION(encounter, string, Carnivore&, Animal&) {
-    return "hunt";
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(encounter, string, Animal&, Animal&) {
+  return "ignore";
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(encounter, string, Carnivore&, Carnivore&) {
-    return "fight";
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(encounter, string, Carnivore&, Animal&) {
+  return "hunt";
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(encounter, string, Wolf&, Wolf&) {
-    return "wag tail";
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(encounter, string, Carnivore&, Carnivore&) {
+  return "fight";
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(encounter, string, Herbivore&, Carnivore&) {
-    return "run";
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(encounter, string, Wolf&, Wolf&) {
+  return "wag tail";
+} END_SPECIALIZATION;
 
-  enum action { display_error, print_cow, draw_cow, print_wolf, draw_wolf, print_tiger, draw_tiger, print_herbivore, display_cow, print_animal };
+BEGIN_SPECIALIZATION(encounter, string, Herbivore&, Carnivore&) {
+  return "run";
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(display, action, virtual_<Animal>&, virtual_<Interface>&);
+enum action { display_error, print_cow, draw_cow, print_wolf, draw_wolf, print_tiger, draw_tiger, print_herbivore, display_cow, print_animal };
 
-  BEGIN_SPECIALIZATION(display, action, Cow& a, Terminal& b) {
-    return print_cow;
-  } END_SPECIALIZATION;
+MULTI_METHOD(display, action, virtual_<Animal>&, virtual_<Interface>&);
 
-  BEGIN_SPECIALIZATION(display, action, Wolf& a, Terminal& b) {
-    return print_wolf;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(display, action, Cow& a, Terminal& b) {
+  return print_cow;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(display, action, Tiger& a, Terminal& b) {
-    return print_tiger;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(display, action, Wolf& a, Terminal& b) {
+  return print_wolf;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(display, action, Cow& a, Window& b) {
-    return draw_cow;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(display, action, Tiger& a, Terminal& b) {
+  return print_tiger;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(display, action, Wolf& a, Window& b) {
-    return draw_wolf;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(display, action, Cow& a, Window& b) {
+  return draw_cow;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(display, action, Tiger& a, Window& b) {
-    return draw_tiger;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(display, action, Wolf& a, Window& b) {
+  return draw_wolf;
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(display, action, Tiger& a, Window& b) {
+  return draw_tiger;
+} END_SPECIALIZATION;
 
 // following two are ambiguous, e.g. for (Cow, Terminal)
 
-  BEGIN_SPECIALIZATION(display, action, Herbivore& a, Interface& b) {
-    return display_error;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(display, action, Herbivore& a, Interface& b) {
+  return display_error;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(display, action, Animal& a, Terminal& b) {
-    return display_error;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(display, action, Animal& a, Terminal& b) {
+  return display_error;
+} END_SPECIALIZATION;
 
-  // following un-registered stuff is for unloading tests
+// following un-registered stuff is for unloading tests
 
-  struct Donkey : Herbivore { };
-  
-  template<>
-  struct encounter_specialization<string(Cow&, Cow&)> : decltype(encounter)::specialization<encounter_specialization<string(Cow&, Cow&)>> {
-    static string body(Cow&, Cow&) {
-      return "moo!";
-    }
-  };
+struct Donkey : Herbivore { };
+
+template<>
+struct encounter_specialization<string(Cow&, Cow&)> : decltype(encounter)::specialization<encounter_specialization<string(Cow&, Cow&)>> {
+  static string body(Cow&, Cow&) {
+    return "moo!";
+  }
+};
 }
 
 namespace mi {
 #include "mi.hpp"
 
-  MULTI_METHOD(encounter, string, virtual_<Animal>&, virtual_<Animal>&);
-  
-  BEGIN_SPECIALIZATION(encounter, string, Animal&, Animal&) {
-    return "ignore";
-  } END_SPECIALIZATION;
+MULTI_METHOD(encounter, string, virtual_<Animal>&, virtual_<Animal>&);
 
-  BEGIN_SPECIALIZATION(encounter, string, Stallion&, Mare&) {
-    return "court";
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(encounter, string, Animal&, Animal&) {
+  return "ignore";
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(encounter, string, Predator&, Herbivore&) {
-    return "hunt";
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(encounter, string, Stallion&, Mare&) {
+  return "court";
+} END_SPECIALIZATION;
+
+BEGIN_SPECIALIZATION(encounter, string, Predator&, Herbivore&) {
+  return "hunt";
+} END_SPECIALIZATION;
 }
 
 namespace adjust {
@@ -345,177 +345,177 @@ namespace adjust_virtual {
 
 namespace multi_roots {
 
-  struct X : selector {
-    MM_CLASS(X);
+struct X : selector {
+  MM_CLASS(X);
 
-    int x;
+  int x;
 
-    X() {
-      MM_INIT();
-    }
-  };
+  X() {
+    MM_INIT();
+  }
+};
 
-  struct Y : selector {
-    MM_CLASS(Y);
+struct Y : selector {
+  MM_CLASS(Y);
 
-    int y;
+  int y;
 
-    Y() {
-      MM_INIT();
-    }
-  };
+  Y() {
+    MM_INIT();
+  }
+};
 
-  struct XY : X, Y {
-    MM_CLASS_MULTI(XY, X, Y);
-    
-    XY() {
-      MM_INIT();
-    }
-  };
+struct XY : X, Y {
+  MM_CLASS_MULTI(XY, X, Y);
 
-  MULTI_METHOD(mx, int, const virtual_<X>&);
+  XY() {
+    MM_INIT();
+  }
+};
 
-  BEGIN_SPECIALIZATION(mx, int, const X& x) {
-    return x.x;
-  } END_SPECIALIZATION;
+MULTI_METHOD(mx, int, const virtual_<X>&);
 
-  MULTI_METHOD(my, int, const virtual_<Y>&);
+BEGIN_SPECIALIZATION(mx, int, const X& x) {
+  return x.x;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(my, int, const Y& y) {
-    return y.y;
-  } END_SPECIALIZATION;
+MULTI_METHOD(my, int, const virtual_<Y>&);
 
-  MULTI_METHOD(mxy, int, const virtual_<XY>&);
+BEGIN_SPECIALIZATION(my, int, const Y& y) {
+  return y.y;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(mxy, int, const XY& xy) {
-    return xy.x + xy.y;
-  } END_SPECIALIZATION;
+MULTI_METHOD(mxy, int, const virtual_<XY>&);
+
+BEGIN_SPECIALIZATION(mxy, int, const XY& xy) {
+  return xy.x + xy.y;
+} END_SPECIALIZATION;
 
 }
 
 namespace multi_roots_foreign {
 
-  struct X {
-    virtual ~X() { }
-    int x;
-  };
+struct X {
+  virtual ~X() { }
+  int x;
+};
 
-  MM_FOREIGN_CLASS(X);
+MM_FOREIGN_CLASS(X);
 
-  struct Y {
-    virtual ~Y() { }
-    int y;
-  };
+struct Y {
+  virtual ~Y() { }
+  int y;
+};
 
-  MM_FOREIGN_CLASS(Y);
+MM_FOREIGN_CLASS(Y);
 
-  struct XY : X, Y {
-  };
+struct XY : X, Y {
+};
 
-  MM_FOREIGN_CLASS(XY, X, Y);
+MM_FOREIGN_CLASS(XY, X, Y);
 
-  MULTI_METHOD(mx, int, const virtual_<X>&);
+MULTI_METHOD(mx, int, const virtual_<X>&);
 
-  BEGIN_SPECIALIZATION(mx, int, const X& x) {
-    return x.x;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(mx, int, const X& x) {
+  return x.x;
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(my, int, const virtual_<Y>&);
+MULTI_METHOD(my, int, const virtual_<Y>&);
 
-  BEGIN_SPECIALIZATION(my, int, const Y& y) {
-    return y.y;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(my, int, const Y& y) {
+  return y.y;
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(mxy, int, const virtual_<XY>&);
+MULTI_METHOD(mxy, int, const virtual_<XY>&);
 
-  BEGIN_SPECIALIZATION(mxy, int, const XY& xy) {
-    return xy.x + xy.y;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(mxy, int, const XY& xy) {
+  return xy.x + xy.y;
+} END_SPECIALIZATION;
 
 }
 
 namespace repeated {
 
-  struct X : selector {
-    MM_CLASS(X);
+struct X : selector {
+  MM_CLASS(X);
 
-    int x;
+  int x;
 
-    X() {
-      MM_INIT();
-    }
-  };
+  X() {
+    MM_INIT();
+  }
+};
 
-  struct A : X {
-    MM_CLASS(A, X);
+struct A : X {
+  MM_CLASS(A, X);
 
-    int a;
+  int a;
 
-    A() {
-      MM_INIT();
-    }
-  };
+  A() {
+    MM_INIT();
+  }
+};
 
-  struct B : X {
-    MM_CLASS(B, X);
+struct B : X {
+  MM_CLASS(B, X);
 
-    int b;
+  int b;
 
-    B() {
-      MM_INIT();
-    }
-  };
+  B() {
+    MM_INIT();
+  }
+};
 
-  struct AB : A, B {
-    MM_CLASS_MULTI(AB, A, B);
-    
-    AB() {
-      MM_INIT();
-    }
-  };
+struct AB : A, B {
+  MM_CLASS_MULTI(AB, A, B);
+
+  AB() {
+    MM_INIT();
+  }
+};
 }
 
 namespace yorel {
-  namespace multi_methods {
-    template<>
-    struct cast<repeated::X, repeated::AB> :
-    cast_using_dynamic_cast<repeated::X, repeated::AB> { };
-  }
+namespace multi_methods {
+template<>
+struct cast<repeated::X, repeated::AB> :
+      cast_using_dynamic_cast<repeated::X, repeated::AB> { };
+}
 }
 
 namespace repeated {
 
-  MULTI_METHOD(mx, int, const virtual_<X>&);
+MULTI_METHOD(mx, int, const virtual_<X>&);
 
-  BEGIN_SPECIALIZATION(mx, int, const X& x) {
-    return x.x;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(mx, int, const X& x) {
+  return x.x;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(mx, int, const A& a) {
-    return a.x + a.a;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(mx, int, const A& a) {
+  return a.x + a.a;
+} END_SPECIALIZATION;
 
-  BEGIN_SPECIALIZATION(mx, int, const AB& ab) {
-    return ab.A::x + ab.B::x + ab.a + ab.b;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(mx, int, const AB& ab) {
+  return ab.A::x + ab.B::x + ab.a + ab.b;
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(ma, int, const virtual_<A>&);
+MULTI_METHOD(ma, int, const virtual_<A>&);
 
-  BEGIN_SPECIALIZATION(ma, int, const A& a) {
-    return a.x + a.a;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(ma, int, const A& a) {
+  return a.x + a.a;
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(mb, int, const virtual_<B>&);
+MULTI_METHOD(mb, int, const virtual_<B>&);
 
-  BEGIN_SPECIALIZATION(mb, int, const B& b) {
-    return b.x + b.b;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(mb, int, const B& b) {
+  return b.x + b.b;
+} END_SPECIALIZATION;
 
-  MULTI_METHOD(mab, int, const virtual_<AB>&);
+MULTI_METHOD(mab, int, const virtual_<AB>&);
 
-  BEGIN_SPECIALIZATION(mab, int, const AB& ab) {
-    return ab.A::x + ab.B::x + ab.a + ab.b;
-  } END_SPECIALIZATION;
+BEGIN_SPECIALIZATION(mab, int, const AB& ab) {
+  return ab.A::x + ab.B::x + ab.a + ab.b;
+} END_SPECIALIZATION;
 
 }
 
@@ -523,25 +523,25 @@ int main() {
   {
     using namespace single_inheritance;
     static_assert(
-      is_same<
-      typename extract_virtuals<virtual_<Animal>&, const virtual_<Animal>&>::type,
-      virtuals<Animal, Animal>
-      >::value, "not ok !!!");
+        is_same<
+        typename extract_virtuals<virtual_<Animal>&, const virtual_<Animal>&>::type,
+        virtuals<Animal, Animal>
+        >::value, "not ok !!!");
 
     static_assert(
-      is_same<
-      typename extract_virtuals<virtual_<Animal>&, int, virtual_<Animal>&>::type,
-      virtuals<Animal, Animal>
-      >::value, "not ok !!!");
-  
+        is_same<
+        typename extract_virtuals<virtual_<Animal>&, int, virtual_<Animal>&>::type,
+        virtuals<Animal, Animal>
+        >::value, "not ok !!!");
+
     static_assert(
-      is_same<
-      extract_method_virtuals<
-      void(int, virtual_<Animal>&, char, const virtual_<Animal>&),
-      void(int, Cow&, char, const Wolf&)
-      >::type,
-      virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
-    
+        is_same<
+        extract_method_virtuals<
+        void(int, virtual_<Animal>&, char, const virtual_<Animal>&),
+        void(int, Cow&, char, const Wolf&)
+        >::type,
+        virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
+
     cout << "\nClass registration" << endl;
     test(mm_class::of<Cow>::the().bases.size(), 1);
     test(mm_class::of<Cow>::the().bases[0] == &mm_class::of<Herbivore>::the(), true);
@@ -555,7 +555,7 @@ int main() {
     test(mm_class::of<Cow>::the().root, mm_class::of<Animal>::the().root);
     test(mm_class::of<Wolf>::the().root, mm_class::of<Animal>::the().root);
   }
-  
+
   {
     cout << "\n--- bitvec." << endl;
 
@@ -566,8 +566,8 @@ int main() {
     }
 
     for (int n : { numeric_limits<unsigned long>::digits - 1,
-          numeric_limits<unsigned long>::digits,
-          numeric_limits<unsigned long>::digits + 1 }) {
+            numeric_limits<unsigned long>::digits,
+            numeric_limits<unsigned long>::digits + 1 }) {
       cout << "n = " << n << endl;
 
       {
@@ -590,7 +590,7 @@ int main() {
         test(v[1], false);
         test(v[2], true);
       }
-      
+
       {
         bitvec v(n);
         v[0] = 1;
@@ -603,7 +603,7 @@ int main() {
         v[0] = false;
         test(v.none(), true);
       }
-      
+
       {
         bitvec v(n);
         v[0] = 1;
@@ -733,7 +733,7 @@ int main() {
       test(v[2], 0);
     }
   }
-  
+
   {
     cout << "\n--- Slot allocation." << endl;
 
@@ -793,7 +793,7 @@ int main() {
     test(mm_class::of<CD>::the().mmt.size(), 5);
     test(mm_class::of<Y>::the().mmt.size(), 2);
   }
-  
+
   {
     cout << "\n--- Slot allocation - multiple roots." << endl;
     using namespace multi_roots;
@@ -857,7 +857,7 @@ int main() {
 
   {
     using namespace grouping_resolver_tests;
-    
+
     // we want to build:
     //              Interface   Terminal   Window+ Mobile+
     // Animal       0           0          0       mob
@@ -868,7 +868,7 @@ int main() {
     hierarchy_initializer::initialize(mm_class::of<Interface>::the());
 
     grouping_resolver rdisp(display.the());
-    
+
     methods animal_applicable;
     rdisp.find_applicable(0, &mm_class::of<Animal>::the(), animal_applicable);
     test( animal_applicable, methods { display.the().methods[4] } );
@@ -905,37 +905,37 @@ int main() {
     rdisp.find_applicable(1, &mm_class::of<Mobile>::the(), mobile_applicable);
     test( mobile_applicable, (methods { display.the().methods[4] }) );
 
-// Animal = class_0
-// Herbivore = class_1
-// Cow = class_2
-// Carnivore = class_3
-// Wolf = class_4
-// Tiger = class_5
-    
-// Interface = class_0
-// Terminal = class_1
-// Window = class_2
-// MsWindows = class_3
-// X = class_4
-// Mobile = class_5
-// Nokia = class_6
-// Samsung = class_7
-    
+    // Animal = class_0
+    // Herbivore = class_1
+    // Cow = class_2
+    // Carnivore = class_3
+    // Wolf = class_4
+    // Tiger = class_5
+
+    // Interface = class_0
+    // Terminal = class_1
+    // Window = class_2
+    // MsWindows = class_3
+    // X = class_4
+    // Mobile = class_5
+    // Nokia = class_6
+    // Samsung = class_7
+
     rdisp.make_groups();
     test( rdisp.groups.size(), 2 ) &&
-      test( rdisp.groups[0].size(), 3) &&
-      test( rdisp.groups[0][0].methods, animal_applicable) &&
-      test( rdisp.groups[0][1].methods, herbivore_applicable) &&
-      test( rdisp.groups[0][2].methods, carnivore_applicable) &&
-      test( rdisp.groups[1].size(), 4) &&
-      test( rdisp.groups[1][0].methods, interface_applicable) &&
-      test( rdisp.groups[1][1].methods, terminal_applicable) &&
-      test( rdisp.groups[1][2].methods, window_applicable) &&
-      test( rdisp.groups[1][3].methods, mobile_applicable);
+        test( rdisp.groups[0].size(), 3) &&
+        test( rdisp.groups[0][0].methods, animal_applicable) &&
+        test( rdisp.groups[0][1].methods, herbivore_applicable) &&
+        test( rdisp.groups[0][2].methods, carnivore_applicable) &&
+        test( rdisp.groups[1].size(), 4) &&
+        test( rdisp.groups[1][0].methods, interface_applicable) &&
+        test( rdisp.groups[1][1].methods, terminal_applicable) &&
+        test( rdisp.groups[1][2].methods, window_applicable) &&
+        test( rdisp.groups[1][3].methods, mobile_applicable);
 
     test(display.the().steps.size(), 2) &&
-      test(display.the().steps[0], 1) &&
-      test(display.the().steps[1], 3);
+        test(display.the().steps[0], 1) &&
+        test(display.the().steps[1], 3);
 
     test( (*Animal()._yomm11_ptbl)[0].index, 0 );
     test( (*Herbivore()._yomm11_ptbl)[0].index, 1 );
@@ -978,7 +978,7 @@ int main() {
     test( table[9], static_cast<method*>(methods[4])->pm );
     test( table[10], static_cast<method*>(methods[4])->pm );
     test( table[11], static_cast<method*>(methods[4])->pm );
-    
+
     rdisp.assign_next();
     test( (display_specialization<action(const Carnivore&, const Window&)>::next) == nullptr, true );
 
@@ -1006,15 +1006,15 @@ int main() {
 
     test( display(Herbivore(), Samsung()), mobile );
     test( display(Cow(), Nokia()), mobile );
-    
+
     test( display(Carnivore(), Samsung()), mobile );
     test( display(Wolf(), Nokia()), mobile );
-    
+
     test( decltype(display)::method(Wolf(), Nokia()), mobile );
   }
 
   cout << "\n--- Single inheritance." << endl;
-  
+
   {
     using namespace single_inheritance;
 
@@ -1027,7 +1027,7 @@ int main() {
     Herbivore herb;
 
     yorel::multi_methods::initialize();
-    
+
     test(encounter.impl != nullptr, true);
     test(encounter.impl->dispatch_table != nullptr, true);
     test(encounter(c, w), "run");
@@ -1035,7 +1035,7 @@ int main() {
 
     // static call
     test(GET_SPECIALIZATION(encounter, string, Animal&, Animal&)(c, w), "ignore");
-      
+
     // next
     test(encounter_specialization<string(Wolf&, Wolf&)>::next(w, w), "fight");
     test(encounter_specialization<string(Carnivore&, Carnivore&)>::next(w, w), "hunt");
@@ -1065,13 +1065,13 @@ int main() {
 
     testx( (void*) mm_class::of<Stallion>::the().mmt[0].ptr,
            (void*) (encounter.impl->dispatch_table + 1) );
-    
+
     test( encounter(animal, animal), "ignore" );
     test( encounter(herbivore, herbivore), "ignore" );
     test( encounter(stallion, mare), "court" );
     test( encounter(mare, mare), "ignore" );
     test( encounter(wolf, mare), "hunt" );
-  }    
+  }
 
   {
     cout << "\n--- adjustments." << endl;
@@ -1089,7 +1089,7 @@ int main() {
     test( (&cast<X, B>::value(xb)), &b);
 
     test( (void*) &b != (void*) (X*) &a, true );
-  
+
     test( foo(a, a), 4 );
     test( foo(a, b), -3 );
     test( foo(b, b), 25 );
@@ -1117,7 +1117,7 @@ int main() {
     using namespace single_inheritance;
 
     encounter.the().add_spec<encounter_specialization<string(Cow&, Cow&)>>();
-    
+
     test( mm_class::of<Animal>::the().rooted_here.size(), 3 );
     test( mm_class::of<Interface>::the().rooted_here.size(), 1 );
     test( multi_method_base::to_initialize != nullptr, true );
@@ -1154,12 +1154,12 @@ int main() {
     b.val = 5;
 
     test( (void*) &b != (void*) (X*) &a, true );
-  
+
     test( foo(a, a), 4 );
     test( foo(a, b), -3 );
     test( foo(b, b), 25 );
   }
-  
+
   {
     cout << "\n--- Adjustments - virtual." << endl;
     using namespace adjust_virtual;
@@ -1225,9 +1225,8 @@ int main() {
     test( mx(a), 17 );
     test( mx(b), 17 );
   }
-  
+
   cout << "\n" << success << " tests succeeded, " << failure << " failed.\n";
-  
+
   return 0;
 }
-

@@ -8,54 +8,54 @@
 
 namespace intrusive {
 
-  struct object : yorel::multi_methods::selector {
+struct object : yorel::multi_methods::selector {
 
-    MM_CLASS(object);
+  MM_CLASS(object);
 
-    static object* make();
-  
-    object() {
-      MM_INIT();
-    }
+  static object* make();
 
-    virtual void do_nothing();
-    virtual double do_something(double x, double a, double b, double c);
-    virtual void dd1_do_nothing(object* pf);
-    virtual void dd2_do_nothing(object* pf);
-  };
+  object() {
+    MM_INIT();
+  }
+
+  virtual void do_nothing();
+  virtual double do_something(double x, double a, double b, double c);
+  virtual void dd1_do_nothing(object* pf);
+  virtual void dd2_do_nothing(object* pf);
+};
 
 }
 
 namespace vbase {
 
-  struct object : yorel::multi_methods::selector {
+struct object : yorel::multi_methods::selector {
 
-    MM_CLASS(object);
+  MM_CLASS(object);
 
-    static object* make();
-  
-    object() {
-      MM_INIT();
-    }
+  static object* make();
 
-    virtual void do_nothing() = 0;
-    virtual double do_something(double x, double a, double b, double c) = 0;
-    virtual void dd1_do_nothing(object* pf) = 0;
-    virtual void dd2_do_nothing(object* pf) = 0;
-  };
+  object() {
+    MM_INIT();
+  }
 
-  struct derived : virtual object {
+  virtual void do_nothing() = 0;
+  virtual double do_something(double x, double a, double b, double c) = 0;
+  virtual void dd1_do_nothing(object* pf) = 0;
+  virtual void dd2_do_nothing(object* pf) = 0;
+};
 
-    MM_CLASS(derived, object);
-  
-    derived() {
-      MM_INIT();
-    }
+struct derived : virtual object {
 
-    virtual void do_nothing();
-    virtual double do_something(double x, double a, double b, double c);
-    virtual void dd1_do_nothing(object* pf);
-    virtual void dd2_do_nothing(object* pf);
-  };
+  MM_CLASS(derived, object);
+
+  derived() {
+    MM_INIT();
+  }
+
+  virtual void do_nothing();
+  virtual double do_something(double x, double a, double b, double c);
+  virtual void dd1_do_nothing(object* pf);
+  virtual void dd2_do_nothing(object* pf);
+};
 
 }

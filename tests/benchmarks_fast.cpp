@@ -8,44 +8,44 @@
 
 namespace intrusive {
 
-  object* object::make() {
-    return new object;
-  }
+object* object::make() {
+  return new object;
+}
 
-  double object::do_something(double x, double a, double b, double c) {
-    return log(a * x * x + b * x + c);
-  }
+double object::do_something(double x, double a, double b, double c) {
+  return log(a * x * x + b * x + c);
+}
 
-  void object::do_nothing() {
-  }
+void object::do_nothing() {
+}
 
-  void object::dd1_do_nothing(object* pf) {
-    pf->dd2_do_nothing(pf);
-  }
+void object::dd1_do_nothing(object* pf) {
+  pf->dd2_do_nothing(pf);
+}
 
-  void object::dd2_do_nothing(object* pf) {
-  }
+void object::dd2_do_nothing(object* pf) {
+}
 
 }
 
 namespace vbase {
 
-  object* object::make() {
-    return new derived;
-  }
+object* object::make() {
+  return new derived;
+}
 
-  double derived::do_something(double x, double a, double b, double c) {
-    return log(a * x * x + b * x + c);
-  }
+double derived::do_something(double x, double a, double b, double c) {
+  return log(a * x * x + b * x + c);
+}
 
-  void derived::do_nothing() {
-  }
+void derived::do_nothing() {
+}
 
-  void derived::dd1_do_nothing(object* pf) {
-    pf->dd2_do_nothing(pf);
-  }
+void derived::dd1_do_nothing(object* pf) {
+  pf->dd2_do_nothing(pf);
+}
 
-  void derived::dd2_do_nothing(object* pf) {
-  }
+void derived::dd2_do_nothing(object* pf) {
+}
 
 }
