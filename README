@@ -16,9 +16,7 @@ Salient features are:
   operations. See tests/benchmarks.cpp.
 
 * size: dispatch tables are constructed in terms of class groups. This
-  results, most of the time, in a table devoid of redundancies. The
-  size is bounded by the product of the number of specializers - not
-  classes - in each dimension.
+  results in a table devoid of redundancies.
 
 * support for "foreign" class hierarchies: the library can be used
   without modifications to existing classes, at the cost of lower
