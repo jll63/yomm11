@@ -12,7 +12,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project (YOMM11)
 
-set (YOMM11_VERSION_MAJOR 1)
+set (YOMM11_ERSION_MAJOR 1)
 set (YOMM11_VERSION_MINOR 0)
 
 include_directories ("${YOMM11_SOURCE_DIR}/include")

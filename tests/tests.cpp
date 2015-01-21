@@ -9,11 +9,11 @@
 //#define YOREL_MM_ENABLE_TRACE
 
 #ifdef YOREL_MM_ENABLE_TRACE
-#include "../src/multi_methods.cpp"
+#include "../src/yomm11.cpp"
 #endif
 
-#include <yorel/multi_methods.hpp>
-#include <yorel/multi_methods/runtime.hpp>
+#include <yorel/methods.hpp>
+#include <yorel/methods/runtime.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -22,8 +22,8 @@
 #include "util/join.hpp"
 
 using namespace std;
-using namespace yorel::multi_methods;
-using namespace yorel::multi_methods::detail;
+using namespace yorel::methods;
+using namespace yorel::methods::detail;
 
 #define test(exp, res) _test(__FILE__, __LINE__, #exp, exp, #res, res)
 #define testx(exp, res) _test(__FILE__, __LINE__, #exp, exp, 0, res)
@@ -32,7 +32,24 @@ namespace {
 int success, failure;
 }
 
-using methods = vector<method_base*>;
+using methods = vector<specialization_base*>;
+
+#ifndef YOMM11_ENABLE_TRACE
+
+ostream& operator <<(ostream& os, const vector<specialization_base*>& methods) {
+  using namespace std;
+  const char* sep = "";
+
+  for (specialization_base* pm : methods) {
+    os << sep;
+    sep = " ";
+    os << pm;
+  }
+
+  return os;
+}
+
+#endif
 
 template<class T1, class T2>
 bool _test(const char* file, int line, const char* test, const T1& got, const char* expected_expr, const T2& expected) {
@@ -215,7 +232,7 @@ BEGIN_SPECIALIZATION(encounter, string, const Animal&, const Animal&) {
 } END_SPECIALIZATION;
 
 DO {
-  yorel::multi_methods::initialize();
+  yorel::methods::initialize();
   test(encounter(Cow(), Wolf()), "ignore");
   test(encounter(Wolf(), Cow()), "ignore");
 }
@@ -225,7 +242,7 @@ BEGIN_SPECIALIZATION(encounter, string, const Herbivore&, const Carnivore&) {
 } END_SPECIALIZATION;
 
 DO {
-  yorel::multi_methods::initialize();
+  yorel::methods::initialize();
   test(encounter(Cow(), Wolf()), "run");
   test(encounter(Wolf(), Cow()), "ignore");
 }
@@ -235,7 +252,7 @@ BEGIN_SPECIALIZATION(encounter, string, const Carnivore&, const Herbivore&) {
 } END_SPECIALIZATION;
 
 DO {
-  yorel::multi_methods::initialize();
+  yorel::methods::initialize();
   test(encounter(Cow(), Wolf()), "run");
   test(encounter(Wolf(), Cow()), "hunt");
 }
@@ -248,7 +265,7 @@ struct Horse : Herbivore {
 };
 
 DO {
-  yorel::multi_methods::initialize();
+  yorel::methods::initialize();
   test(encounter(Horse(), Wolf()), "run");
   test(encounter(Wolf(), Horse()), "hunt");
 }
@@ -324,7 +341,7 @@ struct Donkey : Herbivore { };
 
 template<>
 struct encounter_specialization<string(Cow&, Cow&)> : remove_const<decltype(encounter)>::type::specialization<encounter_specialization<string(Cow&, Cow&)>> {
-  using body_signature = ::yorel::multi_methods::detail::signature<string(Cow&, Cow&)>;
+  using body_signature = ::yorel::methods::detail::signature<string(Cow&, Cow&)>;
   static string body(Cow&, Cow&) {
     return "moo!";
   }
@@ -494,7 +511,7 @@ struct AB : A, B {
 }
 
 namespace yorel {
-namespace multi_methods {
+namespace methods {
 template<>
 struct cast<repeated::X, repeated::AB> :
       cast_using_dynamic_cast<repeated::X, repeated::AB> { };
@@ -561,17 +578,17 @@ int main() {
         virtuals<Cow, Wolf> >::value, "extraction of virtual method arguments");
 
     cout << "\nClass registration" << endl;
-    test(mm_class::of<Cow>::the().bases.size(), 1);
-    test(mm_class::of<Cow>::the().bases[0] == &mm_class::of<Herbivore>::the(), true);
-    test(mm_class::of<Animal>::the().specs.size(), 2);
-    test(mm_class::of<Animal>::the().specs[0] == &mm_class::of<Herbivore>::the(), true);
-    test(mm_class::of<Animal>::the().specs[1] == &mm_class::of<Carnivore>::the(), true);
+    test(yomm11_class::of<Cow>::the().bases.size(), 1);
+    test(yomm11_class::of<Cow>::the().bases[0] == &yomm11_class::of<Herbivore>::the(), true);
+    test(yomm11_class::of<Animal>::the().specs.size(), 2);
+    test(yomm11_class::of<Animal>::the().specs[0] == &yomm11_class::of<Herbivore>::the(), true);
+    test(yomm11_class::of<Animal>::the().specs[1] == &yomm11_class::of<Carnivore>::the(), true);
 
-    test(mm_class::of<Animal>::the().root, mm_class::of<Animal>::the().root);
-    test(mm_class::of<Herbivore>::the().root, mm_class::of<Animal>::the().root);
-    test(mm_class::of<Carnivore>::the().root, mm_class::of<Animal>::the().root);
-    test(mm_class::of<Cow>::the().root, mm_class::of<Animal>::the().root);
-    test(mm_class::of<Wolf>::the().root, mm_class::of<Animal>::the().root);
+    test(yomm11_class::of<Animal>::the().root, yomm11_class::of<Animal>::the().root);
+    test(yomm11_class::of<Herbivore>::the().root, yomm11_class::of<Animal>::the().root);
+    test(yomm11_class::of<Carnivore>::the().root, yomm11_class::of<Animal>::the().root);
+    test(yomm11_class::of<Cow>::the().root, yomm11_class::of<Animal>::the().root);
+    test(yomm11_class::of<Wolf>::the().root, yomm11_class::of<Animal>::the().root);
   }
 
   {
@@ -757,7 +774,7 @@ int main() {
 
     using namespace slot_allocation_tests;
 
-    // Init multi_method implementations; this is normally done when the
+    // Init method implementations; this is normally done when the
     // first method is added.
     m_x.the();
     m_a.the();
@@ -768,19 +785,19 @@ int main() {
     m_cd.the();
     m_y.the();
 
-    hierarchy_initializer init(mm_class::of<X>::the());
+    hierarchy_initializer init(yomm11_class::of<X>::the());
 
     init.collect_classes();
     test( init.nodes.size(), 8);
     test( init.nodes.size(), 8);
-    test( init.nodes[0], &mm_class::of<X>::the() );
-    test( init.nodes[1], &mm_class::of<A>::the() );
-    test( init.nodes[2], &mm_class::of<B>::the() );
-    test( init.nodes[3], &mm_class::of<C>::the() );
-    test( init.nodes[4], &mm_class::of<BC>::the() );
-    test( init.nodes[5], &mm_class::of<D>::the() );
-    test( init.nodes[6], &mm_class::of<CD>::the() );
-    test( init.nodes[7], &mm_class::of<Y>::the() );
+    test( init.nodes[0], &yomm11_class::of<X>::the() );
+    test( init.nodes[1], &yomm11_class::of<A>::the() );
+    test( init.nodes[2], &yomm11_class::of<B>::the() );
+    test( init.nodes[3], &yomm11_class::of<C>::the() );
+    test( init.nodes[4], &yomm11_class::of<BC>::the() );
+    test( init.nodes[5], &yomm11_class::of<D>::the() );
+    test( init.nodes[6], &yomm11_class::of<CD>::the() );
+    test( init.nodes[7], &yomm11_class::of<Y>::the() );
 
     init.make_masks();
     testx( init.nodes[0]->mask, bitvec(8, binary("11111111")) ); // X
@@ -802,72 +819,72 @@ int main() {
     test(m_cd.the().slots[0], 4);
     test(m_y.the().slots[0], 1);
 
-    test(mm_class::of<X>::the().mmt.size(), 1);
-    test(mm_class::of<A>::the().mmt.size(), 2);
-    test(mm_class::of<B>::the().mmt.size(), 3);
-    test(mm_class::of<C>::the().mmt.size(), 4);
-    test(mm_class::of<BC>::the().mmt.size(), 5);
-    test(mm_class::of<D>::the().mmt.size(), 3);
-    test(mm_class::of<CD>::the().mmt.size(), 5);
-    test(mm_class::of<Y>::the().mmt.size(), 2);
+    test(yomm11_class::of<X>::the().mmt.size(), 1);
+    test(yomm11_class::of<A>::the().mmt.size(), 2);
+    test(yomm11_class::of<B>::the().mmt.size(), 3);
+    test(yomm11_class::of<C>::the().mmt.size(), 4);
+    test(yomm11_class::of<BC>::the().mmt.size(), 5);
+    test(yomm11_class::of<D>::the().mmt.size(), 3);
+    test(yomm11_class::of<CD>::the().mmt.size(), 5);
+    test(yomm11_class::of<Y>::the().mmt.size(), 2);
   }
 
   {
     cout << "\n--- Slot allocation - multiple roots." << endl;
     using namespace multi_roots;
 
-    test(mm_class::of<X>::the().root, &mm_class::of<X>::the());
-    test(mm_class::of<Y>::the().root, &mm_class::of<Y>::the());
+    test(yomm11_class::of<X>::the().root, &yomm11_class::of<X>::the());
+    test(yomm11_class::of<Y>::the().root, &yomm11_class::of<Y>::the());
 
     {
-      hierarchy_initializer init(mm_class::of<X>::the());
+      hierarchy_initializer init(yomm11_class::of<X>::the());
       init.collect_classes();
       test(init.nodes.size(), 3);
       test(init.nodes[0], &init.root);
-      test(init.nodes[0], &mm_class::of<X>::the());
-      test(init.nodes[1], &mm_class::of<Y>::the());
-      test(init.nodes[2], &mm_class::of<XY>::the());
+      test(init.nodes[0], &yomm11_class::of<X>::the());
+      test(init.nodes[1], &yomm11_class::of<Y>::the());
+      test(init.nodes[2], &yomm11_class::of<XY>::the());
     }
 
     {
-      hierarchy_initializer init(mm_class::of<Y>::the());
+      hierarchy_initializer init(yomm11_class::of<Y>::the());
       init.collect_classes();
       test(init.nodes.size(), 3);
-      test(init.nodes[0], &mm_class::of<Y>::the());
-      test(init.nodes[1], &mm_class::of<X>::the());
-      test(init.nodes[2], &mm_class::of<XY>::the());
+      test(init.nodes[0], &yomm11_class::of<Y>::the());
+      test(init.nodes[1], &yomm11_class::of<X>::the());
+      test(init.nodes[2], &yomm11_class::of<XY>::the());
     }
 
-    test(mm_class::of<X>::the().is_root(), true);
-    test(mm_class::of<Y>::the().is_root(), true);
-    test(mm_class::of<XY>::the().is_root(), false);
+    test(yomm11_class::of<X>::the().is_root(), true);
+    test(yomm11_class::of<Y>::the().is_root(), true);
+    test(yomm11_class::of<XY>::the().is_root(), false);
 
-    mm_class::add_to_initialize(&mm_class::of<X>::the());
-    mm_class::add_to_initialize(&mm_class::of<Y>::the());
-    hierarchy_initializer::initialize(mm_class::of<Y>::the());
-    test(mm_class::to_initialize->empty() ||
-         find(mm_class::to_initialize->begin(),
-              mm_class::to_initialize->end(),
-              &mm_class::of<X>::the()) == mm_class::to_initialize->end(),
+    yomm11_class::add_to_initialize(&yomm11_class::of<X>::the());
+    yomm11_class::add_to_initialize(&yomm11_class::of<Y>::the());
+    hierarchy_initializer::initialize(yomm11_class::of<Y>::the());
+    test(yomm11_class::to_initialize->empty() ||
+         find(yomm11_class::to_initialize->begin(),
+              yomm11_class::to_initialize->end(),
+              &yomm11_class::of<X>::the()) == yomm11_class::to_initialize->end(),
          true);
-    test(mm_class::to_initialize->empty() ||
-         find(mm_class::to_initialize->begin(),
-              mm_class::to_initialize->end(),
-              &mm_class::of<Y>::the()) == mm_class::to_initialize->end(),
+    test(yomm11_class::to_initialize->empty() ||
+         find(yomm11_class::to_initialize->begin(),
+              yomm11_class::to_initialize->end(),
+              &yomm11_class::of<Y>::the()) == yomm11_class::to_initialize->end(),
          true);
 
-    mm_class::add_to_initialize(&mm_class::of<X>::the());
-    mm_class::add_to_initialize(&mm_class::of<Y>::the());
-    hierarchy_initializer::initialize(mm_class::of<Y>::the());
-    test(mm_class::to_initialize->empty() ||
-         find(mm_class::to_initialize->begin(),
-              mm_class::to_initialize->end(),
-              &mm_class::of<X>::the()) == mm_class::to_initialize->end(),
+    yomm11_class::add_to_initialize(&yomm11_class::of<X>::the());
+    yomm11_class::add_to_initialize(&yomm11_class::of<Y>::the());
+    hierarchy_initializer::initialize(yomm11_class::of<Y>::the());
+    test(yomm11_class::to_initialize->empty() ||
+         find(yomm11_class::to_initialize->begin(),
+              yomm11_class::to_initialize->end(),
+              &yomm11_class::of<X>::the()) == yomm11_class::to_initialize->end(),
          true);
-    test(mm_class::to_initialize->empty() ||
-         find(mm_class::to_initialize->begin(),
-              mm_class::to_initialize->end(),
-              &mm_class::of<Y>::the()) == mm_class::to_initialize->end(),
+    test(yomm11_class::to_initialize->empty() ||
+         find(yomm11_class::to_initialize->begin(),
+              yomm11_class::to_initialize->end(),
+              &yomm11_class::of<Y>::the()) == yomm11_class::to_initialize->end(),
          true);
   }
 
@@ -882,45 +899,45 @@ int main() {
     // Herbivore+   0           p_herb     d_herb  mob
     // Carnivore+   0           p_carn     d_carn  mob
 
-    hierarchy_initializer::initialize(mm_class::of<Animal>::the());
-    hierarchy_initializer::initialize(mm_class::of<Interface>::the());
+    hierarchy_initializer::initialize(yomm11_class::of<Animal>::the());
+    hierarchy_initializer::initialize(yomm11_class::of<Interface>::the());
 
     grouping_resolver rdisp(display.the());
 
     methods animal_applicable;
-    rdisp.find_applicable(0, &mm_class::of<Animal>::the(), animal_applicable);
+    rdisp.find_applicable(0, &yomm11_class::of<Animal>::the(), animal_applicable);
     test( animal_applicable, methods { display.the().methods[4] } );
 
     methods herbivore_applicable;
-    rdisp.find_applicable(0, &mm_class::of<Herbivore>::the(), herbivore_applicable);
+    rdisp.find_applicable(0, &yomm11_class::of<Herbivore>::the(), herbivore_applicable);
     test( herbivore_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
 
     methods cow_applicable;
-    rdisp.find_applicable(0, &mm_class::of<Cow>::the(), cow_applicable);
+    rdisp.find_applicable(0, &yomm11_class::of<Cow>::the(), cow_applicable);
     test( cow_applicable, (methods { display.the().methods[0], display.the().methods[1], display.the().methods[4] } ));
 
     methods carnivore_applicable;
-    rdisp.find_applicable(0, &mm_class::of<Carnivore>::the(), carnivore_applicable);
+    rdisp.find_applicable(0, &yomm11_class::of<Carnivore>::the(), carnivore_applicable);
     test( carnivore_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
 
     methods wolf_applicable;
-    rdisp.find_applicable(0, &mm_class::of<Wolf>::the(), wolf_applicable);
+    rdisp.find_applicable(0, &yomm11_class::of<Wolf>::the(), wolf_applicable);
     test( wolf_applicable, (methods { display.the().methods[2],  display.the().methods[3], display.the().methods[4] }) );
 
     methods interface_applicable;
-    rdisp.find_applicable(1, &mm_class::of<Interface>::the(), interface_applicable);
+    rdisp.find_applicable(1, &yomm11_class::of<Interface>::the(), interface_applicable);
     test( interface_applicable, methods { } );
 
     methods terminal_applicable;
-    rdisp.find_applicable(1, &mm_class::of<Terminal>::the(), terminal_applicable);
+    rdisp.find_applicable(1, &yomm11_class::of<Terminal>::the(), terminal_applicable);
     test( terminal_applicable, (methods { display.the().methods[0], display.the().methods[2] }) );
 
     methods window_applicable;
-    rdisp.find_applicable(1, &mm_class::of<Window>::the(), window_applicable);
+    rdisp.find_applicable(1, &yomm11_class::of<Window>::the(), window_applicable);
     test( window_applicable, (methods { display.the().methods[1], display.the().methods[3] }) );
 
     methods mobile_applicable;
-    rdisp.find_applicable(1, &mm_class::of<Mobile>::the(), mobile_applicable);
+    rdisp.find_applicable(1, &yomm11_class::of<Mobile>::the(), mobile_applicable);
     test( mobile_applicable, (methods { display.the().methods[4] }) );
 
     // Animal = class_0
@@ -1000,10 +1017,10 @@ int main() {
     rdisp.assign_next();
     test( (display_specialization<action(const Carnivore&, const Window&)>::next) == nullptr, true );
 
-    testx( (void*) mm_class::of<Animal>::the().mmt[0].ptr,
+    testx( (void*) yomm11_class::of<Animal>::the().mmt[0].ptr,
            (void*) display.impl->dispatch_table );
 
-    testx( (void*) mm_class::of<Herbivore>::the().mmt[0].ptr,
+    testx( (void*) yomm11_class::of<Herbivore>::the().mmt[0].ptr,
            (void*) (display.impl->dispatch_table + 1) );
 
     test( display(Herbivore(), Terminal()), print_herbivore );
@@ -1028,7 +1045,7 @@ int main() {
     test( display(Carnivore(), Samsung()), mobile );
     test( display(Wolf(), Nokia()), mobile );
 
-    test( decltype(display)::method(Wolf(), Nokia()), mobile );
+    test( decltype(display)::resolve(Wolf(), Nokia()), mobile );
   }
 
   cout << "\n--- Single inheritance." << endl;
@@ -1044,7 +1061,7 @@ int main() {
     Interface interf;
     Herbivore herb;
 
-    yorel::multi_methods::initialize();
+    yorel::methods::initialize();
 
     test(encounter.impl != nullptr, true);
     test(encounter.impl->dispatch_table != nullptr, true);
@@ -1073,15 +1090,15 @@ int main() {
 
     static_assert(is_virtual_base_of<Animal, Stallion>::value, "problem with virtual base detection");
 
-    yorel::multi_methods::initialize();
+    yorel::methods::initialize();
 
-    testx( (void*) mm_class::of<Animal>::the().mmt[0].ptr,
+    testx( (void*) yomm11_class::of<Animal>::the().mmt[0].ptr,
            (void*) encounter.impl->dispatch_table );
 
-    testx( (void*) mm_class::of<Herbivore>::the().mmt[0].ptr,
+    testx( (void*) yomm11_class::of<Herbivore>::the().mmt[0].ptr,
            (void*) (encounter.impl->dispatch_table) );
 
-    testx( (void*) mm_class::of<Stallion>::the().mmt[0].ptr,
+    testx( (void*) yomm11_class::of<Stallion>::the().mmt[0].ptr,
            (void*) (encounter.impl->dispatch_table + 1) );
 
     test( encounter(animal, animal), "ignore" );
@@ -1131,36 +1148,36 @@ int main() {
   }
 
   {
-    cout << "\n--- Unloading multi_methods." << endl;
+    cout << "\n--- Unloading methods." << endl;
     using namespace single_inheritance;
 
     encounter.the().add_spec<encounter_specialization<string(Cow&, Cow&)>>();
 
-    test( mm_class::of<Animal>::the().rooted_here.size(), 3 );
-    test( mm_class::of<Interface>::the().rooted_here.size(), 1 );
-    test( multi_method_base::to_initialize != nullptr, true );
-    test( multi_method_base::to_initialize->size(), 1 );
+    test( yomm11_class::of<Animal>::the().rooted_here.size(), 3 );
+    test( yomm11_class::of<Interface>::the().rooted_here.size(), 1 );
+    test( method_base::to_initialize != nullptr, true );
+    test( method_base::to_initialize->size(), 1 );
 
     delete encounter.impl;
     encounter.impl = nullptr;
-    test( mm_class::of<Animal>::the().rooted_here.size(), 1 );
-    test( !multi_method_base::to_initialize, true );
+    test( yomm11_class::of<Animal>::the().rooted_here.size(), 1 );
+    test( !method_base::to_initialize, true );
 
     cout << "\n--- Unloading classes." << endl;
     {
       // fake a class
-      mm_class donkey_class YOREL_MM_TRACE(("Donkey"));
-      donkey_class.initialize(mm_class_vector_of<Herbivore>::get());
-      test( mm_class::to_initialize != nullptr, true );
-      test( mm_class::to_initialize->size(), 1 );
-      yorel::multi_methods::initialize();
-      test( !mm_class::to_initialize, true );
+      yomm11_class donkey_class YOMM11_TRACE(("Donkey"));
+      donkey_class.initialize(yomm11_class_vector_of<Herbivore>::get());
+      test( yomm11_class::to_initialize != nullptr, true );
+      test( yomm11_class::to_initialize->size(), 1 );
+      yorel::methods::initialize();
+      test( !yomm11_class::to_initialize, true );
     }
 
-    test( mm_class::to_initialize != nullptr, true );
-    test( mm_class::to_initialize->size(), 1 );
-    yorel::multi_methods::initialize();
-    test( !mm_class::to_initialize, true );
+    test( yomm11_class::to_initialize != nullptr, true );
+    test( yomm11_class::to_initialize->size(), 1 );
+    yorel::methods::initialize();
+    test( !yomm11_class::to_initialize, true );
   }
 
   {

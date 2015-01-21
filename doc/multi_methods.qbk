@@ -5,7 +5,7 @@ Use, modification, and distribution are subject to the Boost Software License, V
 ===============================================================================/]
 [article Multi-methods
     [quickbook 1.5]
-    [id multi_methods]
+    [id methods]
     [version 1.0]
     [authors [Leroy, Jean-Louis]]
     [copyright 2013 Jean-Louis Leroy]

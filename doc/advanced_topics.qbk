@@ -116,7 +116,7 @@ required, and the address of `this` needs to be adjusted. However, the
 compiler cannot tell which `X` sub-object the cast is originating
 from. Or rather, `static_cast` cannot. The solution is to force a
 `dynamic_cast` instead. Sadly, this requires leaving the current
-namespace and moving to the `multi_methods` namespace to introduce a
+namespace and moving to the `methods` namespace to introduce a
 specialization of class template `cast`:
 
 
@@ -125,7 +125,7 @@ specialization of class template `cast`:
   MULTI_METHOD(mx, int, const virtual_<X>&);
 } // leave namespace foo
 
-namespace multi_methods {
+namespace methods {
   template<>
   struct cast<foo::X, foo::AB> :
     cast_using_dynamic_cast<foo::X, foo::AB> { };
@@ -157,9 +157,9 @@ are convenient, but by no means necessary. See the reference, each
 macro contains a section showing the code it expands to and its
 rationale.
 
-Header `multi_methods/no_macros.hpp` contains only one macro definition,
+Header `methods/no_macros.hpp` contains only one macro definition,
 used for debugging purpose. All the documented macros are defined in
-`multi_methods/macros.hpp`.
+`methods/macros.hpp`.
 
 [endsect]
 
@@ -167,7 +167,7 @@ used for debugging purpose. All the documented macros are defined in
 
 Class hierarchies and multi-method and their specializations can span
 executable and shared objects. Dynamic loading is supported but [*do
-not forget to call [link multi_methods.reference.calling.initialize
+not forget to call [link methods.reference.calling.initialize
 `initialize()`]] each time that classes or specializations are added
 or removed.
 
@@ -180,7 +180,7 @@ instantiations just like the static linker does - or at least it works
 that way on my platform (Ubuntu GNU/Linux and g++).
 
 Should you want to avoid this, there is a solution: header
-`multi_methods/extern_macros.hpp` replaces selected macros with
+`methods/extern_macros.hpp` replaces selected macros with
 versions that do not trigger template instantiation. If you want to
 use this mechanism, you should also put a call to `MM_EXTERN_CLASS` at
 file scope for each class participating in the fast dispatch scheme

@@ -15,7 +15,7 @@ must derive (directly or indirectly) from __selector__.
 
 [h3 Example]
 ``
-struct animal : yorel::multi_methods::selector {
+struct animal : yorel::methods::selector {
   MM_CLASS(animal);
 };
 
@@ -38,7 +38,7 @@ struct mare : horse, female {
 
 ``
   virtual void _mm_init_class_() {
-    &::yorel::multi_methods::mm_class_initializer<CLASS, ::multi_methods::type_list<BASES>>::the;
+    &::yorel::methods::mm_class_initializer<CLASS, ::methods::type_list<BASES>>::the;
   }
 ``
 

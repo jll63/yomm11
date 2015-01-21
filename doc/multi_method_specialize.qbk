@@ -18,7 +18,7 @@ Typically, __specialization__ is a specialization of __class_template__.
 
 [h3 Example]
 
-After example from [link multi_methods.reference.specializing.multi_method_specialize]:
+After example from [link methods.reference.specializing.multi_method_specialize]:
 [ref_spec]
 // in main() or in a static constructor:
 [ref_spec_call]

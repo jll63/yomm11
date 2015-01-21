@@ -1,9 +1,9 @@
 // -*- compile-command: "cd ../../.. && make && make test" -*-
 
-#ifndef MULTI_METHODS_NO_MACROS_INCLUDED
-#define MULTI_METHODS_NO_MACROS_INCLUDED
+#ifndef YOMM11_NO_MACROS_INCLUDED
+#define YOMM11_NO_MACROS_INCLUDED
 
-// multi_method/no_macros.hpp
+// method/no_macros.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -32,43 +32,50 @@
 #include <stdexcept>
 #include <iostream>
 
-//#define YOREL_MM_ENABLE_TRACE
-#ifdef YOREL_MM_ENABLE_TRACE
-#define YOREL_MM_TRACE(e) e
-#define YOREL_MM_COMMA_TRACE(e) , e
+//#define YOMM11_ENABLE_TRACE
+
+#ifdef YOMM11_ENABLE_TRACE
+#define YOMM11_TRACE(e) e
+#define YOMM11_COMMA_TRACE(e) , e
 #include <iterator>
 #else
-#define YOREL_MM_TRACE(e)
-#define YOREL_MM_COMMA_TRACE(e)
+#define YOMM11_TRACE(e)
+#define YOMM11_COMMA_TRACE(e)
 #include <iterator>
 #endif
 
+// Copied from Boost.
+#ifdef _MSVC_VER
+#pragma warning( push )
+#pragma warning( disable : 4584 4250)
+#elif defined(__GNUC__) && (__GNUC__ >= 4)
+#pragma GCC system_header
+#endif
+
 namespace yorel {
-namespace multi_methods {
+namespace methods {
 
 // Forward declarations.
 // All names in namespace are listed below.
 void initialize();
 struct selector;
 template<class Class> struct virtual_;
-struct mm_class;
+struct yomm11_class;
 template<class B, class D> struct cast_using_static_cast;
 template<class B, class D> struct cast_using_dynamic_cast;
 template<class B, class D> struct cast;
+struct specialization_base;
 struct method_base;
-struct multi_method_base;
-template<template<typename Sig> class Method, typename Sig> struct multi_method;
+template<template<typename Sig> class Method, typename Sig> struct method;
 class undefined;
 class ambiguous;
 
-// these are for debugging
-std::ostream& operator <<(std::ostream& os, const std::vector<method_base*>& methods);
-std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes);
-
-#ifdef YOREL_MM_ENABLE_TRACE
-std::ostream& operator <<(std::ostream& os, const mm_class* pc);
-std::ostream& operator <<(std::ostream& os, method_base* method);
-std::ostream& operator <<(std::ostream& os, const multi_method_base* pc);
+#ifdef YOMM11_ENABLE_TRACE
+std::ostream& operator <<(std::ostream& os, const yomm11_class* pc);
+std::ostream& operator <<(std::ostream& os, const std::vector<yomm11_class*>& classes);
+std::ostream& operator <<(std::ostream& os, specialization_base* method);
+std::ostream& operator <<(std::ostream& os, const std::vector<specialization_base*>& methods);
+std::ostream& operator <<(std::ostream& os, const method_base* pc);
 #endif
 
 // End of forward declarations.
@@ -226,9 +233,9 @@ class ambiguous : public undefined {
   ambiguous();
 };
 
-struct mm_class {
-  struct mmref {
-    multi_method_base* method;
+struct yomm11_class {
+  struct method_param {
+    method_base* method;
     int arg;
   };
 
@@ -237,38 +244,37 @@ struct mm_class {
     void (**ptr)();
   };
 
-  mm_class(YOREL_MM_TRACE(const char* name));
-  ~mm_class();
+  yomm11_class(YOMM11_TRACE(const char* name));
+  ~yomm11_class();
 
-  void initialize(const std::vector<mm_class*>& bases);
-  void add_multi_method(multi_method_base* pm, int arg);
-  void remove_multi_method(multi_method_base* pm);
-  void for_each_spec(std::function<void(mm_class*)> pf);
-  void for_each_conforming(std::function<void(mm_class*)> pf);
-  void for_each_conforming(std::unordered_set<const mm_class*>& visited, std::function<void(mm_class*)> pf);
-  bool conforms_to(const mm_class& other) const;
-  bool specializes(const mm_class& other) const;
+  void initialize(const std::vector<yomm11_class*>& bases);
+  void add_method(method_base* pm, int arg);
+  void remove_method(method_base* pm);
+  void for_each_spec(std::function<void(yomm11_class*)> pf);
+  void for_each_conforming(std::function<void(yomm11_class*)> pf);
+  void for_each_conforming(std::unordered_set<const yomm11_class*>& visited, std::function<void(yomm11_class*)> pf);
+  bool conforms_to(const yomm11_class& other) const;
+  bool specializes(const yomm11_class& other) const;
   bool is_root() const;
-
-  YOREL_MM_TRACE(const char* name);
-  std::vector<mm_class*> bases;
-  std::vector<mm_class*> specs;
+  YOMM11_TRACE(const char* name);
+  std::vector<yomm11_class*> bases;
+  std::vector<yomm11_class*> specs;
   detail::bitvec mask;
   int index;
-  mm_class* root{nullptr};
-  std::vector<mm_class::offset> mmt;
-  std::vector<mmref> rooted_here; // multi_methods rooted here for one or more args.
+  yomm11_class* root;
+  std::vector<yomm11_class::offset> mmt;
+  std::vector<method_param> rooted_here; // methods rooted here for one or more args.
   bool abstract;
 
-  static std::unordered_set<mm_class*>* to_initialize;
-  static void add_to_initialize(mm_class* pc);
-  static void remove_from_initialize(mm_class* pc);
+  static std::unordered_set<yomm11_class*>* to_initialize;
+  static void add_to_initialize(yomm11_class* pc);
+  static void remove_from_initialize(yomm11_class* pc);
 
   template<class Class>
   struct of {
-    static mm_class* pc;
-    static mm_class& the() {
-      static mm_class instance YOREL_MM_TRACE({_yomm11_name_((Class*) nullptr)});
+    static yomm11_class* pc;
+    static yomm11_class& the() {
+      static yomm11_class instance YOMM11_TRACE({_yomm11_name_((Class*) nullptr)});
       pc = &instance;
       return instance;
     }
@@ -291,34 +297,34 @@ struct mm_class {
 };
 
 template<class Class>
-mm_class* mm_class::of<Class>::pc;
+yomm11_class* yomm11_class::of<Class>::pc;
 
-inline bool mm_class::is_root() const {
+inline bool yomm11_class::is_root() const {
   return this == root;
 }
 
-struct method_base {
-  virtual ~method_base();
+struct specialization_base {
+  virtual ~specialization_base();
 
-  int index; // inside multi_method
-  std::vector<mm_class*> args;
-  bool specializes(method_base* other) const;
-  static method_base undefined;
-  static method_base ambiguous;
+  int index; // inside method
+  std::vector<yomm11_class*> args;
+  bool specializes(specialization_base* other) const;
+  static specialization_base undefined;
+  static specialization_base ambiguous;
 };
 
 struct selector {
   selector() : _yomm11_ptbl(0) { }
-  std::vector<mm_class::offset>* _yomm11_ptbl;
+  std::vector<yomm11_class::offset>* _yomm11_ptbl;
   virtual ~selector() { }
   template<class THIS>
   void _init_yomm11_ptr(THIS*);
-  std::vector<mm_class::offset>* _get_yomm11_ptbl() const { return _yomm11_ptbl; }
+  std::vector<yomm11_class::offset>* _get_yomm11_ptbl() const { return _yomm11_ptbl; }
 };
 
 template<class THIS>
 inline void selector::_init_yomm11_ptr(THIS*) {
-  _yomm11_ptbl = &mm_class::of<THIS>::the().mmt;
+  _yomm11_ptbl = &yomm11_class::of<THIS>::the().mmt;
 }
 
 template<class Class>
@@ -338,31 +344,31 @@ struct cast_using_dynamic_cast {
   static const D& value(const B& obj) { return dynamic_cast<const D&>(obj); }
 };
 
-struct multi_method_base {
-  explicit multi_method_base(const std::vector<mm_class*>& v YOREL_MM_COMMA_TRACE(const char* name));
-  virtual ~multi_method_base();
+struct method_base {
+  explicit method_base(const std::vector<yomm11_class*>& v YOMM11_COMMA_TRACE(const char* name));
+  virtual ~method_base();
 
   using void_function_pointer = void (*)();
 
   void resolve();
   virtual void_function_pointer* allocate_dispatch_table(int size) = 0;
-  virtual void emit(method_base*, int i) = 0;
-  virtual void emit_next(method_base*, method_base*) = 0;
+  virtual void emit(specialization_base*, int i) = 0;
+  virtual void emit_next(specialization_base*, specialization_base*) = 0;
   void invalidate();
   void assign_slot(int arg, int slot);
 
-  std::vector<mm_class*> vargs;
+  std::vector<yomm11_class*> vargs;
   std::vector<int> slots;
-  std::vector<method_base*> methods;
+  std::vector<specialization_base*> methods;
   std::vector<int> steps;
-  YOREL_MM_TRACE(const char* name);
+  YOMM11_TRACE(const char* name);
 
-  static std::unordered_set<multi_method_base*>* to_initialize;
-  static void add_to_initialize(multi_method_base* pm);
-  static void remove_from_initialize(multi_method_base* pm);
+  static std::unordered_set<method_base*>* to_initialize;
+  static void add_to_initialize(method_base* pm);
+  static void remove_from_initialize(method_base* pm);
 };
 
-#include <yorel/multi_methods/detail.hpp>
+#include <yorel/methods/detail.hpp>
 
 template<class B, class D>
 struct cast : detail::cast_best<B, D, detail::is_virtual_base_of<B, D>::value> {
@@ -375,13 +381,13 @@ struct cast<B, B> {
 };
 
 template<class Class, class... Bases>
-mm_class::initializer<Class, mm_class::base_list<Bases...>>::initializer() {
+yomm11_class::initializer<Class, yomm11_class::base_list<Bases...>>::initializer() {
   static_assert(
-      detail::check_bases<Class, mm_class::base_list<Bases...>>::value,
-      "Error in MM_CLASS(): not a base in base list");
-  mm_class& pc = mm_class::of<Class>::the();
+      detail::check_bases<Class, yomm11_class::base_list<Bases...>>::value,
+      "Error in YOMM11_CLASS(): not a base in base list");
+  yomm11_class& pc = yomm11_class::of<Class>::the();
   pc.abstract = std::is_abstract<Class>::value;
-  pc.initialize(detail::mm_class_vector_of<Bases...>::get());
+  pc.initialize(detail::yomm11_class_vector_of<Bases...>::get());
 
   if (!std::is_base_of<selector, Class>::value) {
     if (!detail::get_mm_table<false>::class_of) {
@@ -392,17 +398,17 @@ mm_class::initializer<Class, mm_class::base_list<Bases...>>::initializer() {
 }
 
 template<class Class, class... Bases>
-mm_class::initializer<Class, mm_class::base_list<Bases...>> mm_class::initializer<Class, mm_class::base_list<Bases...>>::the;
+yomm11_class::initializer<Class, yomm11_class::base_list<Bases...>> yomm11_class::initializer<Class, yomm11_class::base_list<Bases...>>::the;
 
 template<template<typename Sig> class Method, typename R, typename... P>
-struct multi_method<Method, R(P...)> {
+struct method<Method, R(P...)> {
 
 #ifdef __cpp_constexpr
   constexpr
 #endif
-  multi_method() {}
+  method() {}
   R operator ()(typename detail::remove_virtual<P>::type... args) const;
-  static R method(typename detail::remove_virtual<P>::type... args);
+  static R resolve(typename detail::remove_virtual<P>::type... args);
 
   using return_type = R;
   using method_pointer_type = return_type (*)(typename detail::remove_virtual<P>::type...);
@@ -417,7 +423,7 @@ struct multi_method<Method, R(P...)> {
 
   method_pointer_type next_ptr_type() const;
 
-  using implementation = detail::multi_method_implementation<R, P...>;
+  using implementation = detail::method_implementation<R, P...>;
   static implementation& the();
   static implementation* impl;
 
@@ -430,7 +436,7 @@ struct multi_method<Method, R(P...)> {
   template<class Spec>
   struct specialization {
     static method_pointer_type next;
-    // this doesn't work on clang, must do it in BEGIN_SPECIALIZATION
+    // this doesn't work on clang, must do it in YOMM11_SPECIALIZATION
     // virtual void* _yomm11_install() { return &register_spec<Spec>::the; }
   };
 };
@@ -439,10 +445,8 @@ template<class Method, class Spec>
 struct register_spec {
   register_spec() {
     Method::template specialize<Spec>();
-
   }
   static register_spec the;
-
 };
 
 template<class Method, class Spec>
@@ -450,37 +454,39 @@ register_spec<Method, Spec> register_spec<Method, Spec>::the;
 
 template<template<typename Sig> class Method, typename R, typename... P>
 template<class Spec>
-typename multi_method<Method, R(P...)>::method_pointer_type
-multi_method<Method, R(P...)>::specialization<Spec>::next;
+typename method<Method, R(P...)>::method_pointer_type
+method<Method, R(P...)>::specialization<Spec>::next;
 
 template<template<typename Sig> class Method, typename R, typename... P>
-typename multi_method<Method, R(P...)>::implementation* multi_method<Method, R(P...)>::impl;
+typename method<Method, R(P...)>::implementation* method<Method, R(P...)>::impl;
 
 template<template<typename Sig> class Method, typename R, typename... P>
 template<typename Tag>
-typename multi_method<Method, R(P...)>::method_pointer_type multi_method<Method, R(P...)>::next_ptr<Tag>::next;
+typename method<Method, R(P...)>::method_pointer_type method<Method, R(P...)>::next_ptr<Tag>::next;
 
 template<template<typename Sig> class Method, typename R, typename... P>
-typename multi_method<Method, R(P...)>::implementation& multi_method<Method, R(P...)>::the() {
+typename method<Method, R(P...)>::implementation& method<Method, R(P...)>::the() {
   if (!impl) {
-    impl = new implementation(YOREL_MM_TRACE(_yomm11_name_((multi_method<Method, R(P...)>*) nullptr)));
+    impl = new implementation(YOMM11_TRACE(_yomm11_name_((multi_method<Method, R(P...)>*) nullptr)));
   }
 
   return *impl;
 }
 
 template<template<typename Sig> class Method, typename R, typename... P>
-inline R multi_method<Method, R(P...)>::operator ()(typename detail::remove_virtual<P>::type... args) const {
-  YOREL_MM_TRACE((std::cout << "() mm table = " << impl->dispatch_table << std::flush));
+inline R method<Method, R(P...)>::operator ()(typename detail::remove_virtual<P>::type... args) const {
+  YOMM11_TRACE((std::cout << "() mm table = " << impl->dispatch_table << std::flush));
   return reinterpret_cast<method_pointer_type>(*detail::linear<0, P...>::value(impl->slots.begin(), impl->steps.begin(), &args...))(args...);
 }
 
 template<template<typename Sig> class Method, typename R, typename... P>
-inline R multi_method<Method, R(P...)>::method(typename detail::remove_virtual<P>::type... args) {
-  YOREL_MM_TRACE((std::cout << "() mm table = " << impl->dispatch_table << std::flush));
+inline R method<Method, R(P...)>::resolve(typename detail::remove_virtual<P>::type... args) {
+  YOMM11_TRACE((std::cout << "() mm table = " << impl->dispatch_table << std::flush));
   return reinterpret_cast<method_pointer_type>(*detail::linear<0, P...>::value(impl->slots.begin(), impl->steps.begin(), &args...))(args...);
 }
 }
+
+namespace multi_methods = methods;
 }
 
 #ifdef _MSVC_VER

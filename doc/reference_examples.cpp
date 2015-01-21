@@ -1,80 +1,80 @@
-// -*- compile-command: "g++ -std=c++11 -I../include reference_examples.cpp ../src/multi_methods.cpp -o examples && ./examples" -*-
+// -*- compile-command: "g++ -std=c++11 -I../include reference_examples.cpp ../src/methods.cpp -o examples && ./examples" -*-
 
 #include <iostream>
-#include <yorel/multi_methods.hpp>
+#include <yorel/methods.hpp>
 
 using namespace std;
 
-struct role : yorel::multi_methods::selector {
-  MM_CLASS(role);
+struct role : yorel::methods::selector {
+  YOMM11_CLASS(role);
   role() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
 struct manager : role {
-  MM_CLASS(manager, role);
+  YOMM11_CLASS(manager, role);
   manager() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
 struct ceo : role {
-  MM_CLASS(ceo, role);
+  YOMM11_CLASS(ceo, role);
   ceo() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
-struct expense : yorel::multi_methods::selector {
-  MM_CLASS(expense);
+struct expense : yorel::methods::selector {
+  YOMM11_CLASS(expense);
   expense() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
 struct plane : expense {
-  MM_CLASS(plane, expense);
+  YOMM11_CLASS(plane, expense);
   plane() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
 struct cab : expense {
-  MM_CLASS(cab, expense);
+  YOMM11_CLASS(cab, expense);
   cab() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
-struct reason : yorel::multi_methods::selector {
-  MM_CLASS(reason);
+struct reason : yorel::methods::selector {
+  YOMM11_CLASS(reason);
   reason() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
 struct business : reason {
-  MM_CLASS(business, reason);
+  YOMM11_CLASS(business, reason);
   business() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
 struct comfort : reason {
-  MM_CLASS(comfort, reason);
+  YOMM11_CLASS(comfort, reason);
   comfort() {
-    MM_INIT();
+    YOMM11_INIT();
   }
 };
 
-using namespace yorel::multi_methods;
+using namespace yorel::methods;
 
-//[ ref_multi_method
+//[ ref_method
 
 template<typename Signature> struct approve_specialization;
 
-constexpr multi_method<
+constexpr method<
   approve_specialization,
   bool(const virtual_<expense>&, const virtual_<role>&, const virtual_<reason>&)
   > approve;

@@ -2,7 +2,7 @@
 
 [h3 Synopsis]
 
-yorel::multi_methods::initialize();
+yorel::methods::initialize();
 
 [h3 Description]
 
@@ -27,10 +27,10 @@ entails the re-examination of the entire class graph.
 ``
 
 int main() {
-  yorel::multi_methods::initialize();
+  yorel::methods::initialize();
   // ...
   dlopen(...); // dynamically load a shared object
-  yorel::multi_methods::initialize(); // if classes, multi-methods or specializations were added
+  yorel::methods::initialize(); // if classes, multi-methods or specializations were added
   // ...
 }
 

@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../../.. && make && make test" -*-
 
-// multi_method/detail.hpp
+// method/detail.hpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -142,35 +142,35 @@ struct remove_virtual<const virtual_<C>&> {
   using type = const C&;
 };
 
-template<class... Class> struct mm_class_vector_of_;
+template<class... Class> struct yomm11_class_vector_of_;
 
 template<class First, class... Rest>
-struct mm_class_vector_of_<First, Rest...> {
-  static void get(std::vector<mm_class*>& classes) {
-    classes.push_back(&mm_class::of<First>::the());
-    mm_class_vector_of_<Rest...>::get(classes);
+struct yomm11_class_vector_of_<First, Rest...> {
+  static void get(std::vector<yomm11_class*>& classes) {
+    classes.push_back(&yomm11_class::of<First>::the());
+    yomm11_class_vector_of_<Rest...>::get(classes);
   }
 };
 
 template<>
-struct mm_class_vector_of_<> {
-  static void get(std::vector<mm_class*>& classes) {
+struct yomm11_class_vector_of_<> {
+  static void get(std::vector<yomm11_class*>& classes) {
   }
 };
 
 template<class... Class>
-struct mm_class_vector_of {
-  static std::vector<mm_class*> get() {
-    std::vector<mm_class*> classes;
-    mm_class_vector_of_<Class...>::get(classes);
+struct yomm11_class_vector_of {
+  static std::vector<yomm11_class*> get() {
+    std::vector<yomm11_class*> classes;
+    yomm11_class_vector_of_<Class...>::get(classes);
     return classes;
   }
 };
 
 template<class... Class>
-struct mm_class_vector_of<virtuals<Class...>> {
-  static std::vector<mm_class*> get() {
-    return mm_class_vector_of<Class...>::get();
+struct yomm11_class_vector_of<virtuals<Class...>> {
+  static std::vector<yomm11_class*> get() {
+    return yomm11_class_vector_of<Class...>::get();
   }
 };
 
@@ -180,7 +180,7 @@ struct get_mm_table;
 template<>
 struct get_mm_table<true> {
   template<class C>
-  static const std::vector<mm_class::offset>& value(const C* obj) {
+  static const std::vector<yomm11_class::offset>& value(const C* obj) {
     return *obj->_get_yomm11_ptbl();
   }
 };
@@ -189,19 +189,19 @@ template<class... X>
 struct init_ptr;
 
 template<class... Bases>
-struct init_ptr<mm_class::base_list<Bases...>> : init_ptr<Bases...> { };
+struct init_ptr<yomm11_class::base_list<Bases...>> : init_ptr<Bases...> { };
 
 template<>
-struct init_ptr<mm_class::base_list<>> {
+struct init_ptr<yomm11_class::base_list<>> {
   template<class This> static void init(This* p) {
-    p->selector::_yomm11_ptbl = &mm_class::of<This>::pc->mmt;
+    p->selector::_yomm11_ptbl = &yomm11_class::of<This>::pc->mmt;
   }
 };
 
 template<class Base, class... Bases>
 struct init_ptr<Base, Bases...> {
   template<class This> static void init(This* p) {
-    p->Base::_yomm11_ptbl = &mm_class::of<This>::pc->mmt;
+    p->Base::_yomm11_ptbl = &yomm11_class::of<This>::pc->mmt;
     init_ptr<Bases...>::init(p);
   }
 };
@@ -219,11 +219,11 @@ struct signature {
 
 template<>
 struct get_mm_table<false> {
-  using class_of_type = std::unordered_map<std::type_index, const std::vector<mm_class::offset>*>;
+  using class_of_type = std::unordered_map<std::type_index, const std::vector<yomm11_class::offset>*>;
   static class_of_type* class_of;
   template<class C>
-  static const std::vector<mm_class::offset>& value(const C* obj) {
-    YOREL_MM_TRACE(std::cout << "foreign mm_class::of<" << typeid(*obj).name() << "> = " << (*class_of)[std::type_index(typeid(*obj))] << std::endl);
+  static const std::vector<yomm11_class::offset>& value(const C* obj) {
+    YOMM11_TRACE(std::cout << "foreign yomm11_class::of<" << typeid(*obj).name() << "> = " << (*class_of)[std::type_index(typeid(*obj))] << std::endl);
     return *(*class_of)[std::type_index(typeid(*obj))];
   }
 };
@@ -232,12 +232,12 @@ template<class Class, class Bases>
 struct check_bases;
 
 template<class Class, class Base, class... Bases>
-struct check_bases<Class, mm_class::base_list<Base, Bases...>> {
-  static const bool value = std::is_base_of<Base, Class>::value && check_bases<Class, mm_class::base_list<Bases...>>::value;
+struct check_bases<Class, yomm11_class::base_list<Base, Bases...>> {
+  static const bool value = std::is_base_of<Base, Class>::value && check_bases<Class, yomm11_class::base_list<Bases...>>::value;
 };
 
 template<class Class>
-struct check_bases<Class, mm_class::base_list<>> {
+struct check_bases<Class, yomm11_class::base_list<>> {
   static const bool value = true;
 };
 
@@ -266,11 +266,11 @@ struct wrapper<M, R(P...), R(P...)> {
 };
 
 template<class M>
-struct method_impl : method_base {
+struct method_impl : specialization_base {
   M pm;
   M* pn; // next
 
-  method_impl(int index, M pm, std::vector<mm_class*> type_tuple, M* pn) : pm(pm), pn(pn) {
+  method_impl(int index, M pm, std::vector<yomm11_class*> type_tuple, M* pn) : pm(pm), pn(pn) {
     this->index = index;
     this->args = type_tuple;
   }
@@ -303,38 +303,38 @@ R throw_ambiguous<R(A...)>::body(A...) {
 }
 
 template<typename R, typename... P>
-struct multi_method_implementation : multi_method_base {
+struct method_implementation : method_base {
   using return_type = R;
   using method_pointer_type = return_type (*)(typename remove_virtual<P>::type...);
   using method_entry = method_impl<method_pointer_type>;
   using signature = R(typename remove_virtual<P>::type...);
   using virtuals = typename extract_virtuals<P...>::type;
 
-  multi_method_implementation(YOREL_MM_TRACE(const char* name)) :
-      multi_method_base(mm_class_vector_of<virtuals>::get() YOREL_MM_COMMA_TRACE(name)),
+  method_implementation(YOMM11_TRACE(const char* name)) :
+      method_base(yomm11_class_vector_of<virtuals>::get() YOMM11_COMMA_TRACE(name)),
       dispatch_table(nullptr) {
   }
 
-  template<class M> method_base* add_spec();
+  template<class M> specialization_base* add_spec();
 
   virtual void_function_pointer* allocate_dispatch_table(int size);
-  virtual void emit(method_base*, int i);
-  virtual void emit_next(method_base*, method_base*);
+  virtual void emit(specialization_base*, int i);
+  virtual void emit_next(specialization_base*, specialization_base*);
 
   method_pointer_type* dispatch_table;
 };
 
 template<typename R, typename... P>
 template<class M>
-method_base* multi_method_implementation<R, P...>::add_spec() {
+specialization_base* method_implementation<R, P...>::add_spec() {
   using method_signature = typename M::body_signature::type;
   using target = typename wrapper<M, method_signature, signature>::type;
   using method_virtuals = typename extract_method_virtuals<R(P...), method_signature>::type;
 
   using namespace std;
-  YOREL_MM_TRACE(cout << "add " << method_virtuals() << " to " << virtuals() << endl);
+  YOMM11_TRACE(cout << "add " << method_virtuals() << " to " << virtuals() << endl);
 
-  method_base* method = new method_entry(methods.size(), target::body, mm_class_vector_of<method_virtuals>::get(), &M::next);
+  specialization_base* method = new method_entry(methods.size(), target::body, yomm11_class_vector_of<method_virtuals>::get(), &M::next);
   methods.push_back(method);
   invalidate();
 
@@ -342,7 +342,7 @@ method_base* multi_method_implementation<R, P...>::add_spec() {
 }
 
 template<typename R, typename... P>
-multi_method_base::void_function_pointer* multi_method_implementation<R, P...>::allocate_dispatch_table(int size) {
+method_base::void_function_pointer* method_implementation<R, P...>::allocate_dispatch_table(int size) {
   using namespace std;
   delete [] dispatch_table;
   dispatch_table = new method_pointer_type[size];
@@ -350,18 +350,18 @@ multi_method_base::void_function_pointer* multi_method_implementation<R, P...>::
 }
 
 template<typename R, typename... P>
-void multi_method_implementation<R, P...>::emit(method_base* method, int i) {
+void method_implementation<R, P...>::emit(specialization_base* method, int i) {
   dispatch_table[i] =
-      method == &method_base::ambiguous ? throw_ambiguous<signature>::body
-      : method == &method_base::undefined ? throw_undefined<signature>::body
+      method == &specialization_base::ambiguous ? throw_ambiguous<signature>::body
+      : method == &specialization_base::undefined ? throw_undefined<signature>::body
       : static_cast<const method_entry*>(method)->pm;
   using namespace std;
 }
 
 template<typename R, typename... P>
-void multi_method_implementation<R, P...>::emit_next(method_base* method, method_base* next) {
+void method_implementation<R, P...>::emit_next(specialization_base* method, specialization_base* next) {
   *static_cast<const method_entry*>(method)->pn =
-      (next == &method_base::ambiguous || next == &method_base::undefined) ? nullptr
+      (next == &specialization_base::ambiguous || next == &specialization_base::undefined) ? nullptr
       : static_cast<const method_entry*>(next)->pm;
 }
 
@@ -371,7 +371,7 @@ struct linear;
 template<typename P1, typename... P>
 struct linear<0, P1, P...> {
   template<typename A1, typename... A>
-  static multi_method_base::void_function_pointer* value(
+  static method_base::void_function_pointer* value(
       std::vector<int>::const_iterator slot_iter,
       std::vector<int>::const_iterator step_iter,
       A1, A... args) {
@@ -382,7 +382,7 @@ struct linear<0, P1, P...> {
 template<typename P1, typename... P>
 struct linear<0, virtual_<P1>&, P...> {
   template<typename A1, typename... A>
-  static multi_method_base::void_function_pointer* value(
+  static method_base::void_function_pointer* value(
       std::vector<int>::const_iterator slot_iter,
       std::vector<int>::const_iterator step_iter,
       A1 arg, A... args) {
@@ -395,7 +395,7 @@ struct linear<0, virtual_<P1>&, P...> {
 template<typename P1, typename... P>
 struct linear<0, const virtual_<P1>&, P...> {
   template<typename A1, typename... A>
-  static multi_method_base::void_function_pointer* value(
+  static method_base::void_function_pointer* value(
       std::vector<int>::const_iterator slot_iter,
       std::vector<int>::const_iterator step_iter,
       A1 arg, A... args) {
@@ -408,10 +408,10 @@ struct linear<0, const virtual_<P1>&, P...> {
 template<int Dim, typename P1, typename... P>
 struct linear<Dim, P1, P...> {
   template<typename A1, typename... A>
-  static multi_method_base::void_function_pointer* value(
+  static method_base::void_function_pointer* value(
       std::vector<int>::const_iterator slot_iter,
       std::vector<int>::const_iterator step_iter,
-      multi_method_base::void_function_pointer* ptr,
+      method_base::void_function_pointer* ptr,
       A1, A... args) {
     return linear<Dim, P...>::value(slot_iter, step_iter, ptr, args...);
   }
@@ -420,12 +420,12 @@ struct linear<Dim, P1, P...> {
 template<int Dim, typename P1, typename... P>
 struct linear<Dim, virtual_<P1>&, P...> {
   template<typename A1, typename... A>
-  static multi_method_base::void_function_pointer* value(
+  static method_base::void_function_pointer* value(
       std::vector<int>::const_iterator slot_iter,
       std::vector<int>::const_iterator step_iter,
-      multi_method_base::void_function_pointer* ptr,
+      method_base::void_function_pointer* ptr,
       A1 arg, A... args) {
-    YOREL_MM_TRACE(std::cout << " -> " << ptr);
+    YOMM11_TRACE(std::cout << " -> " << ptr);
     return linear<Dim + 1, P...>::value(
         slot_iter + 1, step_iter + 1,
         ptr + detail::get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter].index * *step_iter,
@@ -436,12 +436,12 @@ struct linear<Dim, virtual_<P1>&, P...> {
 template<int Dim, typename P1, typename... P>
 struct linear<Dim, const virtual_<P1>&, P...> {
   template<typename A1, typename... A>
-  static multi_method_base::void_function_pointer* value(
+  static method_base::void_function_pointer* value(
       std::vector<int>::const_iterator slot_iter,
       std::vector<int>::const_iterator step_iter,
-      multi_method_base::void_function_pointer* ptr,
+      method_base::void_function_pointer* ptr,
       A1 arg, A... args) {
-    YOREL_MM_TRACE(std::cout << " -> " << ptr);
+    YOMM11_TRACE(std::cout << " -> " << ptr);
     return linear<Dim + 1, P...>::value(
         slot_iter + 1, step_iter + 1,
         ptr + detail::get_mm_table<std::is_base_of<selector, P1>::value>::value(arg)[*slot_iter].index * *step_iter,
@@ -451,16 +451,16 @@ struct linear<Dim, const virtual_<P1>&, P...> {
 
 template<int Dim>
 struct linear<Dim> {
-  static multi_method_base::void_function_pointer* value(
+  static method_base::void_function_pointer* value(
       std::vector<int>::const_iterator slot_iter,
       std::vector<int>::const_iterator step_iter,
-      multi_method_base::void_function_pointer* ptr) {
-    YOREL_MM_TRACE(std::cout << " -> " << ptr << std::endl);
+      method_base::void_function_pointer* ptr) {
+    YOMM11_TRACE(std::cout << " -> " << ptr << std::endl);
     return ptr;
   }
 };
 
-#ifdef YOREL_MM_TRACE
+#ifdef YOMM11_TRACE
 
 template<typename C1, typename C2, typename... CN>
 void write(std::ostream& os, virtuals<C1, C2, CN...>) {

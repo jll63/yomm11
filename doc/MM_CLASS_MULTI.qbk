@@ -6,7 +6,7 @@ MM_CLASS_MULTI(__class__, __bases__...)
 
 [h3 Description]
 
-Same as [link multi_methods.reference.registering_classes.mm_class MM_CLASS], to be used
+Same as [link methods.reference.registering_classes.mm_class MM_CLASS], to be used
 in presence of *repeated* inheritance of class __selector__.
 
 `MM_CLASS_MULTI` should not be used if __class__ inherits (virtually)

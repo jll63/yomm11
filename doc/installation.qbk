@@ -22,10 +22,10 @@ the default locations. You can override this by passing
 g++. Pass `-DCMAKE_CXX_COMPILER=clang++` if you want to use Clang.
 
 Alternatively, you can add the library's `include` directory to the
-include path and compile and link `src/multi_methods.cpp` directly
+include path and compile and link `src/methods.cpp` directly
 into your application.
 
-Read [link multi_methods.advanced_topics.dynamic_linking this section]
+Read [link methods.advanced_topics.dynamic_linking this section]
 if you intend to use shared libraries or dynamic linking.
 
 [endsect]
