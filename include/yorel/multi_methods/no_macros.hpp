@@ -266,8 +266,10 @@ struct mm_class {
 
   template<class Class>
   struct of {
+    static mm_class* pc;
     static mm_class& the() {
       static mm_class instance YOREL_MM_TRACE({_yomm11_name_((Class*) nullptr)});
+      pc = &instance;
       return instance;
     }
   };
@@ -287,6 +289,9 @@ struct mm_class {
     static initializer the;
   };
 };
+
+template<class Class>
+mm_class* mm_class::of<Class>::pc;
 
 inline bool mm_class::is_root() const {
   return this == root;

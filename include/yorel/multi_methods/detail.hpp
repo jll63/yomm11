@@ -194,14 +194,14 @@ struct init_ptr<mm_class::base_list<Bases...>> : init_ptr<Bases...> { };
 template<>
 struct init_ptr<mm_class::base_list<>> {
   template<class This> static void init(This* p) {
-    p->selector::_yomm11_ptbl = &mm_class::of<This>::the().mmt;
+    p->selector::_yomm11_ptbl = &mm_class::of<This>::pc->mmt;
   }
 };
 
 template<class Base, class... Bases>
 struct init_ptr<Base, Bases...> {
   template<class This> static void init(This* p) {
-    p->Base::_yomm11_ptbl = &mm_class::of<This>::the().mmt;
+    p->Base::_yomm11_ptbl = &mm_class::of<This>::pc->mmt;
     init_ptr<Bases...>::init(p);
   }
 };
