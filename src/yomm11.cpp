@@ -1,5 +1,3 @@
-// -*- compile-command: "cd .. && make && make test" -*-
-
 // method.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -18,15 +16,6 @@ using namespace std;
 
 namespace yorel {
 namespace methods {
-
-namespace detail {
-ostream& operator <<(ostream& os, const bitvec& v) {
-  for (int i = 0; i < v.size(); i++) {
-    os << (v[i] ? 1 : 0);
-  }
-  return os;
-}
-}
 
 using namespace detail;
 
@@ -545,6 +534,8 @@ void grouping_resolver::make_mask(const vector<specialization_base*>& methods, b
   }
 }
 
+namespace detail {
+
 #ifdef YOMM11_ENABLE_TRACE
 
 std::ostream& operator <<(std::ostream& os, const yomm11_class* pc) {
@@ -600,6 +591,15 @@ ostream& operator <<(ostream& os, const method_base* mm) {
 }
 
 #endif
+
+ostream& operator <<(ostream& os, const bitvec& v) {
+  for (int i = 0; i < v.size(); i++) {
+    os << (v[i] ? 1 : 0);
+  }
+  return os;
+}
+
+} // detail
 
 }
 }
