@@ -1,5 +1,3 @@
-// -*- compile-command: "g++ -std=c++11 -I../include -o next next.cpp ../src/methods.cpp && ./next" -*-
-
 // next.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See

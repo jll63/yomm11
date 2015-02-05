@@ -1,5 +1,3 @@
-// -*- compile-command: "g++ -std=c++11 -I../include reference_examples.cpp ../src/methods.cpp -o examples && ./examples" -*-
-
 #include <iostream>
 #include <yorel/methods.hpp>
 

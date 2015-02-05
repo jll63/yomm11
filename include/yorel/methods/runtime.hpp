@@ -1,5 +1,3 @@
-// -*- compile-command: "cd ../../.. && make && make test" -*-
-
 #ifndef YOMM11_RUNTIME_INCLUDED
 #define YOMM11_RUNTIME_INCLUDED
 

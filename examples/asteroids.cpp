@@ -1,5 +1,3 @@
-// -*- compile-command: "make asteroids && ./asteroids" -*-
-
 // asteroids.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -65,7 +63,7 @@ BEGIN_SPECIALIZATION(collide, string, asteroid& a, asteroid& b, bool swapped) {
 
 int main() {
   yorel::multi_methods::initialize(); // IMPORTANT!
-  
+
   ship player;
   asteroid as;
   saucer small;

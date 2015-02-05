@@ -1,5 +1,3 @@
-// -*- compile-command: "make order12 && ./order12" -*-
-
 // order2.cpp
 // Copyright (c) 2013 Jean-Louis Leroy
 // Distributed under the Boost Software License, Version 1.0. (See
