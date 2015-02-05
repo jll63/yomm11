@@ -256,6 +256,9 @@ class bitvec {
 
 std::ostream& operator <<(std::ostream& os, const bitvec& v);
 
+template<typename... T>
+struct type_list;
+
 struct yomm11_class {
   struct method_param {
     method_base* method;
@@ -313,7 +316,7 @@ struct yomm11_class {
   struct initializer;
 
   template<class Class, class... Bases>
-  struct initializer<Class, base_list<Bases...>> {
+  struct initializer<Class, type_list<Bases...>> {
     initializer();
     static initializer the;
   };
@@ -534,10 +537,10 @@ template<class... X>
 struct init_ptr;
 
 template<class... Bases>
-struct init_ptr<yomm11_class::base_list<Bases...>> : init_ptr<Bases...> { };
+struct init_ptr<type_list<Bases...>> : init_ptr<Bases...> { };
 
 template<>
-struct init_ptr<yomm11_class::base_list<>> {
+struct init_ptr<type_list<>> {
   template<class This> static void init(This* p) {
     p->selector::_yomm11_ptbl = &yomm11_class::of<This>::pc->mmt;
   }
@@ -577,12 +580,12 @@ template<class Class, class Bases>
 struct check_bases;
 
 template<class Class, class Base, class... Bases>
-struct check_bases<Class, yomm11_class::base_list<Base, Bases...>> {
-  static const bool value = std::is_base_of<Base, Class>::value && check_bases<Class, yomm11_class::base_list<Bases...>>::value;
+struct check_bases<Class, type_list<Base, Bases...>> {
+  static const bool value = std::is_base_of<Base, Class>::value && check_bases<Class, type_list<Bases...>>::value;
 };
 
 template<class Class>
-struct check_bases<Class, yomm11_class::base_list<>> {
+struct check_bases<Class, type_list<>> {
   static const bool value = true;
 };
 
@@ -590,7 +593,7 @@ template<class Class, class... Bases>
 struct has_nonvirtual_bases;
 
 template<class... Classes>
-struct has_nonvirtual_bases<yomm11_class::base_list<Classes...>> : has_nonvirtual_bases<Classes...>{};
+struct has_nonvirtual_bases<type_list<Classes...>> : has_nonvirtual_bases<Classes...>{};
 
 template<class Class, class Base, class... More>
 struct has_nonvirtual_bases<Class, Base, More...> {
@@ -848,9 +851,9 @@ std::ostream& operator <<(std::ostream& os, virtuals<Class...> v){
 #endif
 
 template<class Class, class... Bases>
-yomm11_class::initializer<Class, yomm11_class::base_list<Bases...>>::initializer() {
+yomm11_class::initializer<Class, type_list<Bases...>>::initializer() {
   static_assert(
-      detail::check_bases<Class, yomm11_class::base_list<Bases...>>::value,
+      detail::check_bases<Class, type_list<Bases...>>::value,
       "Error in YOMM11_CLASS(): not a base in base list");
   yomm11_class& pc = yomm11_class::of<Class>::the();
   pc.abstract = std::is_abstract<Class>::value;
@@ -865,7 +868,7 @@ yomm11_class::initializer<Class, yomm11_class::base_list<Bases...>>::initializer
 }
 
 template<class Class, class... Bases>
-yomm11_class::initializer<Class, yomm11_class::base_list<Bases...>> yomm11_class::initializer<Class, yomm11_class::base_list<Bases...>>::the;
+yomm11_class::initializer<Class, type_list<Bases...>> yomm11_class::initializer<Class, type_list<Bases...>>::the;
 
 template<template<typename Sig> class Method, typename R, typename... P>
 struct method<Method, R(P...)> {

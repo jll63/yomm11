@@ -7,7 +7,7 @@
 #undef YOMM11_CLASS
 
 #define YOMM11_CLASS(CLASS, BASES...)                                   \
-  using _yomm11_base_list = ::yorel::methods::detail::yomm11_class::base_list<BASES>; \
+  using _yomm11_base_list = ::yorel::methods::detail::type_list<BASES>; \
   const char* _yomm11_class_name_(CLASS*) { return #CLASS; }            \
   virtual void _yomm11_init_class_()
 
