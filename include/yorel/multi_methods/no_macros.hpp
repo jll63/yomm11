@@ -251,7 +251,7 @@ struct mm_class {
   std::vector<mm_class*> specs;
   detail::bitvec mask;
   int index;
-  mm_class* root;
+  mm_class* root{nullptr};
   std::vector<mm_class::offset> mmt;
   std::vector<mmref> rooted_here; // multi_methods rooted here for one or more args.
   bool abstract;
