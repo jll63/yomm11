@@ -9,6 +9,7 @@
 #include <yorel/multi_methods.hpp>
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 using yorel::multi_methods::virtual_;

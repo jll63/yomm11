@@ -212,6 +212,11 @@ struct init_ptr<> {
   }
 };
 
+template<typename SIG>
+struct signature {
+  using type = SIG;
+};
+
 template<>
 struct get_mm_table<false> {
   using class_of_type = std::unordered_map<std::type_index, const std::vector<mm_class::offset>*>;
@@ -322,7 +327,7 @@ struct multi_method_implementation : multi_method_base {
 template<typename R, typename... P>
 template<class M>
 method_base* multi_method_implementation<R, P...>::add_spec() {
-  using method_signature = decltype(M::body);
+  using method_signature = typename M::body_signature::type;
   using target = typename wrapper<M, method_signature, signature>::type;
   using method_virtuals = typename extract_method_virtuals<R(P...), method_signature>::type;
 

@@ -68,6 +68,17 @@ bool throws(function<void()> fun) {
   return false;
 }
 
+unsigned long binary(const char* digits) {
+  unsigned long bits = 0;
+  
+  while (*digits) {
+    bits <<= 1;
+    bits |= *digits++ == '1';    
+  }
+  
+  return bits;
+}
+
 DO {
   cout << boolalpha;
 }
@@ -185,7 +196,7 @@ BEGIN_SPECIALIZATION(display, action, const Animal& a, const Mobile& b) {
 
 }
 
-#ifndef __clang__
+#if !defined(__clang__) && !defined(_MSC_VER)
 
 namespace init_tests {
 
@@ -306,7 +317,8 @@ BEGIN_SPECIALIZATION(display, action, Animal& a, Terminal& b) {
 struct Donkey : Herbivore { };
 
 template<>
-struct encounter_specialization<string(Cow&, Cow&)> : decltype(encounter)::specialization<encounter_specialization<string(Cow&, Cow&)>> {
+struct encounter_specialization<string(Cow&, Cow&)> : remove_const<decltype(encounter)>::type::specialization<encounter_specialization<string(Cow&, Cow&)>> {
+  using body_signature = ::yorel::multi_methods::detail::signature<string(Cow&, Cow&)>;
   static string body(Cow&, Cow&) {
     return "moo!";
   }
@@ -585,7 +597,7 @@ int main() {
       }
 
       {
-        bitvec v(n, 0b101);
+        bitvec v(n, binary("101"));
         test(v[0], true);
         test(v[1], false);
         test(v[2], true);
@@ -644,7 +656,7 @@ int main() {
         v[0] = 1;
         v[n - 1] = 1;
         test(v.none(), false);
-        v |= bitvec(n, 0b10);
+        v |= bitvec(n, binary("10"));
         test(v[0], true);
         test(v[1], true);
         test(v[n  - 1], true);
@@ -718,19 +730,19 @@ int main() {
     }
 
     {
-      bitvec v(3, 0b111);
+      bitvec v(3, binary("111"));
       test(v.size(), 3);
-      test(v[0], 1);
-      test(v[1], 1);
-      test(v[2], 1);
+      test(v[0], true);
+      test(v[1], true);
+      test(v[2], true);
       v.resize(2);
       test(v.size(), 2);
-      test(v[0], 1);
-      test(v[1], 1);
+      test(v[0], true);
+      test(v[1], true);
       v.resize(3);
-      test(v[0], 1);
-      test(v[1], 1);
-      test(v[2], 0);
+      test(v[0], true);
+      test(v[1], true);
+      test(v[2], false);
     }
   }
 
@@ -765,14 +777,14 @@ int main() {
     test( init.nodes[7], &mm_class::of<Y>::the() );
 
     init.make_masks();
-    testx( init.nodes[0]->mask, bitvec(8, 0b11111111) ); // X
-    testx( init.nodes[1]->mask, bitvec(8, 0b01111110) ); // A
-    testx( init.nodes[2]->mask, bitvec(8, 0b00010100) ); // B
-    testx( init.nodes[3]->mask, bitvec(8, 0b01011000) ); // C
-    testx( init.nodes[4]->mask, bitvec(8, 0b00010000) ); // BC
-    testx( init.nodes[5]->mask, bitvec(8, 0b01100000) ); // D
-    testx( init.nodes[6]->mask, bitvec(8, 0b01000000) ); // CD
-    testx( init.nodes[7]->mask, bitvec(8, 0b10000000) ); // Y
+    testx( init.nodes[0]->mask, bitvec(8, binary("11111111")) ); // X
+    testx( init.nodes[1]->mask, bitvec(8, binary("01111110")) ); // A
+    testx( init.nodes[2]->mask, bitvec(8, binary("00010100")) ); // B
+    testx( init.nodes[3]->mask, bitvec(8, binary("01011000")) ); // C
+    testx( init.nodes[4]->mask, bitvec(8, binary("00010000")) ); // BC
+    testx( init.nodes[5]->mask, bitvec(8, binary("01100000")) ); // D
+    testx( init.nodes[6]->mask, bitvec(8, binary("01000000")) ); // CD
+    testx( init.nodes[7]->mask, bitvec(8, binary("10000000")) ); // Y
 
     init.assign_slots();
     test(m_x.the().slots[0], 0);
@@ -1123,7 +1135,8 @@ int main() {
     test( multi_method_base::to_initialize != nullptr, true );
     test( multi_method_base::to_initialize->size(), 1 );
 
-    encounter.impl.reset();
+    delete encounter.impl;
+    encounter.impl = nullptr;
     test( mm_class::of<Animal>::the().rooted_here.size(), 1 );
     test( !multi_method_base::to_initialize, true );
 

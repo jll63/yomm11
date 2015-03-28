@@ -30,3 +30,6 @@ Makefile
 /examples/libdl_shared.so
 /install_manifest.txt
 /doc/multi_methods.xml
+/build
+*.sdf
+*.suo

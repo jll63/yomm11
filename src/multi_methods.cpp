@@ -9,6 +9,7 @@
 #include <yorel/multi_methods.hpp>
 #include <yorel/multi_methods/runtime.hpp>
 #include <unordered_set>
+#include <iterator>
 #include <functional>
 #include <cassert>
 
@@ -119,13 +120,12 @@ void mm_class::initialize(const vector<mm_class*>& b) {
     });
 }
 
-unique_ptr<unordered_set<mm_class*>> mm_class::to_initialize;
-
+unordered_set<mm_class*>* mm_class::to_initialize;
 void mm_class::add_to_initialize(mm_class* pc) {
   YOREL_MM_TRACE(cout << "add to initialize: " << pc << endl);
 
   if (!to_initialize) {
-    to_initialize.reset(new unordered_set<mm_class*>);
+    to_initialize = new unordered_set<mm_class*>; 
   }
 
   to_initialize->insert(pc);
@@ -138,7 +138,8 @@ void mm_class::remove_from_initialize(mm_class* pc) {
     to_initialize->erase(pc);
 
     if (to_initialize->empty()) {
-      to_initialize.reset();
+      delete to_initialize;
+      to_initialize = nullptr;
     }
   }
 }
@@ -247,11 +248,11 @@ void hierarchy_initializer::assign_slots() {
 void initialize() {
   while (mm_class::to_initialize) {
     auto pc = *mm_class::to_initialize->begin();
-	if (pc->is_root()) {
-	  hierarchy_initializer::initialize(*pc);
-	} else {
-	  mm_class::remove_from_initialize(pc);
-	}
+    if (pc->is_root()) {
+      hierarchy_initializer::initialize(*pc);
+    } else {
+      mm_class::remove_from_initialize(pc);
+    }
   }
 
   while (multi_method_base::to_initialize) {
@@ -272,7 +273,7 @@ bool method_base::specializes(method_base* other) const {
 
   bool result = false;
 
-  for (int dim = 0; dim < args.size(); dim++) {
+  for (size_t dim = 0; dim < args.size(); dim++) {
     if (args[dim] != other->args[dim]) {
       if (args[dim]->specializes(*other->args[dim])) {
         result = true;
@@ -344,11 +345,11 @@ void multi_method_base::invalidate() {
   add_to_initialize(this);
 }
 
-unique_ptr<unordered_set<multi_method_base*>> multi_method_base::to_initialize;
+unordered_set<multi_method_base*>* multi_method_base::to_initialize;
 
 void multi_method_base::add_to_initialize(multi_method_base* pm) {
   if (!to_initialize) {
-    to_initialize.reset(new unordered_set<multi_method_base*>);
+    to_initialize = new unordered_set<multi_method_base*>;
   }
 
   to_initialize->insert(pm);
@@ -359,7 +360,8 @@ void multi_method_base::remove_from_initialize(multi_method_base* pm) {
     to_initialize->erase(pm);
 
     if (to_initialize->empty()) {
-      to_initialize.reset();
+      delete to_initialize;
+      to_initialize = nullptr;
     }
   }
 }
@@ -484,7 +486,7 @@ method_base* grouping_resolver::find_best(const vector<method_base*>& candidates
     while (best_iter != best.end()) {
       if (method->specializes(*best_iter)) {
         YOREL_MM_TRACE(cout << method << " specializes " << *best_iter << ", removed\n");
-        best.erase(best_iter);
+        best_iter = best.erase(best_iter);
       } else if ((*best_iter)->specializes(method)) {
         YOREL_MM_TRACE(cout << *best_iter << " specializes " << method << ", removed\n");
         best_iter = best.end();

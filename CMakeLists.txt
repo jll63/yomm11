@@ -26,6 +26,10 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "-D_SCL_SECURE_NO_WARNINGS /EHsc")
+endif()
+
 add_subdirectory (src)
 add_subdirectory (tests)
 add_subdirectory (examples)

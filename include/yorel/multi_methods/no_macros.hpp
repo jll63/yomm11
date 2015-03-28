@@ -9,6 +9,16 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+// Copied from Boost.
+#ifdef _MSVC_VER
+#pragma warning( push )
+#pragma warning( disable: 4250 )
+#pragma warning( disable: 4284 )
+#pragma warning( disable: 4996 )
+#elif defined(__GNUC__) && (__GNUC__ >= 4)
+#pragma GCC system_header
+#endif
+
 #include <typeinfo>
 #include <typeindex>
 #include <type_traits>
@@ -28,14 +38,6 @@
 #include <iterator>
 #else
 #define YOREL_MM_TRACE(e)
-#endif
-
-// Copied from Boost.
-#ifdef _MSVC_VER
-#pragma warning( push )
-#pragma warning( disable : 4584 4250)
-#elif defined(__GNUC__) && (__GNUC__ >= 4)
-#pragma GCC system_header
 #endif
 
 namespace yorel {
@@ -79,7 +81,7 @@ class bitvec {
     ref(word* p, int i) : p(p), i(i) {
     }
     operator bool() const {
-      return p[i / bpw] & (1 << (i % bpw));
+      return (p[i / bpw] & (1 << (i % bpw))) != 0;
     }
     ref& operator =(bool val) {
       if (val) {
@@ -147,7 +149,7 @@ class bitvec {
   }
 
   bool operator [](int i) const {
-    return p[i / bpw] & (1 << (i % bpw));
+    return (p[i / bpw] & (1 << (i % bpw))) != 0;
   }
 
   ref operator [](int i) { return ref(p, i); }
@@ -254,7 +256,7 @@ struct mm_class {
   std::vector<mmref> rooted_here; // multi_methods rooted here for one or more args.
   bool abstract;
 
-  static std::unique_ptr<std::unordered_set<mm_class*>> to_initialize;
+  static std::unordered_set<mm_class*>* to_initialize;
   static void add_to_initialize(mm_class* pc);
   static void remove_from_initialize(mm_class* pc);
 
@@ -349,7 +351,7 @@ struct multi_method_base {
   std::vector<method_base*> methods;
   std::vector<int> steps;
 
-  static std::unique_ptr<std::unordered_set<multi_method_base*>> to_initialize;
+  static std::unordered_set<multi_method_base*>* to_initialize;
   static void add_to_initialize(multi_method_base* pm);
   static void remove_from_initialize(multi_method_base* pm);
 };
@@ -407,21 +409,13 @@ struct multi_method<Method, R(P...)> {
 
   using implementation = detail::multi_method_implementation<R, P...>;
   static implementation& the();
-  static std::unique_ptr<implementation> impl;
+  static implementation* impl;
 
   template<class Spec>
   static bool specialize() {
     the().template add_spec<Spec>();
     return true;
   }
-
-  template<class Spec>
-  struct register_spec {
-    register_spec() {
-      specialize<Spec>();
-    }
-    static register_spec the;
-  };
 
   template<class Spec>
   struct specialization {
@@ -431,18 +425,26 @@ struct multi_method<Method, R(P...)> {
   };
 };
 
+template<class Method, class Spec>
+struct register_spec {
+  register_spec() {
+    Method::template specialize<Spec>();
+
+  }
+  static register_spec the;
+
+};
+
+template<class Method, class Spec>
+register_spec<Method, Spec> register_spec<Method, Spec>::the;
+
 template<template<typename Sig> class Method, typename R, typename... P>
 template<class Spec>
 typename multi_method<Method, R(P...)>::method_pointer_type
 multi_method<Method, R(P...)>::specialization<Spec>::next;
 
 template<template<typename Sig> class Method, typename R, typename... P>
-template<class Spec>
-multi_method<Method, R(P...)>::register_spec<Spec>
-multi_method<Method, R(P...)>::register_spec<Spec>::the;
-
-template<template<typename Sig> class Method, typename R, typename... P>
-std::unique_ptr<typename multi_method<Method, R(P...)>::implementation> multi_method<Method, R(P...)>::impl;
+typename multi_method<Method, R(P...)>::implementation* multi_method<Method, R(P...)>::impl;
 
 template<template<typename Sig> class Method, typename R, typename... P>
 template<typename Tag>
@@ -451,7 +453,7 @@ typename multi_method<Method, R(P...)>::method_pointer_type multi_method<Method,
 template<template<typename Sig> class Method, typename R, typename... P>
 typename multi_method<Method, R(P...)>::implementation& multi_method<Method, R(P...)>::the() {
   if (!impl) {
-    impl.reset(new implementation);
+    impl = new implementation;
   }
 
   return *impl;
@@ -471,4 +473,7 @@ inline R multi_method<Method, R(P...)>::method(typename detail::remove_virtual<P
 }
 }
 
+#ifdef _MSVC_VER
+#pragma warning( pop )
+#endif
 #endif
