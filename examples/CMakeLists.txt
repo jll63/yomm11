@@ -16,8 +16,8 @@ target_link_libraries (next yomm11)
 add_executable(foreign foreign.cpp)
 target_link_libraries (foreign yomm11)
 
-add_library( dl_shared SHARED dl_shared.cpp )
-
-add_executable(dl_main dl_main.cpp)
-target_link_libraries (dl_main yomm11 dl dl_shared)
-
+if(NOT MSVC)
+  add_library( dl_shared SHARED dl_shared.cpp )
+  add_executable(dl_main dl_main.cpp)
+  target_link_libraries (dl_main yomm11 dl dl_shared)
+endif()
