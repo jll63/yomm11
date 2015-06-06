@@ -16,6 +16,9 @@ target_link_libraries (next yomm11)
 add_executable(foreign foreign.cpp)
 target_link_libraries (foreign yomm11)
 
+add_executable(matrix matrix.cpp)
+target_link_libraries (matrix yomm11)
+
 if(NOT MSVC)
   add_library( dl_shared SHARED dl_shared.cpp )
   add_executable(dl_main dl_main.cpp)
