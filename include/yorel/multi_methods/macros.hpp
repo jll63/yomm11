@@ -9,6 +9,7 @@
 #undef MM_CLASS
 #define MM_CLASS(CLASS, ...)                                       \
   using _yomm11_base_list = ::yorel::multi_methods::mm_class::base_list<__VA_ARGS__>; \
+  YOREL_MM_TRACE(friend const char* _yomm11_name_(CLASS*) { return #CLASS; })     \
   virtual void _yomm11_init_class_() { &::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<__VA_ARGS__>>::the; }
 
 #undef MM_EXTERN_CLASS
@@ -17,6 +18,7 @@
 #define MM_FOREIGN_CLASS(CLASS, ...)                               \
   static_assert(::yorel::multi_methods::detail::check_bases<CLASS, ::yorel::multi_methods::mm_class::base_list<__VA_ARGS__>>::value, "error in MM_FOREIGN_CLASS(): not a base in base list"); \
   static_assert(std::is_polymorphic<CLASS>::value, "error: class must be polymorphic"); \
+  YOREL_MM_TRACE(const char* _yomm11_name_(CLASS*) { return #CLASS; })     \
   namespace { ::yorel::multi_methods::mm_class::initializer<CLASS, ::yorel::multi_methods::mm_class::base_list<__VA_ARGS__>> _yomm11_add_class_ ## CLASS; }
 
 #define MM_INIT()                                                       \
@@ -33,6 +35,7 @@
 #undef MULTI_METHOD
 #define MULTI_METHOD(ID, RETURN_TYPE, ...)                          \
   template<typename Sig> struct ID ## _specialization;                  \
+  YOREL_MM_TRACE(inline const char* _yomm11_name_(::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(__VA_ARGS__)>*) { return #ID; })     \
   const ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(__VA_ARGS__)> ID
 
 #define BEGIN_SPECIALIZATION(ID, RESULT, ...)                       \

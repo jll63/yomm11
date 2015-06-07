@@ -310,8 +310,8 @@ struct multi_method_implementation : multi_method_base {
   using signature = R(typename remove_virtual<P>::type...);
   using virtuals = typename extract_virtuals<P...>::type;
 
-  multi_method_implementation() :
-      multi_method_base(mm_class_vector_of<virtuals>::get()),
+  multi_method_implementation(YOREL_MM_TRACE(const char* name)) :
+      multi_method_base(mm_class_vector_of<virtuals>::get() YOREL_MM_COMMA_TRACE(name)),
       dispatch_table(nullptr) {
   }
 
@@ -356,7 +356,6 @@ void multi_method_implementation<R, P...>::emit(method_base* method, int i) {
       : method == &method_base::undefined ? throw_undefined<signature>::body
       : static_cast<const method_entry*>(method)->pm;
   using namespace std;
-  YOREL_MM_TRACE(cout << "installed at " << dispatch_table << " + " << i << endl);
 }
 
 template<typename R, typename... P>

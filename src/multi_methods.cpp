@@ -10,6 +10,7 @@
 #include <yorel/multi_methods/runtime.hpp>
 #include <unordered_set>
 #include <iterator>
+#include <string>
 #include <functional>
 #include <cassert>
 
@@ -42,8 +43,7 @@ ambiguous::ambiguous() :
 
 using class_set = std::unordered_set<const mm_class*>;
 
-mm_class::mm_class(const type_info& t) : ti(t), abstract(false), index(-1), root(nullptr) {
-  //cout << "mm_class() for " << ti.name() << " at " << this << endl;
+mm_class::mm_class(YOREL_MM_TRACE(const char* name)) : abstract(false), index(-1), root(nullptr) YOREL_MM_COMMA_TRACE(name(name)) {
 }
 
 mm_class::~mm_class() {
@@ -88,7 +88,7 @@ bool mm_class::specializes(const mm_class& other) const {
 }
 
 void mm_class::initialize(const vector<mm_class*>& b) {
-  YOREL_MM_TRACE(cout << "initialize class_of<" << ti.name() << ">\n");
+  YOREL_MM_TRACE(cout << "initialize class_of<" << name << ">\n");
 
   if (root) {
     throw runtime_error("multi_methods: class redefinition");
@@ -125,14 +125,14 @@ void mm_class::add_to_initialize(mm_class* pc) {
   YOREL_MM_TRACE(cout << "add to initialize: " << pc << endl);
 
   if (!to_initialize) {
-    to_initialize = new unordered_set<mm_class*>; 
+    to_initialize = new unordered_set<mm_class*>;
   }
 
   to_initialize->insert(pc);
 }
 
 void mm_class::remove_from_initialize(mm_class* pc) {
-  YOREL_MM_TRACE(cout << "remove from initialize: " << pc->ti.name() << endl);
+  YOREL_MM_TRACE(cout << "remove from initialize: " << pc->name << endl);
 
   if (to_initialize) {
     to_initialize->erase(pc);
@@ -195,7 +195,6 @@ void hierarchy_initializer::make_masks() {
     pc->mask.resize(nb);
     pc->index = mark++;
     pc->mask[pc->index] = true;
-    YOREL_MM_TRACE(cout << pc->ti.name() << " = " << pc << endl);
   }
 
   for (auto pc_iter = nodes.rbegin(); pc_iter != nodes.rend(); pc_iter++) {
@@ -230,7 +229,8 @@ void hierarchy_initializer::assign_slots() {
       int slot = available_slot - slots.begin();
       max_slots = max(max_slots, slot + 1);
 
-      YOREL_MM_TRACE(cout << "slot " << slot << " -> " << mm.method->vargs << "(" << mm.arg << ")" << endl);
+      YOREL_MM_TRACE(cout << "slot " << slot << " -> " << mm.method->vargs
+                     << " (arg " << mm.arg << ")" << endl);
       mm.method->assign_slot(mm.arg, slot);
     }
 
@@ -239,7 +239,8 @@ void hierarchy_initializer::assign_slots() {
                                     pc->bases.begin(), pc->bases.end(),
                                     [](const mm_class* b1, const mm_class* b2) { return b1->mmt.size() < b2->mmt.size(); }))->mmt.size();
 
-    YOREL_MM_TRACE(cout << pc << ":max inherited slots: " << max_inherited_slots << ", max direct slots: " << max_slots << endl);
+    YOREL_MM_TRACE(cout << pc << ":max inherited slots: " << max_inherited_slots
+                   << ", max direct slots: " << max_slots << endl);
 
     pc->mmt.resize(max(max_inherited_slots, max_slots));
   }
@@ -313,11 +314,12 @@ ostream& operator <<(ostream& os, const vector<mm_class*>& classes) {
   return os << ")";
 }
 
-multi_method_base::multi_method_base(const vector<mm_class*>& v) : vargs(v) {
+multi_method_base::multi_method_base(const vector<mm_class*>& v YOREL_MM_COMMA_TRACE(const char* name))
+  : vargs(v) YOREL_MM_COMMA_TRACE(name(name)) {
   int i = 0;
   for (auto pc : vargs) {
-	YOREL_MM_TRACE(cout << "add mm rooted in " << pc->ti.name() << " argument " << i << "\n");
-	pc->add_multi_method(this, i++);
+    YOREL_MM_TRACE(cout << "add " << name << " rooted in " << pc->name << " argument " << i << "\n");
+    pc->add_multi_method(this, i++);
   }
   slots.resize(v.size());
 }
@@ -341,7 +343,7 @@ void multi_method_base::assign_slot(int arg, int slot) {
 }
 
 void multi_method_base::invalidate() {
-  YOREL_MM_TRACE(cout << "add " << this << " to init list" << endl);
+  YOREL_MM_TRACE(cout << "add " << name << " to init list" << endl);
   add_to_initialize(this);
 }
 
@@ -433,14 +435,13 @@ void grouping_resolver::make_groups() {
 }
 
 void grouping_resolver::make_table() {
-  YOREL_MM_TRACE(cout << "make_table" << endl);
+  YOREL_MM_TRACE(cout << "Creating dispatch table for " << mm.name << endl);
 
   emit_at = 0;
   resolve(dims - 1, ~bitvec(mm.methods.size()));
 
   const int first_slot = mm.slots[0];
 
-  YOREL_MM_TRACE(cout << "resolve 1st dimension" << endl);
   bitvec once;
 
   for (auto& group : groups[0]) {
@@ -451,7 +452,6 @@ void grouping_resolver::make_table() {
 
       if (!once[pc->index]) {
         once[pc->index] = true;
-        YOREL_MM_TRACE(cout << pc << ": " << pc->mmt[first_slot].index << " -> " << dispatch_table + pc->mmt[first_slot].index << endl);
         pc->mmt[first_slot].ptr = dispatch_table + pc->mmt[first_slot].index;
       }
     }
@@ -460,7 +460,7 @@ void grouping_resolver::make_table() {
 
 void grouping_resolver::resolve(int dim, const bitvec& candidates) {
   using namespace std;
-  YOREL_MM_TRACE(cout << "\nresolve dim = " << dim << endl);
+  YOREL_MM_TRACE(cout << "resolve dim = " << dim << endl);
 
   for (auto& group : groups[dim]) {
     if (dim == 0) {
@@ -545,13 +545,11 @@ void grouping_resolver::make_mask(const vector<method_base*>& methods, bitvec& m
   }
 }
 
+#ifdef YOREL_MM_ENABLE_TRACE
+
 std::ostream& operator <<(std::ostream& os, const mm_class* pc) {
   if (pc) {
-    if (pc->index != -1) {
-      os << "class_" << pc->index;
-    } else{
-      os << pc->ti.name();
-    }
+    os << pc->name;
   } else {
     os << "(null)";
   }
@@ -569,18 +567,22 @@ ostream& operator <<(ostream& os, method_base* method) {
     return os << "ambiguous";
   }
 
-  os << "method_";
-  os << method->index;
   const char* sep = "(";
 
   for (mm_class* pc : method->args) {
     os << sep;
     sep = ", ";
-    os << pc->index;
+    os << pc->name;
   }
 
   return os << ")";
 }
+
+ostream& operator <<(ostream& os, const multi_method_base* mm) {
+  return os << mm->name << mm->vargs;
+}
+
+#endif
 
 ostream& operator <<(ostream& os, const vector<method_base*>& methods) {
   using namespace std;
@@ -593,10 +595,6 @@ ostream& operator <<(ostream& os, const vector<method_base*>& methods) {
   }
 
   return os;
-}
-
-ostream& operator <<(ostream& os, const multi_method_base* mm) {
-  return os << "mm" << mm->vargs;
 }
 
 }

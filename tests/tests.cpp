@@ -6,6 +6,12 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+//#define YOREL_MM_ENABLE_TRACE
+
+#ifdef YOREL_MM_ENABLE_TRACE
+#include "../src/multi_methods.cpp"
+#endif
+
 #include <yorel/multi_methods.hpp>
 #include <yorel/multi_methods/runtime.hpp>
 
@@ -70,12 +76,12 @@ bool throws(function<void()> fun) {
 
 unsigned long binary(const char* digits) {
   unsigned long bits = 0;
-  
+
   while (*digits) {
     bits <<= 1;
-    bits |= *digits++ == '1';    
+    bits |= *digits++ == '1';
   }
-  
+
   return bits;
 }
 
@@ -1143,7 +1149,7 @@ int main() {
     cout << "\n--- Unloading classes." << endl;
     {
       // fake a class
-      mm_class donkey_class(typeid(Donkey));
+      mm_class donkey_class YOREL_MM_TRACE(("Donkey"));
       donkey_class.initialize(mm_class_vector_of<Herbivore>::get());
       test( mm_class::to_initialize != nullptr, true );
       test( mm_class::to_initialize->size(), 1 );

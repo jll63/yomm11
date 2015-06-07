@@ -35,9 +35,12 @@
 //#define YOREL_MM_ENABLE_TRACE
 #ifdef YOREL_MM_ENABLE_TRACE
 #define YOREL_MM_TRACE(e) e
+#define YOREL_MM_COMMA_TRACE(e) , e
 #include <iterator>
 #else
 #define YOREL_MM_TRACE(e)
+#define YOREL_MM_COMMA_TRACE(e)
+#include <iterator>
 #endif
 
 namespace yorel {
@@ -59,12 +62,14 @@ class undefined;
 class ambiguous;
 
 // these are for debugging
-std::ostream& operator <<(std::ostream& os, const mm_class* pc);
-std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes);
-std::ostream& operator <<(std::ostream& os, method_base* method);
 std::ostream& operator <<(std::ostream& os, const std::vector<method_base*>& methods);
+std::ostream& operator <<(std::ostream& os, const std::vector<mm_class*>& classes);
 
+#ifdef YOREL_MM_ENABLE_TRACE
+std::ostream& operator <<(std::ostream& os, const mm_class* pc);
+std::ostream& operator <<(std::ostream& os, method_base* method);
 std::ostream& operator <<(std::ostream& os, const multi_method_base* pc);
+#endif
 
 // End of forward declarations.
 
@@ -232,10 +237,9 @@ struct mm_class {
     void (**ptr)();
   };
 
-  mm_class(const std::type_info& t);
+  mm_class(YOREL_MM_TRACE(const char* name));
   ~mm_class();
 
-  const std::string name() const;
   void initialize(const std::vector<mm_class*>& bases);
   void add_multi_method(multi_method_base* pm, int arg);
   void remove_multi_method(multi_method_base* pm);
@@ -246,7 +250,7 @@ struct mm_class {
   bool specializes(const mm_class& other) const;
   bool is_root() const;
 
-  const std::type_info& ti;
+  YOREL_MM_TRACE(const char* name);
   std::vector<mm_class*> bases;
   std::vector<mm_class*> specs;
   detail::bitvec mask;
@@ -263,7 +267,7 @@ struct mm_class {
   template<class Class>
   struct of {
     static mm_class& the() {
-      static mm_class instance(typeid(Class));
+      static mm_class instance YOREL_MM_TRACE({_yomm11_name_((Class*) nullptr)});
       return instance;
     }
   };
@@ -283,10 +287,6 @@ struct mm_class {
     static initializer the;
   };
 };
-
-inline const std::string mm_class::name() const {
-  return ti.name();
-}
 
 inline bool mm_class::is_root() const {
   return this == root;
@@ -334,7 +334,7 @@ struct cast_using_dynamic_cast {
 };
 
 struct multi_method_base {
-  explicit multi_method_base(const std::vector<mm_class*>& v);
+  explicit multi_method_base(const std::vector<mm_class*>& v YOREL_MM_COMMA_TRACE(const char* name));
   virtual ~multi_method_base();
 
   using void_function_pointer = void (*)();
@@ -350,6 +350,7 @@ struct multi_method_base {
   std::vector<int> slots;
   std::vector<method_base*> methods;
   std::vector<int> steps;
+  YOREL_MM_TRACE(const char* name);
 
   static std::unordered_set<multi_method_base*>* to_initialize;
   static void add_to_initialize(multi_method_base* pm);
@@ -453,7 +454,7 @@ typename multi_method<Method, R(P...)>::method_pointer_type multi_method<Method,
 template<template<typename Sig> class Method, typename R, typename... P>
 typename multi_method<Method, R(P...)>::implementation& multi_method<Method, R(P...)>::the() {
   if (!impl) {
-    impl = new implementation;
+    impl = new implementation(YOREL_MM_TRACE(_yomm11_name_((multi_method<Method, R(P...)>*) nullptr)));
   }
 
   return *impl;
