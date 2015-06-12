@@ -32,11 +32,17 @@
 #define MM_INIT_MULTI(BASE)                     \
   this->BASE::_init_yomm11_ptr(this)
 
+#ifdef __cpp_constexpr
+#define YOMM_CONSTEXPR constexpr
+#else
+#define YOMM_CONSTEXPR const
+#endif
+
 #undef MULTI_METHOD
 #define MULTI_METHOD(ID, RETURN_TYPE, ...)                          \
   template<typename Sig> struct ID ## _specialization;                  \
   YOREL_MM_TRACE(inline const char* _yomm11_name_(::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(__VA_ARGS__)>*) { return #ID; })     \
-  const ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(__VA_ARGS__)> ID
+  YOMM_CONSTEXPR ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(__VA_ARGS__)> ID
 
 #define BEGIN_SPECIALIZATION(ID, RESULT, ...)                       \
   template<>                                                            \

@@ -22,6 +22,6 @@
 
 #define MULTI_METHOD(ID, RETURN_TYPE, ARGS...)                          \
   template<typename Sig> struct ID ## _specialization;                  \
-  constexpr ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(ARGS)> ID{}; \
+  YOMM_CONSTEXPR ::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(ARGS)> ID; \
   YOREL_MM_TRACE(inline const char* _yomm11_name_(::yorel::multi_methods::multi_method<ID ## _specialization, RETURN_TYPE(__VA_ARGS__)>*) { return #ID; })     \
   extern template class ::yorel::multi_methods::detail::multi_method_implementation<RETURN_TYPE, ARGS>
