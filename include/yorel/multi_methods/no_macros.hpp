@@ -397,6 +397,10 @@ mm_class::initializer<Class, mm_class::base_list<Bases...>> mm_class::initialize
 template<template<typename Sig> class Method, typename R, typename... P>
 struct multi_method<Method, R(P...)> {
 
+#ifdef __cpp_constexpr
+  constexpr
+#endif
+  multi_method() {}
   R operator ()(typename detail::remove_virtual<P>::type... args) const;
   static R method(typename detail::remove_virtual<P>::type... args);
 
