@@ -937,7 +937,7 @@ typename method<Method, R(P...)>::method_pointer_type method<Method, R(P...)>::n
 template<template<typename Sig> class Method, typename R, typename... P>
 typename method<Method, R(P...)>::implementation& method<Method, R(P...)>::the() {
   if (!impl) {
-    impl = new implementation(YOMM11_TRACE(_yomm11_name_((multi_method<Method, R(P...)>*) nullptr)));
+    impl = new implementation(YOMM11_TRACE(_yomm11_name_((method<Method, R(P...)>*) nullptr)));
   }
 
   return *impl;
