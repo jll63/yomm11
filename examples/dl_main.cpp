@@ -36,7 +36,13 @@ int main() {
   cout << "encounter(Cow(), Wolf()) -> " << encounter(Cow(), Wolf()) << endl;
   cout << "encounter(Wolf(), Cow()) -> " << encounter(Wolf(), Cow()) << endl;
 
-  void* handle = dlopen("./libdl_shared.so", RTLD_NOW);
+  void* handle = dlopen(
+#ifdef __APPLE__
+      "./libdl_shared.dylib"
+#else
+      "./libdl_shared.so"
+#endif
+      , RTLD_NOW);
 
   if (!handle) {
     cout << "dlopen() failed: " << dlerror() << "\n";
